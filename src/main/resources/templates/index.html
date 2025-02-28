@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Booktine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- CSS 경로를 Thymeleaf 문법으로 지정 -->
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+<!-- 헤더 영역 -->
+<header class="header">
+  <nav class="navbar">
+    <!-- 왼쪽 로고 -->
+    <div class="logo">Booktine</div>
+    <ul class="nav-links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Book Note</a></li>
+      <li><a href="#">Progress</a></li>
+      <li><a href="#">Settings</a></li>
+    </ul>
+    <!-- 오른쪽 인증 버튼 -->
+    <div class="auth-buttons">
+      <button class="login-btn"
+              th:onclick="'location.href=\'' + @{/login} + '\';'">
+        Log in
+      </button>
+      <button class="signup-btn"
+              th:onclick="'location.href=\'' + @{/signup} + '\';'">
+        Sign up
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- 메인(히어로) 영역 -->
+<main>
+  <section class="hero">
+    <!-- 히어로 텍스트 (왼쪽) -->
+    <div class="hero-content">
+      <h1>안녕하세요 Booktine 입니다.</h1>
+      <p class="subtext">
+        독서 습관 추적 &amp; 목표 관리 서비스<br>
+        랜덤 책 추천 서비스<br>
+        독서 노트 &amp; 메모 서비스
+      </p>
+      <button class="cta-btn"
+              th:onclick="'location.href=\'' + @{/login} + '\';'">
+        Log in
+      </button>
+    </div>
+    <!-- CSS 배경이미지 방식으로 대체하므로 이미지 태그 제거 -->
+    <!-- <img class="orb" th:src="@{/images/Main.png}" alt="3D Orb" /> -->
+  </section>
+</main>
+
+
+<!-- 푸터 (필요 시) -->
+<footer class="footer">
+  <p>&copy; 2025 Booktine. All rights reserved.</p>
+</footer>
+
+<!-- JS (필요 시) -->
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
