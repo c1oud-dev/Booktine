@@ -1,50 +1,31 @@
 package booktine.Booktine.controller;
 
+import booktine.Booktine.dto.SignUpRequest;
 import booktine.Booktine.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-@RequiredArgsConstructor
+/**
+ * 회원가입/로그인 등 인증 관련 API 엔드포인트
+ */
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
-    private final UserService userService;
+    @Autowired
+    private UserService userService;
 
-    // 메인 페이지 (예: index.html)
-    @GetMapping("/")
-    public String home() {
-        return "index";
-    }
-
-    // 회원가입 페이지
-    @GetMapping("/signup")
-    public String signupForm() {
-        return "signup"; // Thymeleaf 템플릿 (signup.html)
-    }
-
-    // 회원가입 처리
+    // 회원가입
     @PostMapping("/signup")
-    public String signupProcess(@RequestParam String email,
-                                @RequestParam String password,
-                                @RequestParam String firstName,
-                                @RequestParam String lastName,
-                                Model model) {
+    public ResponseEntity<?> signUp(@RequestBody SignUpRequest request) {
         try {
-            userService.registerUser(email, password, firstName, lastName);
-            return "redirect:/login";
-        } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "signup";
+            userService.createUser(request);
+            return ResponseEntity.ok("회원가입 성공!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    // 로그인 페이지
-    @GetMapping("/login")
-    public String loginPage(@RequestParam(required = false) String error, Model model) {
-        if (error != null) {
-            model.addAttribute("errorMessage", "로그인 실패");
-        }
-        return "login"; // Thymeleaf 템플릿 (login.html)
     }
 }

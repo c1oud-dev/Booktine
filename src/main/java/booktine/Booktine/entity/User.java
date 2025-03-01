@@ -3,8 +3,10 @@ package booktine.Booktine.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Getter
-@Setter
+/**
+ * DB에 저장할 유저 엔티티
+ */
+
 @Entity
 @Table(name = "users") // 테이블명
 public class User {
@@ -12,23 +14,38 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String email; // 이메일(로그인 ID로 사용)
-
-    @Column(nullable = false)
-    private String password; // 암호화된 비밀번호
-
-    private String role = "ROLE_USER"; // 기본 권한(예: ROLE_USER)
-
-    // 필요한 필드(이름, 닉네임 등) 추가 가능
+    // 예: firstName, lastName, email, password
     private String firstName;
     private String lastName;
 
-    public org.springframework.security.core.userdetails.UserDetails buildUserDetails() {
-        return org.springframework.security.core.userdetails.User
-                .withUsername(this.email)
-                .password(this.password)
-                .roles(this.role.replace("ROLE_", "")) // "ROLE_USER" -> "USER"
-                .build();
+    @Column(unique = true)
+    private String email;
+
+    private String password;
+
+    // 기본 생성자
+    public User() {
     }
+
+    // 생성자
+    public User(String firstName, String lastName, String email, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+    }
+
+    // Getter/Setter
+    public Long getId() {
+        return id;
+    }
+
+    // ... (other getters/setters)
+    public String getFirstName() {
+        return firstName;
+    }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+    // ... 생략
 }
