@@ -1,35 +1,44 @@
 package booktine.Booktine.service;
 
-import booktine.Booktine.dto.SignUpRequest;
-import booktine.Booktine.entity.User;
+import booktine.Booktine.model.User;
 import booktine.Booktine.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
- * 회원가입 비즈니스 로직
+ * 회원가입과 로그인 로직 처리, BCryptPasswordEncoder를 이용해 비밀번호를 암호화
  */
 @Service
 public class UserService {
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     @Autowired
-    private UserRepository userRepository;
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
-    public void createUser(SignUpRequest request) {
-        // 이메일 중복 검사
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("이미 사용 중인 이메일입니다.");
+    public User registerUser(String username, String rawPassword) throws Exception {
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new Exception("Username already exists");
         }
+        String encodedPassword = passwordEncoder.encode(rawPassword);
+        User user = new User(username, encodedPassword);
+        return userRepository.save(user);
+    }
 
-        // 비밀번호 암호화 로직(BCrypt 등) 넣을 수 있음
-        // String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-        User user = new User(
-                request.getFirstName(),
-                request.getLastName(),
-                request.getEmail(),
-                request.getPassword() // 암호화 안 한 예시
-        );
-
-        userRepository.save(user);
+    public User loginUser(String username, String rawPassword) throws Exception {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isEmpty()) {
+            throw new Exception("Invalid username or password");
+        }
+        User user = optionalUser.get();
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new Exception("Invalid username or password");
+        }
+        return user;
     }
 }
