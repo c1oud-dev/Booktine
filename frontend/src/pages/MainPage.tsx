@@ -1,12 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
+import AuthModal from '../components/AuthModal'; // 실제 AuthModal 위치에 맞춰 경로 수정
 
 const MainPage: React.FC = () => {
+  // (2) 모달 열림 여부, SignUp/LogIn 구분을 위한 state
+  const [showModal, setShowModal] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
+
+   // (3) 모달 열고/닫는 함수
+   const handleOpenModal = (signUp: boolean) => {
+    setIsSignUp(signUp);
+    setShowModal(true);
+  };
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
   return (
     <div
       style={{
         width: '100%',
         height: 'calc(100vh - 60px)', // 헤더 높이 제외
-        background: 'url(/main.jpg) no-repeat left top / cover', 
+        background: 'url(/Main.jpg) no-repeat left top / cover', 
         position: 'relative',
       }}
     >
@@ -27,6 +41,8 @@ const MainPage: React.FC = () => {
           랜덤 책 추천 서비스 <br />
           독서 노트 & 메모 서비스
         </p>
+
+        {/* (4) onClick에서 모달 열기 함수 호출 */}
         <button
           style={{
             backgroundColor: '#333',
@@ -37,13 +53,20 @@ const MainPage: React.FC = () => {
             cursor: 'pointer',
             fontSize: '16px',
           }}
-          onClick={() => {
-            // 원한다면 여기서 바로 모달 열기 또는 /login 페이지 이동
-          }}
+          onClick={() => handleOpenModal(false)} // false -> Log In 모드
         >
           Log In
         </button>
       </div>
+
+      {/* (5) 모달 표시 */}
+      {showModal && (
+        <AuthModal
+          isSignUp={isSignUp}
+          onClose={handleCloseModal}
+        />
+      )}
+
     </div>
   );
 };
