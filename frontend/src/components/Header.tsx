@@ -14,6 +14,7 @@ const Header: React.FC = () => {
   // 로그인 후 상태
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [profileImage, setProfileImage] = useState<string>('');
 
   const handleOpenModal = (signUp: boolean) => {
     setIsSignUp(signUp);
@@ -30,7 +31,7 @@ const Header: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 40px',
-        height: '60px',
+        height: '65px',
         backgroundColor: '#fff',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
       }}
@@ -39,7 +40,7 @@ const Header: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '70px' }}>
         {/* 로고 */}
         <div
-          style={{ fontSize: '24px', fontWeight: 'bold', cursor: 'pointer' }}
+          style={{ fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
           onClick={() => navigate('/home')}
         >
           Booktine
@@ -59,7 +60,10 @@ const Header: React.FC = () => {
           <div
             style={{
               cursor: 'pointer',
-              color: location.pathname === '/booknote' ? '#000' : '#aaa',
+              color:
+                location.pathname === '/booknote' || location.pathname === '/createpost'
+                  ? '#000'
+                  : '#aaa'
             }}
             onClick={() => navigate('/booknote')}
           >
@@ -86,28 +90,56 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* 오른쪽: 로그인 상태에 따라 */}
-      <div style={{ display: 'flex', gap: '30px' }}>
+      {/* 오른쪽: 로그인 상태에 따라 (이미지+이름과 로그아웃 버튼을 감싸는)*/}
+      <div style={{ display: 'flex', alignItems: 'center' }}>
         {isLoggedIn ? (
-          <>
-            <div style={{ fontWeight: 'bold' }}>{username}</div>
-            <button
-              style={{
-                backgroundColor: '#333',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '8px 16px',
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                setIsLoggedIn(false);
-                setUsername('');
-              }}
-            >
-              Log Out
-            </button>
-          </>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              {/* 프로필 이미지 컨테이너 */}
+              <div
+                style={{
+                  width: '35px',
+                  height: '35px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ccc', // 기본 회색 원
+                  border: '1px solid #666',   // 원하는 색상, 두께로 조정
+                  overflow: 'hidden',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {profileImage && (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                )}
+              </div>
+
+              {/* 사용자 이름 */}
+              <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{username}</div>
+
+              {/* 로그아웃 버튼 */}
+              <button
+                style={{
+                  marginLeft: '20px',
+                  backgroundColor: '#333',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px 16px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  setIsLoggedIn(false);
+                  setUsername('');
+                  setProfileImage(''); // 로그아웃 시 이미지도 초기화
+                }}
+              >
+                Log Out
+              </button>
+            </div>
         ) : (
           <>
             <button
@@ -145,9 +177,9 @@ const Header: React.FC = () => {
         <AuthModal
           isSignUp={isSignUp}
           onClose={handleCloseModal}
-          onLoginSuccess={(name) => {
+          onLoginSuccess={(firstName: string, lastName: string) => {
             setIsLoggedIn(true);
-            setUsername(name);
+            setUsername(`${firstName}${lastName}`);
           }}
         />
       )}

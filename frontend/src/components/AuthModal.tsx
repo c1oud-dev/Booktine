@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 interface AuthModalProps {
   isSignUp: boolean; // 처음 열릴 때 Sign Up 탭인지, Log In 탭인지
   onClose: () => void;
-  onLoginSuccess?: (username: string) => void; // 로그인 성공 시 호출되는 콜백
+  onLoginSuccess?: (firstName: string, lastName: string) => void; // 로그인 성공 시 호출되는 콜백
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess }) => {
@@ -33,13 +33,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
       // 로그인 성공 시, 응답 JSON에서 firstName과 lastName을 합쳐 사용자 이름 생성
       const result = await response.json();
-      const userName =
-        result.firstName && result.lastName
-          ? `${result.firstName} ${result.lastName}`
-          : loginEmail;
       // 로그인 성공 콜백 호출
       if (onLoginSuccess) {
-        onLoginSuccess(userName);
+        onLoginSuccess(result.firstName || '', result.lastName || '');
       }
       onClose();
       navigate('/home');
