@@ -40,7 +40,7 @@ const Header: React.FC = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '70px' }}>
         {/* 로고 */}
         <div
-          style={{ fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+          style={{ fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', textShadow: '0px 1.5px gray' }}
           onClick={() => navigate('/home')}
         >
           Booktine
@@ -157,6 +157,7 @@ const Header: React.FC = () => {
             </button>
             <button
               style={{
+                marginLeft: '20px',
                 backgroundColor: '#333',
                 color: '#fff',
                 border: 'none',

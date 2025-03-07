@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+// BookNote.tsx (수정된 부분, 전체 코드 참고)
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// 예시: 게시글(Post) 데이터 구조
 interface Post {
   id: number;
   title: string;
@@ -9,19 +9,29 @@ interface Post {
 }
 
 const BookNote: React.FC = () => {
-  // 게시글 목록 예시 (실제로는 API 호출 등을 통해 가져옴)
   const [posts, setPosts] = useState<Post[]>([]);
-
   const navigate = useNavigate();
 
-  // "글쓰기" 버튼 클릭 시 처리할 함수 (예: 모달 열기 또는 다른 페이지로 이동)
+  // 백엔드에서 게시글 목록을 가져오는 useEffect 추가
+  useEffect(() => {
+    fetch('http://localhost:8083/posts') // 백엔드 서버 주소와 포트에 맞게 수정
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('게시글 불러오기 실패');
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setPosts(data);
+      })
+      .catch((error) => console.error('Error fetching posts:', error));
+  }, []);
+
   const handleCreatePost = () => {
     navigate('/createpost');
-    // 여기서 모달 열기, 혹은 새 글 작성 페이지로 이동 로직 등을 구현
   };
 
   return (
-    // 페이지 여백을 원하는 만큼 조절 (왼쪽, 오른쪽 등)
     <div
       style={{
         paddingLeft: '200px',
@@ -30,7 +40,6 @@ const BookNote: React.FC = () => {
         paddingBottom: '40px',
       }}
     >
-      {/* 상단 제목 */}
       <h2
         style={{
           fontWeight: 'bold',
@@ -40,12 +49,9 @@ const BookNote: React.FC = () => {
       >
         Book Note
       </h2>
-      {/* 제목 아래 선 */}
       <hr style={{ border: '1px solid #000', marginBottom: '40px' }} />
 
-      {/* 게시글이 없는 경우 / 있는 경우 조건부 렌더링 */}
       {posts.length === 0 ? (
-        // 게시글이 없는 경우
         <div
           style={{
             textAlign: 'center',
@@ -58,7 +64,6 @@ const BookNote: React.FC = () => {
           <p style={{ fontWeight: 'bold', fontSize: '40px', color: '#777', marginBottom: '30px' }}>
             게시물을 작성해주세요.
           </p>
-
           <button
             style={{
               backgroundColor: '#333',
@@ -74,12 +79,13 @@ const BookNote: React.FC = () => {
           </button>
         </div>
       ) : (
-        // 게시글이 존재하는 경우 (게시글 목록 표시)
         <div>
           {posts.map((post) => (
             <div
               key={post.id}
+              onClick={() => navigate(`/post/${post.id}`)}
               style={{
+                cursor: 'pointer',
                 marginBottom: '20px',
                 border: '1px solid #ccc',
                 borderRadius: '8px',
@@ -90,8 +96,6 @@ const BookNote: React.FC = () => {
               <p>{post.content}</p>
             </div>
           ))}
-
-          {/* 글쓰기 버튼 (게시글 목록 상단 또는 하단에 배치 가능) */}
           <button
             style={{
               backgroundColor: '#ccc',
