@@ -40,15 +40,31 @@ const BookNote: React.FC = () => {
         paddingBottom: '40px',
       }}
     >
-      <h2
+      {/* 헤더 영역: "Book Note" + 글쓰기 버튼 */}
+      <div
         style={{
-          fontWeight: 'bold',
-          fontSize: '40px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: '10px',
         }}
       >
-        Book Note
-      </h2>
+        <h2 style={{ fontWeight: 'bold', fontSize: '40px' }}>Book Note</h2>
+        <button
+          style={{
+            backgroundColor: '#333',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '20px',
+            padding: '10px 25px',
+            cursor: 'pointer',
+          }}
+          onClick={handleCreatePost}
+        >
+          글쓰기
+        </button>
+      </div>
+
       <hr style={{ border: '1px solid #000', marginBottom: '40px' }} />
 
       {posts.length === 0 ? (
@@ -96,19 +112,7 @@ const BookNote: React.FC = () => {
               <p>{post.content}</p>
             </div>
           ))}
-          <button
-            style={{
-              backgroundColor: '#ccc',
-              color: '#333',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '10px 20px',
-              cursor: 'pointer',
-            }}
-            onClick={handleCreatePost}
-          >
-            글쓰기
-          </button>
+        
         </div>
       )}
     </div>

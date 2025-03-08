@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface Memo {
   id: number;
@@ -11,21 +11,39 @@ interface Memo {
 const CreatePostPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
-  const postId = searchParams.get('id'); // URL에 ?id=xxx 형태로 전달
+  const { id: postId } = useParams(); // URL 경로 파라미터로부터 id를 받아옴
 
   useEffect(() => {
-    if (postId) {
-      // 예: 기존 게시글 데이터 불러오기 (fetch 사용, axios 등으로 변경 가능)
-      fetch(`/posts/${postId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setTitle(data.title);
-          // 필요에 따라 저자, 장르, 출판사, 한줄요약, 리뷰, 메모 등 다른 상태도 설정
-          // 예: setMemos(data.memos);
-        })
-        .catch((error) => console.error('Error fetching post:', error));
-    }
+    if (!postId) return; // 새 글쓰기면 postId가 없음
+    fetch(`http://localhost:8083/posts/${postId}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('게시글 불러오기 실패');
+        return res.json();
+      })
+      .then((data) => {
+        setTitle(data.title);
+        setStartDate(data.startDate);
+        setReadingStatus(data.readingStatus);
+        setInputAuthor(data.inputAuthor);
+        setGenre(data.genre);
+        setPublisher(data.publisher);
+        setSummary(data.summary);
+        setReview(data.review);
+        
+
+        // 백엔드에서 받은 memos 배열이 있다면, 아래처럼 state에 반영
+        if (data.memos) {
+          setMemos(
+            data.memos.map((m: any) => ({
+              id: m.id,
+              pageNumber: m.pageNumber,
+              memo: m.memo,
+              isMemoSaved: true,
+            }))
+          );
+        }
+      })
+      .catch((err) => console.error('Error fetching post:', err));
   }, [postId]);
 
   // ──────────────────────────────────────────────
@@ -35,16 +53,19 @@ const CreatePostPage: React.FC = () => {
   const [showToast, setShowToast] = useState(false);
   const [showConfirmBackModal, setShowConfirmBackModal] = useState(false); // "뒤로가기" 확인 모달
   const [showCongratsModal, setShowCongratsModal] = useState(false); // "완독 축하합니다!" 모달
-
+  const [isSaved, setIsSaved] = useState(false);
   const [readingStatus, setReadingStatus] = useState<'독서중' | '완독'>('독서중');
 
   const handleGoBack = () => {
-    // 저장하지 않은 내용이 있다면 뒤로가기 모달 띄우기
-    setShowConfirmBackModal(true);
+    if (isSaved) {// 저장하지 않은 내용이 있다면 뒤로가기 모달 띄우기
+      navigate('/booknote');
+    } else {
+      setShowConfirmBackModal(true);
+    }
   };
   const confirmGoBack = () => {
     setShowConfirmBackModal(false);
-    navigate('/booknote');
+    handleSave(undefined, true);
   };
   const cancelGoBack = () => {
     setShowConfirmBackModal(false);
@@ -114,36 +135,62 @@ const CreatePostPage: React.FC = () => {
     setMemos(memos.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
   };
 
+  // 추가: 책 관련 추가 입력값 상태
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [inputAuthor, setInputAuthor] = useState('');
+  const [genre, setGenre] = useState('');
+  const [publisher, setPublisher] = useState('');
+  const [summary, setSummary] = useState('');
+  const [review, setReview] = useState('');
+  
+
+
   // ──────────────────────────────────────────────
   // 4) 저장하기 버튼 처리 (페이지 하단)
   // ──────────────────────────────────────────────
-  const handleSave = () => {
-    // 만약 제목이 입력되지 않았다면, 제목 입력 필드로 포커스 이동 및 빨간 테두리 처리
-    if (title.trim() === '') {
+  const handleSave = (
+    e?: React.MouseEvent<HTMLButtonElement>,
+    navigateAfterSave = false
+  ) => {
+    if (e) {
+      e.preventDefault(); // 혹시 모를 폼 submit 방지
+    }
+
+    if (title.trim() === '') {// 만약 제목이 입력되지 않았다면, 제목 입력 필드로 포커스 이동 및 빨간 테두리 처리
       setTitleError(true);
       if (titleInputRef.current) {
         titleInputRef.current.focus();
-        // 스크롤도 제목 입력 필드로 이동
-        titleInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        titleInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });// 스크롤도 제목 입력 필드로 이동
       }
       return;
     }
 
-    const username = localStorage.getItem('username') || '익명'; // 회원가입 시 설정한 사용자 이름(예: firstName+lastName)
+    const username = localStorage.getItem('username'); // 회원가입 시 설정한 사용자 이름(예: firstName+lastName)
+    if (!username) {
+      alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
+      return;
+    }
     const defaultAvatar = '/default_avatar.png'; // 기본 회색 원 이미지 경로
-    // 저장 로직 처리 (예: 백엔드 API 호출 등)
-    // 저장할 게시글 데이터 구성
-    const postData = {
+    
+    const postData = {// 저장 로직 처리 (예: 백엔드 API 호출 등)
         title,
+        startDate,
+        readingStatus,
         author: {
             name: username,               // 실제 사용자 이름으로 변경 필요
             avatar: defaultAvatar // 실제 사용자 아바타 URL로 변경 필요
           },
-    // 필요한 다른 필드: author, genre, publisher, summary, review, startDate, endDate, memos 등
+        inputAuthor,
+        genre,
+        publisher,
+        summary,
+        review,
+        endDate,
+        memos,
     };
 
-    // postId가 있으면 수정(PUT), 없으면 신규 생성(POST)
-    const requestMethod = postId ? 'PUT' : 'POST';
+    const requestMethod = postId ? 'PUT' : 'POST'; // postId가 있으면 수정(PUT), 없으면 신규 생성(POST)
     const backendUrl = 'http://localhost:8083'; // 백엔드 서버 주소와 포트
     const requestUrl = postId ? `${backendUrl}/posts/${postId}` : `${backendUrl}/posts`;
 
@@ -151,24 +198,25 @@ const CreatePostPage: React.FC = () => {
         method: requestMethod,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(postData),
-        })
+      })
         .then((res) => {
         if (!res.ok) throw new Error('Save failed');
         return res.json();
-        })
-        .then((data) => {
-        // 저장 완료 후, Book Note 페이지로 이동하거나 토스트 메시지 표시 등
-        navigate('/booknote');
-        })
+      })
+        .then(() => {
+          setIsSaved(true);
+          if (navigateAfterSave) {// 저장 완료 후, Book Note 페이지로 이동하거나 토스트 메시지 표시 등
+            navigate('/booknote');
+          }
+      })
         .catch((error) => {
-        console.error('Error saving post:', error);
-        // 필요에 따라 에러 처리
-        });
+          console.error('Error saving post:', error);
+      });
 
     // 토스트 메시지 표시
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000); // 3초 후 토스트 숨김
-};
+  };
 
   return (
     <div
@@ -196,6 +244,8 @@ const CreatePostPage: React.FC = () => {
           <label style={{ fontSize: '20px', fontWeight: 'bold' }}>책을 펴낸 날</label>
           <input
             type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
             style={{
               padding: '8px',
               border: '1px solid #ccc',
@@ -270,6 +320,8 @@ const CreatePostPage: React.FC = () => {
           <input
             type="text"
             placeholder="저자를 입력하세요."
+            value={inputAuthor}
+            onChange={(e) => setInputAuthor(e.target.value)}
             style={{
               width: '50%',
               padding: '10px',
@@ -284,6 +336,8 @@ const CreatePostPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <label style={{ width: '70px', fontWeight: 'bold' }}>장 르</label>
           <select
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
             style={{
               width: '50%',
               padding: '10px',
@@ -312,6 +366,8 @@ const CreatePostPage: React.FC = () => {
           <input
             type="text"
             placeholder="출판사를 입력하세요."
+            value={publisher}
+            onChange={(e) => setPublisher(e.target.value)}
             style={{
               width: '50%',
               padding: '10px',
@@ -327,6 +383,8 @@ const CreatePostPage: React.FC = () => {
           <label style={{ width: '70px', fontWeight: 'bold' }}>한줄요약</label>
           <textarea
             placeholder="책을 한줄로 요약하세요."
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
             style={{
               width: '95%',
               height: '50px',
@@ -471,6 +529,8 @@ const CreatePostPage: React.FC = () => {
         </label>
         <textarea
           placeholder="리뷰를 작성하세요."
+          value={review}
+          onChange={(e) => setReview(e.target.value)}
           style={{
             width: '100%',
             height: '100px',
@@ -503,7 +563,11 @@ const CreatePostPage: React.FC = () => {
           </label>
           <input
             type="date"
-            onChange={handleCloseBookDate}
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              handleCloseBookDate(e);
+            }}
             style={{
               padding: '8px',
               border: '1px solid #ccc',
@@ -535,23 +599,27 @@ const CreatePostPage: React.FC = () => {
       {/* (1) "저장이 정상적으로 완료되었습니다." 모달 (저장하기 버튼 클릭 시) */}
       {showToast && (
         <div style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: '#fff',
-            padding: '12px 24px',
-            borderRadius: '4px',
-            zIndex: 1000,
+          fontWeight: 'bold',
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#fff',
+          border: '1px solid #979797',
+          color: '#000',
+          padding: '12px 24px',
+          borderRadius: '4px',
+          zIndex: 1000,
+          display: 'flex',       // 추가: 가로 배치를 위해 flex 사용
+          alignItems: 'center',   // 수직 가운데 정렬
         }}>
-            <img
-              src="/save_icon.png"
-              alt="save icon"
-              style={{ display: 'block', margin: '0 auto 10px', width: '50px' }}
-            />
-              저장이 정상적으로 완료되었습니다.
-          </div>
+          <img
+            src="/save_icon.png"
+            alt="save icon"
+            style={{ marginRight: '10px', width: '35px' }}
+          />
+            저장이 정상적으로 완료되었습니다.
+        </div>
       )}
 
       {/* (2) "뒤로가기" 확인 모달 */}
@@ -579,6 +647,8 @@ const CreatePostPage: React.FC = () => {
             }}
           >
             <p style={{ marginBottom: '20px' }}>
+              글이 저장되지 않았습니다.
+              <br/>
               저장하시겠습니까?
             </p>
             <button

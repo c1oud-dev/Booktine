@@ -48,6 +48,8 @@ public class PostService {
                     existing.setReview(updatedPost.getReview());
                     existing.setStartDate(updatedPost.getStartDate());
                     existing.setEndDate(updatedPost.getEndDate());
+                    existing.setReadingStatus(updatedPost.getReadingStatus());
+                    existing.setInputAuthor(updatedPost.getInputAuthor());
                     existing.setMemos(updatedPost.getMemos());
                     existing.setLastModified(LocalDateTime.now()); // 최종 수정 일시 업데이트
                     return postRepository.save(existing);

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,9 +19,10 @@ public class Post {
 
     private String title;      // 책 제목
 
-    // 기존의 author 문자열 대신 embeddable Author 객체 사용
+    private String readingStatus;
+    private String inputAuthor;   // 사용자가 입력한 책의 저자
     @Embedded
-    private Author author;
+    private Author author; //게시글을 작성한 사용자의 프로필 정보
 
     private String genre;      // 장르
     private String publisher;  // 출판사
@@ -36,7 +38,7 @@ public class Post {
     private LocalDateTime lastModified;
 
     @ElementCollection
-    private List<String> memos;
+    private List<Memo> memos = new ArrayList<>();
 
     public Post() {}
 
@@ -112,10 +114,27 @@ public class Post {
         this.lastModified = lastModified;
     }
 
-    public List<String> getMemos() {
+    public String getReadingStatus() {
+        return readingStatus;
+    }
+
+    public void setReadingStatus(String readingStatus) {
+        this.readingStatus = readingStatus;
+    }
+
+    public String getInputAuthor() {
+        return inputAuthor;
+    }
+
+    public void setInputAuthor(String inputAuthor) {
+        this.inputAuthor = inputAuthor;
+    }
+
+    public List<Memo> getMemos() {
         return memos;
     }
-    public void setMemos(List<String> memos) {
+
+    public void setMemos(List<Memo> memos) {
         this.memos = memos;
     }
 }

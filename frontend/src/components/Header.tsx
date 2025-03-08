@@ -16,6 +16,18 @@ const Header: React.FC = () => {
   const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState<string>('');
 
+  const [showLoginRequiredModal, setShowLoginRequiredModal] = useState(false);
+
+  const handleProtectedRoute = (route: string) => {
+    if (!isLoggedIn) {
+      // 로그인 안 된 상태 → "로그인 필요" 모달 띄우기
+      setShowLoginRequiredModal(true);
+    } else {
+      // 로그인 된 상태 → 정상 이동
+      navigate(route);
+    }
+  };
+
   const handleOpenModal = (signUp: boolean) => {
     setIsSignUp(signUp);
     setShowModal(true);
@@ -53,7 +65,7 @@ const Header: React.FC = () => {
               cursor: 'pointer',
               color: location.pathname === '/home' ? '#000' : '#aaa',
             }}
-            onClick={() => navigate('/home')}
+            onClick={() => handleProtectedRoute('/home')}
           >
             Home
           </div>
@@ -65,7 +77,7 @@ const Header: React.FC = () => {
                   ? '#000'
                   : '#aaa'
             }}
-            onClick={() => navigate('/booknote')}
+            onClick={() => handleProtectedRoute('/booknote')}
           >
             Book Note
           </div>
@@ -74,7 +86,7 @@ const Header: React.FC = () => {
               cursor: 'pointer',
               color: location.pathname === '/progress' ? '#000' : '#aaa',
             }}
-            onClick={() => navigate('/progress')}
+            onClick={() => handleProtectedRoute('/progress')}
           >
             Progress
           </div>
@@ -83,7 +95,7 @@ const Header: React.FC = () => {
               cursor: 'pointer',
               color: location.pathname === '/settings' ? '#000' : '#aaa',
             }}
-            onClick={() => navigate('/settings')}
+            onClick={() => handleProtectedRoute('/settings')}
           >
             Settings
           </div>
@@ -173,14 +185,100 @@ const Header: React.FC = () => {
         )}
       </div>
 
+
+      {showLoginRequiredModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              width: '400px',
+              backgroundColor: '#fff',
+              borderRadius: '8px',
+              padding: '30px',
+              textAlign: 'center',
+              position: 'relative',
+            }}
+          >
+            {/* 닫기(X) 아이콘 (원한다면 추가) */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '5px',
+                right: '10px',
+                cursor: 'pointer',
+                fontSize: '20px',
+              }}
+              onClick={() => setShowLoginRequiredModal(false)}
+            >
+              &times;
+            </div>
+
+            <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+              로그인 후 이용해주세요.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button
+                style={{
+                  width: '120px',
+                  backgroundColor: '#fff',
+                  color: '#333',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setShowLoginRequiredModal(false)}
+              >
+                취소
+              </button>
+              <button
+                style={{
+                  width: '120px',
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  // 모달 닫고, 로그인 모달 띄우기
+                  setShowLoginRequiredModal(false);
+                  handleOpenModal(false); // Log In 모드
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
       {/* 모달 */}
       {showModal && (
         <AuthModal
           isSignUp={isSignUp}
           onClose={handleCloseModal}
           onLoginSuccess={(firstName: string, lastName: string) => {
+            const fullName = `${firstName}${lastName}`;
             setIsLoggedIn(true);
-            setUsername(`${firstName}${lastName}`);
+            setUsername(fullName);
+            localStorage.setItem('username', fullName);
           }}
         />
       )}
