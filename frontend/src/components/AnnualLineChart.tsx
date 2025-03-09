@@ -83,7 +83,7 @@ const AnnualLineChart: React.FC<Props> = ({ chartData, fromLabel }) => {
 
   return (
     //<div style={{ borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-    <div style={{ width: '100%', minHeight: '300px', height: 'auto' }}>
+    <div style={{ width: '100%', height: '100%' }}>
       {/* 상단 "from ~ to ~" 표시 */}
       {fromLabel && (
         <div style={{ textAlign: 'right', fontSize: '14px', color: '#999', marginBottom: '10px' }}>

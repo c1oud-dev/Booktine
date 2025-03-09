@@ -48,7 +48,8 @@ const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
         },
         grid: {
           color: '#f5f5f5',
-        },
+          borderDash: [5, 5], // grid 선을 dash 처리해 간격이 넓어 보이게 함 (옵션)
+        } as any,
       },
     },
     plugins: {
@@ -81,7 +82,7 @@ const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
 
   return (
     //<div style={{ width: '100%', height: '300px', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-    <div style={{ width: '100%', minHeight: '300px', height: 'auto' }}>
+    <div style={{ width: '100%',  height: '300px', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
         <Bar data={data} options={options} />
       
        

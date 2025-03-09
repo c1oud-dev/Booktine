@@ -53,7 +53,7 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
 
   return (
     //<div style={{ borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-    <div style={{ width: '100%', minHeight: '300px', height: 'auto' }}>  
+    <div style={{ width: '100%',  height: '100%' }}>  
       {hasData ? (
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <div style={{ width: '200px', height: '200px' }}>
