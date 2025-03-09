@@ -14,17 +14,26 @@ const BookNote: React.FC = () => {
 
   // 백엔드에서 게시글 목록을 가져오는 useEffect 추가
   useEffect(() => {
-    fetch('http://localhost:8083/posts') // 백엔드 서버 주소와 포트에 맞게 수정
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error('게시글 불러오기 실패');
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setPosts(data);
-      })
-      .catch((error) => console.error('Error fetching posts:', error));
+    const fetchPosts = () => {
+      fetch('http://localhost:8083/posts')
+        .then((res) => {
+          if (!res.ok) throw new Error('게시글 불러오기 실패');
+          return res.json();
+        })
+        .then((data) => {
+          setPosts(data);
+        })
+        .catch((error) => console.error('Error fetching posts:', error));
+    };
+  
+    fetchPosts();
+  
+    // "postsUpdated" 이벤트 발생 시 다시 fetch
+    window.addEventListener('postsUpdated', fetchPosts);
+  
+    return () => {
+      window.removeEventListener('postsUpdated', fetchPosts);
+    };
   }, []);
 
   const handleCreatePost = () => {

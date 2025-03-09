@@ -205,6 +205,7 @@ const CreatePostPage: React.FC = () => {
       })
         .then(() => {
           setIsSaved(true);
+          window.dispatchEvent(new Event('postsUpdated'));
           if (navigateAfterSave) {// 저장 완료 후, Book Note 페이지로 이동하거나 토스트 메시지 표시 등
             navigate('/booknote');
           }

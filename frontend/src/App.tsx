@@ -6,6 +6,7 @@ import BookNote from './pages/BookNote';
 import CreatePostPage from './pages/CreatePostPage';
 import PostDetailPage from './pages/PostDetailPage';
 import Header from './components/Header';
+import ProgressPage from './pages/ProgressPage';
 
 //라우팅 담당 파일
 const App: React.FC = () => {
@@ -19,6 +20,7 @@ const App: React.FC = () => {
         <Route path="/createpost/:id" element={<CreatePostPage />} />
         <Route path="/createpost" element={<CreatePostPage />} />
         <Route path="/post/:id" element={<PostDetailPage />} />
+        <Route path="/progress" element={<ProgressPage />} />
       </Routes>
     </div>
   );

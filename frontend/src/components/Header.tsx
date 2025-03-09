@@ -45,7 +45,10 @@ const Header: React.FC = () => {
         padding: '0 40px',
         height: '65px',
         backgroundColor: '#fff',
+        borderBottom: '1px solid #ccc', // 헤더 아래 선 추가
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        position: 'relative',  // 추가
+        zIndex: 100,          // 추가: 다른 컨테이너 위에 표시되도록 함
       }}
     >
       {/* 왼쪽: 로고 + 메뉴 */}

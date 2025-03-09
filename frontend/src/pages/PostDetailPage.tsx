@@ -58,6 +58,7 @@ const PostDetailPage: React.FC = () => {
       if (!res.ok) {
         throw new Error('게시글 삭제 실패');
       }
+      window.dispatchEvent(new Event('postsUpdated'));
       navigate('/booknote');
     })
     .catch((err) => console.error('Error deleting post:', err));
@@ -88,9 +89,12 @@ const PostDetailPage: React.FC = () => {
             padding: '6px 10px',
             borderRadius: '4px',
             fontWeight: 'bold',
+            minWidth: '50px',
+            minHeight: '2.3em',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
-          {post?.startDate || '—'}
+          {post?.startDate}
         </div>
 
         {/* 독서 상태 (CreatePostPage와 동일 스타일) */}
@@ -250,6 +254,7 @@ const PostDetailPage: React.FC = () => {
               whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
               minWidth: '50px',      // 최소 가로 폭 설정
               minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
             {post.inputAuthor}
@@ -270,6 +275,7 @@ const PostDetailPage: React.FC = () => {
               whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
               minWidth: '50px',      // 최소 가로 폭 설정
               minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
             {post.genre}
@@ -290,6 +296,7 @@ const PostDetailPage: React.FC = () => {
               whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
               minWidth: '50px',      // 최소 가로 폭 설정
               minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
             {post.publisher}
@@ -307,9 +314,9 @@ const PostDetailPage: React.FC = () => {
               backgroundColor: '#eee',
               fontSize: '13px',
               width: 'fit-content',
-              whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
               minWidth: '50px',      // 최소 가로 폭 설정
               minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
             {post.summary}
@@ -322,7 +329,7 @@ const PostDetailPage: React.FC = () => {
           (6) 메모들
           ────────────────────────────────────────────── */}
       {post?.memos && post.memos.map((m) => (
-        <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>P. {m.pageNumber}
+        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>P. {m.pageNumber}
         <div
           key={m.id}
           style={{
@@ -330,7 +337,10 @@ const PostDetailPage: React.FC = () => {
             borderRadius: '6px',
             padding: '16px',
             marginBottom: '20px',
-            backgroundColor: '#fff',
+            backgroundColor: '#eee',
+            fontSize: '15px',
+            fontWeight: 'normal',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
           }}
         >
           <div>{m.memo}</div>
@@ -341,16 +351,19 @@ const PostDetailPage: React.FC = () => {
       {/* ──────────────────────────────────────────────
           (7) 후기
           ────────────────────────────────────────────── */}
+      <label style={{ display: 'block', fontWeight: 'bold', marginTop: '50px', marginBottom: '4px' }}>
+      리뷰
+      </label>
       <div
         style={{
-          backgroundColor: '#fff4c2',
+          backgroundColor: '#FFE27D',
           borderRadius: '8px',
           padding: '16px',
           marginBottom: '20px',
           border: '1px solid #ccc',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
         }}
       >
-        <h3 style={{ margin: 0, marginBottom: '10px', fontWeight: 'bold' }}>후기</h3>
         <p style={{ margin: 0 }}>{post?.review || ''}</p>
       </div>
 
@@ -372,9 +385,12 @@ const PostDetailPage: React.FC = () => {
               padding: '5px 10px',
               borderRadius: '4px',
               fontWeight: 'bold',
+              minWidth: '50px',
+              minHeight: '2.3em',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
-            {post?.endDate || '  '}
+            {post?.endDate}
           </div>
         </div>
       </div>
