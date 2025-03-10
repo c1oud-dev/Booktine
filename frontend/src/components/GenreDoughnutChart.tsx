@@ -1,3 +1,4 @@
+// GenreDoughnutChart.tsx
 import React from 'react';
 import {
   Chart as ChartJS,
@@ -11,8 +12,8 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 interface IGenreData {
-  label: string; // 예: '문학'
-  value: number; // 예: 28.6 (퍼센트)
+  label: string; // 장르명
+  value: number; // 퍼센트 (예: 33.3)
 }
 
 interface Props {
@@ -20,83 +21,88 @@ interface Props {
 }
 
 const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
-  const labels = genreData.map(g => g.label);
-  const values = genreData.map(g => g.value);
+  const hasData = genreData && genreData.length > 0;
 
-  const data = {
-    labels,
+  // 장르 중 가장 퍼센트가 높은 항목 찾기
+  const maxGenre = hasData
+    ? genreData.reduce((prev, curr) => (curr.value > prev.value ? curr : prev), genreData[0])
+    : null;
+
+  // (1) 실제 데이터 (장르가 있을 때)
+  const labels = genreData.map((g) => g.label);
+  const values = genreData.map((g) => g.value);
+
+  // (2) "가짜" 데이터 (장르가 없을 때)
+  //    → [1]짜리 데이터를 사용해 도넛 모양 유지
+  const fallbackData = {
+    labels: ['없음'],
     datasets: [
       {
-        data: values,
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#62AADF', '#E6EEF5', '#b38feb'],
-        hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#62AADF', '#E6EEF5', '#b38feb'],
-        borderWidth: 1,
+        data: [1],
+        backgroundColor: ['#ddd'], // 회색
+        borderWidth: 0,
+        cutout: '80%',
+        color: '#737373'
       },
     ],
   };
+
+  const data = hasData 
+  ? {
+      labels,
+      datasets: [
+        {
+          data: values,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56',
+            '#62AADF', '#E6EEF5', '#b38feb',
+          ],
+          hoverBackgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56',
+            '#62AADF', '#E6EEF5', '#b38feb',
+          ],
+          borderWidth: 1,
+          cutout: '70%', // 도넛 굵기
+        },
+      ],
+    }
+  : fallbackData; // 데이터 없으면 fallbackData 사용
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: true,
-        position: 'right' as const,
-      },
-      title: {
-        display: false,
-      },
+      legend: { display: false }, // 범례 숨김 (테이블로 대체)
+      title: { display: false },
     },
   };
 
-  const hasData = genreData && genreData.length > 0;
-
   return (
-    //<div style={{ borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-    <div style={{ width: '100%',  height: '100%' }}>  
-      {hasData ? (
-        <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-          <div style={{ width: '200px', height: '200px' }}>
-            <Doughnut data={data} options={options} />
-          </div>
-          {/* 표 형태로 '장르'와 'Value' 표시 */}
-          <div style={{ flex: 1 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ textAlign: 'left' }}>
-                  <th style={{ padding: '8px 0', fontSize: '14px' }}>장르</th>
-                  <th style={{ padding: '8px 0', fontSize: '14px' }}>Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {genreData.map((g, idx) => (
-                  <tr key={idx}>
-                    <td style={{ padding: '4px 0', fontSize: '13px' }}>{g.label}</td>
-                    <td style={{ padding: '4px 0', fontSize: '13px' }}>
-                      {g.value.toFixed(1)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div
-          style={{
-            height: '200px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#999',
-            border: '1px dashed #ccc',
-            borderRadius: '8px',
-          }}
-        >
-          장르 데이터가 없습니다.
-        </div>
-      )}
-    </div>
+    <div style={{ width: '250px', height: '250px', position: 'relative'}}>
+      <Doughnut data={data} options={options as any} />
+
+      {/* (5) 도넛 중앙 텍스트 */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          textAlign: 'center',
+          fontSize: '16px',
+        }}
+      >
+        {hasData && maxGenre && maxGenre.value > 0 ? (
+          <>
+            <div style={{ fontSize: '13px', color: '#666' }}>가장 많이 읽은 장르</div>
+            <div style={{ marginTop: '4px', fontWeight: 'bold'}}>{maxGenre.label}</div>
+          </>
+        ) : (
+          // 데이터 없거나 0% 이하인 경우
+          <>가장 많이 읽은 장르는?</>
+        )}
+      </div>
+      </div>
   );
 };
 

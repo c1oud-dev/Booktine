@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import GenreDoughnutChart from '../components/GenreDoughnutChart';
@@ -10,9 +10,26 @@ interface Post {
   genre?: string;
 }
 
+// /progress API 응답 형식 (예시)
+interface ProgressData {
+  yearlyAchieved: number;
+  monthlyAchieved: number;
+  yearlyData: { month: string; count: number }[];
+  recent6Months: { month: string; count: number }[];
+  genreData: { label: string; value: number }[];
+}
+
+interface GenreData {
+  label: string;
+  value: number; // 비율 값
+  count: number;       // 절대 건수
+}
+
 const ProgressPage: React.FC = () => {
-  // 포스트 데이터
+  // 게시글 배열 ( /posts API )
   const [posts, setPosts] = useState<Post[]>([]);
+  // Progress 통계 데이터 ( /progress API )
+  const [progressData, setProgressData] = useState<ProgressData | null>(null);
 
   // 목표 및 달성 상태 (연간, 월간)
   const [yearlyGoal, setYearlyGoal] = useState(0);
@@ -20,10 +37,10 @@ const ProgressPage: React.FC = () => {
   const [monthlyGoal, setMonthlyGoal] = useState(0);
   const [monthlyAchieved, setMonthlyAchieved] = useState(0);
 
-  // 차트 데이터 상태
+  // 차트 데이터 상태 (로컬 계산용)
   const [lineChartData, setLineChartData] = useState<{ month: string; count: number }[]>([]);
   const [barChartData, setBarChartData] = useState<{ month: string; goal: number; achieved: number }[]>([]);
-  const [genreData, setGenreData] = useState<{ label: string; value: number }[]>([]);
+  const [genreData, setGenreData] = useState<GenreData[]>([]);
 
   // Modal 관련 상태
   const [showYearlyGoalModal, setShowYearlyGoalModal] = useState(false);
@@ -31,11 +48,26 @@ const ProgressPage: React.FC = () => {
   const [tempGoalValue, setTempGoalValue] = useState('');
   const [tempMonthlyGoalValue, setTempMonthlyGoalValue] = useState('');
 
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth(); // 0-indexed
+  // 현재 날짜, 연도, 월은 useMemo를 사용해 한 번만 계산
+  const currentDate = useMemo(() => new Date(), []); 
+  const currentYear = useMemo(() => currentDate.getFullYear(), [currentDate]);
+  const currentMonth = useMemo(() => currentDate.getMonth(), [currentDate]);
 
-  // 백엔드에서 게시글 가져오기
+  // 선택 연도 (연도 선택 드롭다운용)
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  const colorPalette = [
+    '#FF6384', // 빨강
+    '#36A2EB', // 파랑
+    '#FFCE56', // 노랑
+    '#62AADF', // 연파랑
+    '#E6EEF5', // 아주연파랑
+    '#b38feb', // 보라
+  ];
+
+  // ──────────────────────────────────────────────
+  // (A) /posts API 호출 → 게시글 배열 저장
+  // ──────────────────────────────────────────────
   useEffect(() => {
     fetch('http://localhost:8083/posts')
       .then((res) => {
@@ -46,10 +78,47 @@ const ProgressPage: React.FC = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  // '완독' 게시글 필터링
-  const finishedPosts = posts.filter(post => post.readingStatus === '완독');
+  // ──────────────────────────────────────────────
+  // (B) /progress API 호출 → 통계 데이터 저장 (setProgressData 사용)
+  // ──────────────────────────────────────────────
+  useEffect(() => {
+    console.log("Fetching progress data for year:", selectedYear);
+    fetch(`http://localhost:8083/progress?year=${selectedYear}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
+        return res.json();
+      })
+      .then((data: ProgressData) => {
+        setProgressData(data);
+      })
+      .catch(console.error);
+  }, [selectedYear]);
 
-  // 연간 달성 수 계산 (현재 연도 기준)
+  // '완독' 게시글 필터링
+  const finishedPosts = useMemo(() => 
+    posts.filter(post => post.readingStatus === '완독'),
+    [posts]
+  );
+
+  
+  useEffect(() => {
+    // 컴포넌트 마운트 시 localStorage에서 목표값 불러오기
+    const storedYearlyGoal = localStorage.getItem('yearlyGoal');
+    if (storedYearlyGoal) {
+      setYearlyGoal(Number(storedYearlyGoal));
+    }
+    
+    const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
+    if (storedMonthlyGoal) {
+      setMonthlyGoal(Number(storedMonthlyGoal));
+    }
+  }, []); // 의존성 배열 비워두어야 첫 마운트 시에만 실행
+
+
+
+  // ──────────────────────────────────────────────
+  // (C) 연간 달성 수 계산 (현재 연도 기준)
+  // ──────────────────────────────────────────────
   useEffect(() => {
     const finishedYearlyPosts = posts.filter((post) => {
       if (post.readingStatus !== '완독' || !post.endDate) return false;
@@ -59,7 +128,9 @@ const ProgressPage: React.FC = () => {
     setYearlyAchieved(finishedYearlyPosts.length);
   }, [posts, currentYear]);
 
-  // 이번달 달성 수 계산 (현재 연도, 현재 월 기준)
+  // ──────────────────────────────────────────────
+  // (D) 이번달 달성 수 계산 (현재 연도, 현재 월 기준)
+  // ──────────────────────────────────────────────
   useEffect(() => {
     const thisMonthFinished = posts.filter((post) => {
       if (post.readingStatus !== '완독' || !post.endDate) return false;
@@ -69,21 +140,26 @@ const ProgressPage: React.FC = () => {
     setMonthlyAchieved(thisMonthFinished.length);
   }, [posts, currentYear, currentMonth]);
 
-  // 연간 독서량 (꺾은선형) 데이터: 현재 연도의 1월~12월
+  // ──────────────────────────────────────────────
+  // (E) 로컬에서 연간 독서량 계산 (1~12월)
+  // ──────────────────────────────────────────────
   useEffect(() => {
     const tempData: { month: string; count: number }[] = [];
+    setLineChartData(tempData);
     for (let m = 1; m <= 12; m++) {
       const count = finishedPosts.filter((p) => {
         if (!p.endDate) return false;
         const d = new Date(p.endDate);
-        return d.getFullYear() === currentYear && d.getMonth() + 1 === m;
+        return d.getFullYear() === selectedYear && d.getMonth() + 1 === m;
       }).length;
       tempData.push({ month: `${m}월`, count });
     }
-    setLineChartData(tempData);
-  }, [finishedPosts, currentYear]);
+    
+  }, [finishedPosts, selectedYear]);
 
-  // 월별 독서량 (막대형) 데이터: 최근 6개월 기준
+  // ──────────────────────────────────────────────
+  // (F) 로컬에서 월별 독서량 계산 (최근 6개월)
+  // ──────────────────────────────────────────────
   useEffect(() => {
     const today = new Date();
     const tempData: { month: string; goal: number; achieved: number }[] = [];
@@ -96,31 +172,42 @@ const ProgressPage: React.FC = () => {
         const d = new Date(p.endDate);
         return d.getFullYear() === y && d.getMonth() + 1 === m;
       }).length;
-      tempData.push({ month: `${m}월`, goal: monthlyGoal, achieved: achievedCount });
+      tempData.push({
+        month: `${m}월`,
+        goal: (currentYear === y && currentMonth + 1 === m) ? monthlyGoal : 0,
+        achieved: achievedCount
+      });
     }
     tempData.reverse();
     setBarChartData(tempData);
-  }, [finishedPosts, monthlyGoal]);
+  }, [finishedPosts, monthlyGoal, currentYear, currentMonth]);
 
-  // 장르별 독서 비율 (도넛형): 전체 완독 게시물 기준
+  // ──────────────────────────────────────────────
+  // (G) 로컬에서 장르별 독서 비율 계산
+  // ──────────────────────────────────────────────
   useEffect(() => {
-    const total = finishedPosts.length;
+    const postsWithGenre = posts.filter((p): p is Post & { genre: string } =>
+      Boolean(p.genre && p.genre.trim() !== '')
+    );
+    const total = postsWithGenre.length;
     const genreCount: Record<string, number> = {};
-    finishedPosts.forEach((p) => {
-      if (!p.genre) return;
-      genreCount[p.genre] = (genreCount[p.genre] || 0) + 1;
+    postsWithGenre.forEach((p) => {
+      const g = p.genre;
+      genreCount[g] = (genreCount[g] || 0) + 1;
     });
-    const tempData = Object.keys(genreCount).map((genre) => ({
+    const tempData: GenreData[] = Object.keys(genreCount).map((genre) => ({
       label: genre,
       value: total > 0 ? (genreCount[genre] / total) * 100 : 0,
+      count: genreCount[genre],
     }));
     setGenreData(tempData);
-  }, [finishedPosts]);
+  }, [posts]);
 
   // 연간 목표 모달 'OK' 핸들러
   const handleYearlyGoalSubmit = () => {
     const newGoal = parseInt(tempGoalValue, 10) || 0;
     setYearlyGoal(newGoal);
+    localStorage.setItem('yearlyGoal', String(newGoal)); // 로컬 스토리지 저장
     setShowYearlyGoalModal(false);
     setTempGoalValue('');
   };
@@ -129,24 +216,26 @@ const ProgressPage: React.FC = () => {
   const handleMonthlyGoalSubmit = () => {
     const newGoal = parseInt(tempMonthlyGoalValue, 10) || 0;
     setMonthlyGoal(newGoal);
+    localStorage.setItem('monthlyGoal', String(newGoal)); // 로컬 스토리지 저장
     setShowMonthlyGoalModal(false);
     setTempMonthlyGoalValue('');
   };
 
   return (
+    <div style={{ width: '100%', minWidth: '1200px', margin: '0 auto' }}>
     <div
       style={{
         display: 'flex',
         flexWrap: 'wrap',
         gap: '20px',
-        padding: '40px 100px 20px 100px', // 상, 우, 하, 좌 순서
+        padding: '40px 120px 20px 120px',
         backgroundColor: '#fff',
       }}
     >
       {/* Left: Goal Management */}
       <div
         style={{
-          flex: '1 1 30%', // flex-grow, flex-shrink, flex-basis: 기본 300px로 시작하여 필요 시 줄어들거나 늘어남
+          flex: '1 1 30%',
           maxWidth: '400px',
           backgroundColor: '#DADADA',
           borderRadius: '20px',
@@ -174,11 +263,9 @@ const ProgressPage: React.FC = () => {
           {/* Donut Graph for Yearly Goal */}
           <div
             style={{
-              //width: '180px',
               width: '100%',
-              maxWidth: '150px',       // 최대 150px, 부모 너비에 따라 줄어듦
-              aspectRatio: '1',        // 정사각형 유지 (CSS 지원 안될 경우, padding-bottom: '100%' 대체)
-              //height: '180px',
+              maxWidth: '150px',
+              aspectRatio: '1',
               borderRadius: '50%',
               border: '10px solid #F0F0F0',
               margin: '0 auto 20px',
@@ -260,8 +347,6 @@ const ProgressPage: React.FC = () => {
           {/* Donut Graph for Monthly Goal */}
           <div
             style={{
-              //width: '180px',
-              //height: '180px',
               width: '100%',
               maxWidth: '150px',
               aspectRatio: '1',
@@ -343,6 +428,21 @@ const ProgressPage: React.FC = () => {
         {/* Annual Reading Amount */}
         <div style={{ marginBottom: '50px' }}>
           <h4 style={{ fontSize: '18px', margin: '0 0 20px 0', fontWeight: 'bold' }}>연간 독서량</h4>
+          <div style={{ marginBottom: '20px' }}>
+            <label htmlFor="year-select">연도 선택:</label>
+            <select
+              id="year-select"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              style={{ padding: '5px 10px', marginLeft: '10px' }}
+            >
+              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </div>
           <AnnualLineChart chartData={lineChartData} />
         </div>
 
@@ -358,55 +458,23 @@ const ProgressPage: React.FC = () => {
           style={{
             backgroundColor: '#fff',
             borderRadius: '10px',
-            padding: '20px',
+            padding: '20px 40px',
             boxShadow: '0 0 8px rgba(0,0,0,0.1)',
             marginBottom: '40px',
             border: '1px solid #DADADA',
           }}
         >
-          <div style={{ display: 'flex', gap: '30px', alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* 차트와 테이블을 가로 배치 (혹은 상하 배치) */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '50px', // 차트와 테이블 사이 여유
+            flexWrap: 'nowrap', // 가로 배치 유지
+            justifyContent: 'flex-start',
+          }}>
             {/* 왼쪽: 도넛 차트 */}
-            <div style={{ 
-              //width: '220px', 
-              width: '100%',
-              maxWidth: '220px',
-              //height: '220px', 
-              position: 'relative' 
-              }}
-            >
-              {genreData.length > 0 ? (
-                <GenreDoughnutChart genreData={genreData} />
-              ) : (
-                <div
-                  style={{
-                    //width: '220px',
-                    //height: '220px',
-                    width: '100%',
-                    aspectRatio: '1/1', // 정사각형 유지 (CSS aspect-ratio 지원 안 될 경우, padding-bottom: '100%' 대체)
-                    borderRadius: '50%',
-                    border: '8px solid #eee',
-                    position: 'relative',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      color: '#999',
-                      textAlign: 'center',
-                      fontSize: '14px',
-                    }}
-                  >
-                    가장 많이 읽은<br />장르는?
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 오른쪽: 장르 / Value / % 표 */}
+            <GenreDoughnutChart genreData={genreData} />
+            {/* 오른쪽: 테이블 */}
             <div style={{ flex: 1 }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
@@ -419,18 +487,17 @@ const ProgressPage: React.FC = () => {
                 <tbody>
                   {genreData.length === 0 ? (
                     <tr>
-                      <td colSpan={3} style={{ textAlign: 'center', padding: '10px', color: '#999' }}>
+                      <td colSpan={3} style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
                         아직 데이터가 없습니다.
                       </td>
                     </tr>
                   ) : (
                     genreData.map((item, idx) => {
-                      const absoluteCount = Math.round((item.value / 100) * finishedPosts.length);
-                      const colorPalette = ['#FF6384', '#36A2EB', '#FFCE56', '#62AADF', '#E6EEF5', '#b38feb'];
                       const colorDot = colorPalette[idx % colorPalette.length];
                       return (
                         <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
                           <td style={{ padding: '8px 0', fontSize: '13px', color: '#333' }}>
+                            {/* 왼쪽에 색상 도트 표시 */}
                             <span
                               style={{
                                 display: 'inline-block',
@@ -443,8 +510,9 @@ const ProgressPage: React.FC = () => {
                             />
                             {item.label}
                           </td>
+                          {/* Value(예: 1권)는 별도 로직 필요 → 일단 '-' 처리 가능 */}
                           <td style={{ padding: '8px 0', fontSize: '13px', color: '#333' }}>
-                            {absoluteCount}권
+                            {item.count}권
                           </td>
                           <td style={{ padding: '8px 0', fontSize: '13px', color: '#333' }}>
                             {item.value.toFixed(1)}%
@@ -645,6 +713,7 @@ const ProgressPage: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

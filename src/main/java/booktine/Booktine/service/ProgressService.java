@@ -19,7 +19,7 @@ public class ProgressService {
         this.postRepository = postRepository;
     }
 
-    public ProgressResponse getProgressData() {
+    public ProgressResponse getProgressData(int targetYear) {
         // 1) 모든 게시물 중 '완독' 상태인 것만 필터링
         List<Post> finishedPosts = postRepository.findAll().stream()
                 .filter(p -> "완독".equals(p.getReadingStatus()))

@@ -11,7 +11,7 @@ import ProgressPage from './pages/ProgressPage';
 //라우팅 담당 파일
 const App: React.FC = () => {
   return (
-    <div>
+    <>
       <Header />
       <Routes>
         <Route path="/" element={<MainPage />} />
@@ -22,7 +22,7 @@ const App: React.FC = () => {
         <Route path="/post/:id" element={<PostDetailPage />} />
         <Route path="/progress" element={<ProgressPage />} />
       </Routes>
-    </div>
+    </>
   );
 };
 

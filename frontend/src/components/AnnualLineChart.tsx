@@ -8,11 +8,12 @@ import {
   Tooltip,
   Legend,
   Title,
+  Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
 // Chart.js 플러그인 등록
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Title);
+ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend, Title, Filler);
 
 interface ILineChartData {
   month: string;  // 예: 'Aug 2018'

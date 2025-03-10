@@ -27,7 +27,8 @@ public class SecurityConfig {
                 // 3) 특정 경로는 공개, 나머지는 인증 요구
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/posts/**").permitAll() // ← 추가
+                        .requestMatchers("/posts/**").permitAll()
+                        .requestMatchers("/progress/**").permitAll()
                         .anyRequest().authenticated()
                 )
 

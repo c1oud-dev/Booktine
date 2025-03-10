@@ -24,43 +24,10 @@ interface Props {
   monthlyGoal: number; 
 }
 
+
 const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
   const maxY = Math.max(4, monthlyGoal);
   const stepSize = Math.ceil(maxY / 5) || 1;
-
-  const options: ChartOptions<'bar'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      x: {
-        type: 'category',
-        grid: { display: false },
-        ticks: { color: '#666' },
-      },
-      y: {
-        type: 'linear',
-        min: 0,
-        max: maxY,        // 동적 최대값
-        ticks: {
-          stepSize,       // 동적 간격
-          callback: (value) => `${value}권`,
-          color: '#666',
-        },
-        grid: {
-          color: '#f5f5f5',
-          borderDash: [5, 5], // grid 선을 dash 처리해 간격이 넓어 보이게 함 (옵션)
-        } as any,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-      },
-      title: {
-        display: false,
-      },
-    },
-  };
 
   // 실제 데이터
   const labels = chartData.map((item) => item.month);
@@ -77,8 +44,42 @@ const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
         data: chartData.map((item) => item.achieved),
         backgroundColor: '#62AADF',
       },
+      
     ],
   };
+
+  const options: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false, // 애니메이션 제거 추가
+    scales: {
+      x: {
+        type: 'category',
+        grid: { display: false },
+        ticks: { color: '#666' },
+      },
+      y: {
+        min: 0, max: maxY, ticks: { stepSize, color: '#666' }, grid: { color: '#f5f5f5' }
+      },
+    },
+    plugins: {
+      legend: { display: true,},
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const goal = chartData[context.dataIndex].goal;
+            const achieved = chartData[context.dataIndex].achieved;
+            if (context.dataset.label === '목표') {
+              return `목표: ${goal}권`;
+              } else {
+              return `달성: ${achieved}권`;
+              }
+          },
+        },
+      },
+    },
+  };
+
 
   return (
     //<div style={{ width: '100%', height: '300px', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
