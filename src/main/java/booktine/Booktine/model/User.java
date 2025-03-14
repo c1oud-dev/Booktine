@@ -20,6 +20,13 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    // 프로필 문구(ABOUT ME)
+    @Column(length = 1000)
+    private String aboutMe;
+
+    // 프로필 이미지 URL (또는 파일 경로)
+    private String avatarUrl;
+
     public User() {
     }
 
@@ -48,6 +55,23 @@ public class User {
     public String getLastName() {
         return lastName;
     }
+
+    public String getAboutMe() {
+        return aboutMe;
+    }
+
+    public void setAboutMe(String aboutMe) {
+        this.aboutMe = aboutMe;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }

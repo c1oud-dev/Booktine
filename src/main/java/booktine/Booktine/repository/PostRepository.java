@@ -11,5 +11,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
     // 필요에 따라 쿼리 메서드 추가 가능
+    int countByAuthorEmail(String email);
+    int countByAuthorEmailAndReadingStatus(String email, String readingStatus);
 
 }

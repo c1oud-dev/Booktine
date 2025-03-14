@@ -28,12 +28,17 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
         try {
-            userService.registerUser(
-                    request.getFirstName(),
-                    request.getLastName(),
-                    request.getEmail(),
-                    request.getPassword()
-            );
+            User user = new User();
+            user.setEmail(request.getEmail());
+            user.setFirstName(request.getFirstName());
+            user.setLastName(request.getLastName());
+
+
+            user.setAvatarUrl("default_gray.png");
+            user.setAboutMe("");
+
+            userService.registerUser(user, request.getPassword()); //실제 DB에 저장
+
             return ResponseEntity.ok("회원가입이 성공적으로 되었습니다!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

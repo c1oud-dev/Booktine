@@ -7,6 +7,7 @@ import CreatePostPage from './pages/CreatePostPage';
 import PostDetailPage from './pages/PostDetailPage';
 import Header from './components/Header';
 import ProgressPage from './pages/ProgressPage';
+import SettingsPage from './pages/SettingsPage';
 
 //라우팅 담당 파일
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
         <Route path="/createpost" element={<CreatePostPage />} />
         <Route path="/post/:id" element={<PostDetailPage />} />
         <Route path="/progress" element={<ProgressPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </>
   );

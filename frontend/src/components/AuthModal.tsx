@@ -33,10 +33,20 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
       // 로그인 성공 시, 응답 JSON에서 firstName과 lastName을 합쳐 사용자 이름 생성
       const result = await response.json();
+
+      // localStorage에 email 저장
+      localStorage.setItem('email', result.email);
+
+
+      const fullName = `${result.firstName}${result.lastName}`;
+      localStorage.setItem('username', fullName);
+
       // 로그인 성공 콜백 호출
       if (onLoginSuccess) {
         onLoginSuccess(result.firstName || '', result.lastName || '');
       }
+      
+
       onClose();
       navigate('/home');
     } catch (error) {
