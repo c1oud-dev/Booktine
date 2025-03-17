@@ -69,7 +69,7 @@ const Header: React.FC = () => {
         {/* 로고 */}
         <div
           style={{ fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', textShadow: '0px 1.5px gray' }}
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
         >
           Booktine
         </div>

@@ -5,6 +5,7 @@ import booktine.Booktine.model.User;
 import booktine.Booktine.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +21,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/settings")
 public class SettingsController {
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserService userService;
 
     public SettingsController(UserService userService) {
@@ -75,4 +78,37 @@ public class SettingsController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading file");
         }
     }
+
+    @PutMapping("/{email}")
+    public ResponseEntity<?> updateUserSettings(@PathVariable String email, @RequestBody Map<String, Object> payload) {
+        Optional<User> opt = userService.findByEmail(email);
+        if (opt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        User user = opt.get();
+
+        // 1) 비밀번호 확인
+        String passwordConfirmation = (String) payload.get("passwordConfirmation");
+        if (passwordConfirmation == null || !passwordEncoder.matches(passwordConfirmation, user.getPassword())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        // 2) 업데이트 가능한 필드 반영
+        if (payload.containsKey("firstName")) {
+            user.setFirstName((String) payload.get("firstName"));
+        }
+        if (payload.containsKey("lastName")) {
+            user.setLastName((String) payload.get("lastName"));
+        }
+        if (payload.containsKey("aboutMe")) {
+            user.setAboutMe((String) payload.get("aboutMe"));
+        }
+
+        // 3) 저장
+        userService.updateUser(user);
+
+        // 4) 최종 업데이트된 User를 JSON으로 반환
+        return ResponseEntity.ok(user);
+    }
+
 }

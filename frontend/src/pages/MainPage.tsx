@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AuthModal from '../components/AuthModal'; // 실제 AuthModal 위치에 맞춰 경로 수정
 
 const MainPage: React.FC = () => {
+  // (1) 로그인 여부 판단
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const navigate = useNavigate();
+
   // (2) 모달 열림 여부, SignUp/LogIn 구분을 위한 state
   const [showModal, setShowModal] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -14,6 +19,13 @@ const MainPage: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
   };
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   return (
     <div
@@ -42,21 +54,40 @@ const MainPage: React.FC = () => {
           독서 노트 & 메모 서비스
         </p>
 
-        {/* (4) onClick에서 모달 열기 함수 호출 */}
-        <button
-          style={{
-            backgroundColor: '#333',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            padding: '12px 24px',
-            cursor: 'pointer',
-            fontSize: '16px',
-          }}
-          onClick={() => handleOpenModal(false)} // false -> Log In 모드
-        >
-          Log In
-        </button>
+        {/* (3) 조건부 버튼 렌더링 */}
+        {!isLoggedIn ? (
+          // 로그인 전
+          <button
+            style={{
+              backgroundColor: '#333',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '12px 24px',
+              cursor: 'pointer',
+              fontSize: '16px',
+            }}
+            onClick={() => handleOpenModal(false)} // 로그인 모달 오픈
+          >
+            Log In
+          </button>
+        ) : (
+          // 로그인 후
+          <button
+            style={{
+              backgroundColor: '#333',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '12px 24px',
+              cursor: 'pointer',
+              fontSize: '16px',
+            }}
+            onClick={() => navigate('/booknote')} // Book Note 페이지로 이동
+          >
+            독서 노트 작성하러 가기
+          </button>
+        )}
       </div>
 
       {/* (5) 모달 표시 */}

@@ -10,6 +10,9 @@ const SettingsPage: React.FC = () => {
   const [profileImage, setProfileImage] = useState('/default_gray.png');
   const [postCount, setPostCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [displayFirstName, setDisplayFirstName] = useState('');
+  const [displayLastName, setDisplayLastName] = useState('');
+  const [displayAboutMe, setDisplayAboutMe] = useState('');
 
   // 업로드 버튼 클릭 시 (실제 업로드 로직은 생략)
   const handleUploadNewProfile = () => {
@@ -18,8 +21,58 @@ const SettingsPage: React.FC = () => {
 
   // 저장/취소 버튼
   const handleSave = () => {
-    alert('Save clicked. 폼 전송 로직을 구현하세요.');
+    // 비밀번호 입력 확인
+  if (password.trim() === '') {
+    alert('변경 사항을 저장하려면 현재 비밀번호를 입력해주세요.');
+    return;
+  }
+
+    // 저장할 데이터 payload 구성 (필요한 필드 추가)
+    const payload = {
+      firstName,
+      lastName,
+      aboutMe,
+      // 다른 수정할 필드가 있으면 추가
+      passwordConfirmation: password, // 비밀번호 확인 필드
+    };
+
+    // API 요청 (PUT 방식으로 업데이트)
+    fetch(`http://localhost:8083/api/settings/${email}`, {
+      method: 'PUT', // 백엔드에서 업데이트 방식에 맞게 수정 (PUT 혹은 POST)
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+    .then((res) => {
+      // 실패 시 문자열로 에러 메시지 받아서 예외 처리
+      if (!res.ok) {
+        return res.text().then((errorMessage) => {
+          throw new Error(errorMessage);
+        });
+      }
+      return res.json();
+    })
+    .then((updatedUser) => {
+      // 3) localStorage 갱신 → Header에서 username을 새로고침 후 반영
+      localStorage.setItem('username', updatedUser.firstName + updatedUser.lastName);
+
+      // display 상태 업데이트(페이지 새로고침 전 화면에 반영 가능)
+      setDisplayFirstName(updatedUser.firstName);
+      setDisplayLastName(updatedUser.lastName);
+      setDisplayAboutMe(updatedUser.aboutMe);
+
+      // 4) 페이지 새로고침
+      window.location.reload();
+    })
+    .catch((err) => {
+      console.error('Error saving settings:', err);
+      alert(err.message);
+    });
   };
+
+
+
   const handleCancel = () => {
     alert('Cancel clicked. 변경사항 취소 로직을 구현하세요.');
   };
@@ -40,11 +93,15 @@ const SettingsPage: React.FC = () => {
       .then((data) => {
         setFirstName(data.firstName || '');
         setLastName(data.lastName || '');
+
+        setDisplayFirstName(data.firstName || '');
+        setDisplayLastName(data.lastName || '');
         setEmail(data.email || '');
         // password는 해시된 상태이므로, 보안을 위해 보통은 미리 입력하지 않거나 빈 문자열로 둡니다.
         // 만약 프론트에서 보여주길 원한다면 data.password를 사용 (주의)
         setPassword('');
         setAboutMe(data.aboutMe || '');
+        setDisplayAboutMe(data.aboutMe || '');
         setProfileImage(data.avatarUrl || '/default_gray.png');
         setPostCount(data.postCount || 0);
         setCompletedCount(data.completedCount || 0);
@@ -110,12 +167,12 @@ const SettingsPage: React.FC = () => {
 
         {/* 이름 */}
         <div style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>
-          {firstName + lastName}
+        {displayFirstName + displayLastName}
         </div>
 
         {/* 소개 문구 */}
         <div style={{ textAlign: 'center', fontSize: '14px', color: '#777', marginBottom: '20px' }}>
-          {aboutMe}
+          {displayAboutMe}
         </div>
 
         {/* 게시물 수 / 완독 책 수 */}
