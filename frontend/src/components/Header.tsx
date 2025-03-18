@@ -60,8 +60,11 @@ const Header: React.FC = () => {
         backgroundColor: '#fff',
         borderBottom: '1px solid #ccc',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        position: 'relative',
-        zIndex: 100,
+        position: 'fixed',    // 헤더를 화면 상단에 고정
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,         // 다른 요소들보다 위에 표시
       }}
     >
       {/* 왼쪽: 로고 + 메뉴 */}

@@ -56,6 +56,11 @@ const ProgressPage: React.FC = () => {
   // 선택 연도 (연도 선택 드롭다운용)
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
+  const yearlyRatio = yearlyGoal > 0 ? (yearlyAchieved / yearlyGoal) : 0;
+  const yearlyAngle = yearlyRatio * 360;
+  const monthlyRatio = monthlyGoal > 0 ? (monthlyAchieved / monthlyGoal) : 0;
+  const monthlyAngle = monthlyRatio * 360;
+
   const colorPalette = [
     '#FF6384', // 빨강
     '#36A2EB', // 파랑
@@ -259,20 +264,37 @@ const ProgressPage: React.FC = () => {
             <span style={{ fontSize: '16px', color: '#555', marginLeft: '8px' }}>Annual Goal</span>
           </div>
           <hr style={{ border: '0.5px solid #ccc', marginBottom: '20px' }} />
-
+          
+          
           {/* Donut Graph for Yearly Goal */}
           <div
             style={{
-              width: '100%',
-              maxWidth: '150px',
-              aspectRatio: '1',
+              width: '150px',   // 도넛 크기
+              height: '150px',
               borderRadius: '50%',
-              border: '10px solid #F0F0F0',
               margin: '0 auto 20px',
               position: 'relative',
-              boxSizing: 'border-box',
+              background: `conic-gradient(
+                #FF5C00 0deg ${yearlyAngle}deg,   /* 달성 부분(진한 색) */
+                #F0F0F0 ${yearlyAngle}deg 360deg  /* 나머지 부분(연한 색) */
+              )`,
             }}
           >
+            {/* 안쪽 흰색 원(속이 비어있는 '도넛' 형태 만들기) */}
+            <div
+              style={{
+                width: '120px',
+                height: '120px',
+                backgroundColor: '#fff',
+                borderRadius: '50%',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+
+            {/* 중앙 텍스트 (달성률, 안내문구 등) */}
             <div
               style={{
                 position: 'absolute',
@@ -283,7 +305,7 @@ const ProgressPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                {yearlyGoal === 0 ? '0%' : `${Math.round((yearlyAchieved / yearlyGoal) * 100)}%`}
+                {yearlyGoal === 0 ? '0%' : `${Math.round(yearlyRatio * 100)}%`}
               </span>
               <div style={{ fontSize: '14px', color: '#666' }}>
                 {yearlyGoal === 0 ? '목표를 설정하세요' : '진행 중'}
@@ -347,16 +369,29 @@ const ProgressPage: React.FC = () => {
           {/* Donut Graph for Monthly Goal */}
           <div
             style={{
-              width: '100%',
-              maxWidth: '150px',
-              aspectRatio: '1',
+              width: '150px',
+              height: '150px',
               borderRadius: '50%',
-              border: '10px solid #F0F0F0',
               margin: '0 auto 20px',
               position: 'relative',
-              boxSizing: 'border-box',
+              background: `conic-gradient(
+                #62AADF 0deg ${monthlyAngle}deg,
+                #F0F0F0 ${monthlyAngle}deg 360deg
+              )`,
             }}
           >
+            <div
+              style={{
+                width: '120px',
+                height: '120px',
+                backgroundColor: '#fff',
+                borderRadius: '50%',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
             <div
               style={{
                 position: 'absolute',
@@ -367,7 +402,7 @@ const ProgressPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                {monthlyGoal === 0 ? '0%' : `${Math.round((monthlyAchieved / monthlyGoal) * 100)}%`}
+                {monthlyGoal === 0 ? '0%' : `${Math.round(monthlyRatio * 100)}%`}
               </span>
               <div style={{ fontSize: '14px', color: '#666' }}>
                 {monthlyGoal === 0 ? '목표를 설정하세요' : '진행 중'}

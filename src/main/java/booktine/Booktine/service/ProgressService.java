@@ -30,26 +30,28 @@ public class ProgressService {
         int currentYear = now.getYear();
         int currentMonth = now.getMonthValue();
 
-        // 연간 달성 수
+        // 연간 달성 수 (targetYear 기준)
         long yearlyAchieved = finishedPosts.stream()
                 .filter(p -> {
                     if (p.getEndDate() == null) return false;
                     LocalDate end = p.getEndDate();
-                    return end.getYear() == currentYear;
+                    return end.getYear() == targetYear;
                 })
                 .count();
 
-        // 이번달 달성 수
-        long monthlyAchieved = finishedPosts.stream()
-                .filter(p -> {
-                    if (p.getEndDate() == null) return false;
-                    LocalDate end = p.getEndDate();
-                    return (end.getYear() == currentYear && end.getMonthValue() == currentMonth);
-                })
-                .count();
+        // 이번달 달성 수 (targetYear가 현재 연도인 경우에만 계산)
+        long monthlyAchieved = 0;
+        if (targetYear == now.getYear()) {
+            monthlyAchieved = finishedPosts.stream()
+                    .filter(p -> {
+                        if (p.getEndDate() == null) return false;
+                        LocalDate end = p.getEndDate();
+                        return (end.getYear() == targetYear && end.getMonthValue() == now.getMonthValue());
+                    })
+                    .count();
+        }
 
-        // 3) 연간 독서량 (1~12월) => lineChartData
-        //    현재 연도 기준 1~12월 각각 완독 count
+        // 3) 연간 독서량 (1~12월) - targetYear 기준
         List<MonthlyData> yearlyData = new ArrayList<>();
         for (int m = 1; m <= 12; m++) {
             final int month = m;
@@ -57,42 +59,45 @@ public class ProgressService {
                     .filter(p -> {
                         if (p.getEndDate() == null) return false;
                         LocalDate end = p.getEndDate();
-                        return (end.getYear() == currentYear && end.getMonthValue() == month);
+                        return (end.getYear() == targetYear && end.getMonthValue() == month);
                     })
                     .count();
             yearlyData.add(new MonthlyData(m + "월", (int) count));
         }
 
-        // 4) 최근 6개월 독서량 => barChartData
-        //    오늘 기준 ~ 6개월 전
+        // 4) 최근 6개월 독서량 - targetYear가 현재 연도인 경우에만 계산
         List<MonthlyData> recent6Months = new ArrayList<>();
-        LocalDate today = LocalDate.now();
-        for (int i = 0; i < 6; i++) {
-            LocalDate target = today.minusMonths(i);
-            int y = target.getYear();
-            int m = target.getMonthValue();
+        if (targetYear == now.getYear()) {
+            LocalDate today = LocalDate.now();
+            for (int i = 0; i < 6; i++) {
+                LocalDate targetDate = today.minusMonths(i);
+                int y = targetDate.getYear();
+                int m = targetDate.getMonthValue();
 
-            long count = finishedPosts.stream()
-                    .filter(p -> {
-                        if (p.getEndDate() == null) return false;
-                        LocalDate end = p.getEndDate();
-                        return (end.getYear() == y && end.getMonthValue() == m);
-                    })
-                    .count();
+                long count = finishedPosts.stream()
+                        .filter(p -> {
+                            if (p.getEndDate() == null) return false;
+                            LocalDate end = p.getEndDate();
+                            return (end.getYear() == y && end.getMonthValue() == m);
+                        })
+                        .count();
 
-            recent6Months.add(new MonthlyData(m + "월", (int) count));
+                recent6Months.add(new MonthlyData(m + "월", (int) count));
+            }
+            Collections.reverse(recent6Months);
         }
-        // 과거 → 최신 순으로 바꾸려면 reverse
-        Collections.reverse(recent6Months);
 
-        // 5) 장르별 독서 비율 => genreData
+        // 5) 장르별 독서 비율 - targetYear 기준
         //    전체 finishedPosts에서 장르별 개수 -> % 계산
         Map<String, Long> genreCount = new HashMap<>();
         for (Post p : finishedPosts) {
-            if (p.getGenre() == null) continue;
+            if (p.getGenre() == null || p.getEndDate() == null) continue;
+            if (p.getEndDate().getYear() != targetYear) continue;
             genreCount.put(p.getGenre(), genreCount.getOrDefault(p.getGenre(), 0L) + 1);
         }
-        long totalFinished = finishedPosts.size();
+        long totalFinished = finishedPosts.stream()
+                .filter(p -> p.getEndDate() != null && p.getEndDate().getYear() == targetYear)
+                .count();
         List<GenreData> genreDataList = new ArrayList<>();
         for (Map.Entry<String, Long> entry : genreCount.entrySet()) {
             double percentage = (totalFinished > 0)
@@ -100,6 +105,8 @@ public class ProgressService {
                     : 0.0;
             genreDataList.add(new GenreData(entry.getKey(), percentage));
         }
+
+
 
         // 6) ProgressResponse에 담아서 리턴
         return ProgressResponse.builder()
@@ -109,5 +116,6 @@ public class ProgressService {
                 .recent6Months(recent6Months)  // 최근 6개월 독서량
                 .genreData(genreDataList)      // 장르별 비율
                 .build();
+
     }
 }
