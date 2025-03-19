@@ -68,7 +68,7 @@ const PostDetailPage: React.FC = () => {
 
   // PostDetailPage.tsx 내 최하단의 return(...) 부분만 교체
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '60px 20px' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '60px 20px',paddingTop: '100px', }}>
       {/* ──────────────────────────────────────────────
           (1) 상단 영역: 책을 펴낸 날짜 박스 + 독서 상태
           ────────────────────────────────────────────── */}

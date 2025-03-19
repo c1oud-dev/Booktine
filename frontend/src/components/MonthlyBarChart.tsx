@@ -82,11 +82,14 @@ const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
 
 
   return (
-    //<div style={{ width: '100%', height: '300px', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-    <div style={{ width: '100%',  height: '300px', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', boxShadow: '0 0 8px rgba(0,0,0,0.05)' }}>
-        <Bar data={data} options={options} />
-      
-       
+    <div style={{ 
+      width: '100%',  
+      height: '300px', 
+      backgroundColor: '#fff', 
+      padding: '20px', 
+      boxShadow: '0 0 8px rgba(0,0,0,0.1)' // 그림자 진하게 변경
+    }}>
+      <Bar data={data} options={options} />
     </div>
   );
 };

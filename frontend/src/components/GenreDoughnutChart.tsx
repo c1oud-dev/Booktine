@@ -62,7 +62,7 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
             '#62AADF', '#E6EEF5', '#b38feb',
           ],
           borderWidth: 1,
-          cutout: '70%', // 도넛 굵기
+          cutout: '75%', // 도넛 굵기
         },
       ],
     }
@@ -78,7 +78,7 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
   };
 
   return (
-    <div style={{ width: '250px', height: '250px', position: 'relative'}}>
+    <div style={{ width: '210px', height: '210px', position: 'relative', margin: '20px'}}>
       <Doughnut data={data} options={options as any} />
 
       {/* (5) 도넛 중앙 텍스트 */}
@@ -94,7 +94,7 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
       >
         {hasData && maxGenre && maxGenre.value > 0 ? (
           <>
-            <div style={{ fontSize: '13px', color: '#666' }}>가장 많이 읽은 장르</div>
+            <div style={{ fontSize: '11px', color: '#666' }}>가장 많이 읽은 장르</div>
             <div style={{ marginTop: '4px', fontWeight: 'bold'}}>{maxGenre.label}</div>
           </>
         ) : (

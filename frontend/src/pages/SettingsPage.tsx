@@ -117,6 +117,7 @@ const SettingsPage: React.FC = () => {
         boxSizing: 'border-box',
         maxWidth: '1200px',
         margin: '0 auto',
+        paddingTop: '100px',
       }}
     >
       {/* 상단 영역: Settings 제목 */}

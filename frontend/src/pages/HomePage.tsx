@@ -62,6 +62,8 @@ const HomePage: React.FC = () => {
   const ratio = yearlyGoal > 0 ? (yearlyAchieved / yearlyGoal) : 0;
   const angle = ratio * 360;
 
+  const [homeYearlyChartData, setHomeYearlyChartData] = useState<{ month: string; count: number }[]>([]);
+
   useEffect(() => {
     // 예: localStorage에서 가져오기
     const storedGoal = localStorage.getItem('yearlyGoal');
@@ -105,6 +107,18 @@ const HomePage: React.FC = () => {
       .catch((error) => console.error('Error fetching posts:', error));
   }, []);
 
+  // 최근 6년 연간 독서량 데이터 (완독 상태의 게시글 기준)
+  useEffect(() => {
+    const finished = posts.filter(p => p.readingStatus === '완독' && p.endDate);
+    const currentYear = new Date().getFullYear();
+    const tempData = [];
+    for (let y = currentYear - 5; y <= currentYear; y++) {
+      const count = finished.filter(p => new Date(p.endDate!).getFullYear() === y).length;
+      tempData.push({ month: `${y}년`, count });
+    }
+    setHomeYearlyChartData(tempData);
+  }, [posts]);
+
 
   // posts 변경 시, 독서 상태별 분류 (최대 3개씩)
   useEffect(() => {
@@ -117,8 +131,8 @@ const HomePage: React.FC = () => {
           new Date(p.endDate).getFullYear() === new Date().getFullYear()
       )
       .sort((a, b) => new Date(b.endDate!).getTime() - new Date(a.endDate!).getTime());
-    setCurrentReading(current.slice(0, 3));
-    setFinishedReading(finished.slice(0, 3));
+    setCurrentReading(current.slice(0, 2));
+    setFinishedReading(finished.slice(0, 2));
     setYearlyAchieved(finished.length); // 여기서 완독 게시물 수를 업데이트
   }, [posts]);
 
@@ -173,21 +187,19 @@ const HomePage: React.FC = () => {
     // 전체 페이지 래퍼
     <div
       style={{
-        marginTop: '20px',
-        
-        minWidth: '1200px',
-        minHeight: '100vh',
+        minWidth: '1300px',
         background: "url('/Main.jpg') center center / cover no-repeat",
-        overflowX: 'auto', // 가로 스크롤 필요 시 유지
-        paddingBottom: '110px', // 하단 여백 추가
+        margin: 0,
+        paddingTop: '10px', // 헤더 높이 등을 고려하여 적절히 조정
       }}
     >
-      <div
-        style={{
-          width: '1200px',
-          margin: '0 auto',
-        }}
-      >
+      {/* 가운데 정렬 및 콘텐츠 영역 래퍼 */}
+      <div style={{ 
+        maxWidth: '1200px',
+        width: '100%', 
+        margin: '0 auto',
+        paddingBottom: '80px'
+        }}>
 
         {/* 2x2 카드 레이아웃 */}
         <div
@@ -196,8 +208,8 @@ const HomePage: React.FC = () => {
             gridTemplateColumns: '1fr 1fr',
             gap: '100px',
             marginTop: '100px',
-            marginLeft: '50px',
-            marginRight: '50px'
+            marginLeft: '20px',
+            marginRight: '20px'
           }}
         >
 
@@ -585,12 +597,18 @@ const HomePage: React.FC = () => {
                   <>
                     {/* 첫 번째 점: 연간 독서량 */}
                     {statTabIndex === 0 && (
-                      <AnnualLineChart chartData={progressData.yearlyData} />
+                      <AnnualLineChart chartData={homeYearlyChartData} />
                     )}
 
                     {/* 두 번째 점: 월간 독서량 */}
                     {statTabIndex === 1 && (
-                      // MonthlyBarChart는 {month, goal, achieved}[] 형태를 요구할 수 있으므로 변환 예시:
+                      <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden'   // 부모 범위를 벗어나지 않도록
+                      }}
+                    >
                       <MonthlyBarChart
                         chartData={
                           progressData.recent6Months.map(item => ({
@@ -601,6 +619,7 @@ const HomePage: React.FC = () => {
                         }
                         monthlyGoal={0}        // 필요하면 로직에 맞게 설정
                       />
+                    </div>
                     )}
 
                     {/* 세 번째 점: 장르별 독서 비율 */}
@@ -676,7 +695,7 @@ const HomePage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  // 게시글이 있을 경우: 현재 읽는 책과 최근 완독한 책 각각 최대 3개씩 표시
+                  // 게시글이 있을 경우: 현재 읽는 책과 최근 완독한 책 각각 최대 2개씩 표시
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                     {/* 현재 읽고 있는 책 */}
                     <div>
@@ -699,7 +718,7 @@ const HomePage: React.FC = () => {
                           >
                             <span style={{ fontSize: '15px' }}>{post.title}</span>
                             <span style={{ fontSize: '14px', color: '#555' }}>
-                              {post.startDate ? `시작: ${post.startDate}` : ''}
+                              {post.startDate ? `시작일 | ${post.startDate}` : ''}
                             </span>
                           </div>
                         ))
@@ -727,7 +746,7 @@ const HomePage: React.FC = () => {
                           >
                             <span style={{ fontSize: '15px' }}>{post.title}</span>
                             <span style={{ fontSize: '14px', color: '#555' }}>
-                              {post.endDate ? `완독: ${post.endDate}` : ''}
+                              {post.endDate ? `완독일 | ${post.endDate}` : ''}
                             </span>
                           </div>
                         ))

@@ -146,20 +146,18 @@ const ProgressPage: React.FC = () => {
   }, [posts, currentYear, currentMonth]);
 
   // ──────────────────────────────────────────────
-  // (E) 로컬에서 연간 독서량 계산 (1~12월)
-  // ──────────────────────────────────────────────
+  // (E) 로컬에서 연간 독서량 계산 (최근 6년)
   useEffect(() => {
     const tempData: { month: string; count: number }[] = [];
-    setLineChartData(tempData);
-    for (let m = 1; m <= 12; m++) {
+    for (let y = selectedYear - 5; y <= selectedYear; y++) {
       const count = finishedPosts.filter((p) => {
         if (!p.endDate) return false;
         const d = new Date(p.endDate);
-        return d.getFullYear() === selectedYear && d.getMonth() + 1 === m;
+        return d.getFullYear() === y;
       }).length;
-      tempData.push({ month: `${m}월`, count });
+      tempData.push({ month: `${y}년`, count });
     }
-    
+    setLineChartData(tempData);
   }, [finishedPosts, selectedYear]);
 
   // ──────────────────────────────────────────────
@@ -227,52 +225,77 @@ const ProgressPage: React.FC = () => {
   };
 
   return (
-    <div style={{ width: '100%', minWidth: '1200px', margin: '0 auto' }}>
     <div
       style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '20px',
-        padding: '40px 120px 20px 120px',
-        backgroundColor: '#fff',
+        minWidth: '1200px',
+        backgroundColor: '#f5f5f5',
+        minHeight: '100vh',
+        paddingTop: '80px',  // 헤더 높이(65px)보다 조금 크게
+        margin: 0,
       }}
     >
+      {/* 2) 가운데 정렬 및 최소 너비 설정 */}
+      <div style={{ width: '100%',  margin: '0 auto' }}>
+        {/* 3) 기존의 콘텐츠 영역 */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '20px',
+            padding: '0 120px', // 좌우 패딩 (상하는 필요시 조절)
+          }}
+        >
       {/* Left: Goal Management */}
       <div
         style={{
-          flex: '1 1 30%',
-          maxWidth: '400px',
-          backgroundColor: '#DADADA',
-          borderRadius: '20px',
-          padding: '40px 30px',
+          flex: '0 0 400px',      // 기존 maxWidth: 400px → 500px
           boxSizing: 'border-box',
+          marginTop: '40px',
         }}
       >
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '40px' }}>Goal Management</h2>
+        {/* 제목 박스: 올해 목표 카드와 동일한 가로 폭 (부모 width 100%) */}
+        <div
+          style={{
+            backgroundColor: '#D8D1B9',
+            borderRadius: '10px',
+            boxShadow: '0 0 8px rgba(0,0,0,0.1)',
+            border: '1px solid #DADADA',
+            padding: '10px 30px',
+            marginBottom: '20px',
+            textAlign: 'center',
+            color: '#333',
+            width: '100%',
+          }}
+        >
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0}}>Goal Management</h2>
+        </div>
 
         {/* Yearly Goal Card */}
         <div
           style={{
             backgroundColor: '#fff',
-            borderRadius: '10px',
-            padding: '20px',
-            marginBottom: '50px',
+            padding: '25px',
+            margin: '20px 0 50px 0',
+            boxShadow: '0 0 8px rgba(0,0,0,0.1)',
+            border: '1px solid #DADADA',
+            minHeight: '480px',
+            width: '100%',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '10px' }}>
             <h3 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>올해 목표</h3>
             <span style={{ fontSize: '16px', color: '#555', marginLeft: '8px' }}>Annual Goal</span>
           </div>
-          <hr style={{ border: '0.5px solid #ccc', marginBottom: '20px' }} />
+          <hr style={{ border: '0.5px solid #ccc', marginBottom: '30px' }} />
           
           
           {/* Donut Graph for Yearly Goal */}
           <div
             style={{
-              width: '150px',   // 도넛 크기
-              height: '150px',
+              width: '170px',   // 도넛 크기
+              height: '170px',
               borderRadius: '50%',
-              margin: '0 auto 20px',
+              margin: '0 auto 40px',
               position: 'relative',
               background: `conic-gradient(
                 #FF5C00 0deg ${yearlyAngle}deg,   /* 달성 부분(진한 색) */
@@ -283,8 +306,8 @@ const ProgressPage: React.FC = () => {
             {/* 안쪽 흰색 원(속이 비어있는 '도넛' 형태 만들기) */}
             <div
               style={{
-                width: '120px',
-                height: '120px',
+                width: '150px',
+                height: '150px',
                 backgroundColor: '#fff',
                 borderRadius: '50%',
                 position: 'absolute',
@@ -305,10 +328,20 @@ const ProgressPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                {yearlyGoal === 0 ? '0%' : `${Math.round(yearlyRatio * 100)}%`}
+                {yearlyGoal === 0
+                  ? '0%'
+                  : yearlyAchieved >= yearlyGoal
+                  ? '100%'
+                  : `${Math.round(yearlyRatio * 100)}%`}
               </span>
-              <div style={{ fontSize: '14px', color: '#666' }}>
-                {yearlyGoal === 0 ? '목표를 설정하세요' : '진행 중'}
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                {yearlyGoal === 0
+                  ? '목표를 설정하세요'
+                  : yearlyAchieved === 0
+                  ? '아직 완독한 게 없어요.'
+                  : yearlyAchieved < yearlyGoal
+                  ? `목표 달성까지 ${100 - Math.round(yearlyRatio * 100)}% 남았어요.`
+                  : '목표 달성!'}
               </div>
             </div>
           </div>
@@ -355,24 +388,29 @@ const ProgressPage: React.FC = () => {
         <div
           style={{
             backgroundColor: '#fff',
-            borderRadius: '10px',
-            padding: '20px',
+            
+            padding: '25px',
             marginBottom: '30px',
+            boxShadow: '0 0 8px rgba(0,0,0,0.1)',
+            border: '1px solid #DADADA',
+            /* 아래로 많이 늘리기 위해 minHeight 지정 (예: 350px) */
+            minHeight: '480px',
+            width: '100%',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '10px' }}>
             <h3 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>이번달 목표</h3>
             <span style={{ fontSize: '16px', color: '#555', marginLeft: '8px' }}>Monthly Goal</span>
           </div>
-          <hr style={{ border: '0.5px solid #ccc', marginBottom: '20px' }} />
+          <hr style={{ border: '0.5px solid #ccc', marginBottom: '30px' }} />
 
           {/* Donut Graph for Monthly Goal */}
           <div
             style={{
-              width: '150px',
-              height: '150px',
+              width: '170px',
+              height: '170px',
               borderRadius: '50%',
-              margin: '0 auto 20px',
+              margin: '0 auto 40px',
               position: 'relative',
               background: `conic-gradient(
                 #62AADF 0deg ${monthlyAngle}deg,
@@ -382,8 +420,8 @@ const ProgressPage: React.FC = () => {
           >
             <div
               style={{
-                width: '120px',
-                height: '120px',
+                width: '150px',
+                height: '150px',
                 backgroundColor: '#fff',
                 borderRadius: '50%',
                 position: 'absolute',
@@ -402,10 +440,20 @@ const ProgressPage: React.FC = () => {
               }}
             >
               <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                {monthlyGoal === 0 ? '0%' : `${Math.round(monthlyRatio * 100)}%`}
+                {monthlyGoal === 0
+                  ? '0%'
+                  : monthlyAchieved >= monthlyGoal
+                  ? '100%'
+                  : `${Math.round(monthlyRatio * 100)}%`}
               </span>
-              <div style={{ fontSize: '14px', color: '#666' }}>
-                {monthlyGoal === 0 ? '목표를 설정하세요' : '진행 중'}
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+                {monthlyGoal === 0
+                  ? '목표를 설정하세요'
+                  : monthlyAchieved === 0
+                  ? '아직 완독한 게 없어요.'
+                  : monthlyAchieved < monthlyGoal
+                  ? `목표 달성까지 ${100 - Math.round(monthlyRatio * 100)}% 남았어요.`
+                  : '목표 달성!'}
               </div>
             </div>
           </div>
@@ -455,44 +503,79 @@ const ProgressPage: React.FC = () => {
           flex: '2 1 50%',
           minWidth: '300px',
           boxSizing: 'border-box',
-          paddingTop: '40px'
+          paddingTop: '40px',
+          marginLeft: '40px'
         }}
       >
-        <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '30px' }}>Statistics</h2>
-
-        {/* Annual Reading Amount */}
-        <div style={{ marginBottom: '50px' }}>
-          <h4 style={{ fontSize: '18px', margin: '0 0 20px 0', fontWeight: 'bold' }}>연간 독서량</h4>
-          <div style={{ marginBottom: '20px' }}>
-            <label htmlFor="year-select">연도 선택:</label>
-            <select
-              id="year-select"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              style={{ padding: '5px 10px', marginLeft: '10px' }}
-            >
-              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-          <AnnualLineChart chartData={lineChartData} />
+        {/* 제목 박스 */}
+        <div
+          style={{
+            backgroundColor: '#C5CAB4',
+            borderRadius: '10px',
+            boxShadow: '0 0 8px rgba(0,0,0,0.1)',
+            border: '1px solid #DADADA',
+            padding: '10px 40px',
+            marginBottom: '20px',
+            textAlign: 'center',
+            color: '#333',
+            width: '100%',
+          }}
+        >
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0}}>Statistics</h2>
         </div>
 
+        {/* Annual Reading Amount */}
+        <div style={{ marginBottom: '30px' }}>
+          <h4 style={{ fontSize: '18px', margin: '20px 0 10px 0', fontWeight: 'bold' }}>연간 독서량</h4>
+          
+          {/* 박스는 연도 선택과 차트만 감쌈 */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              padding: '20px 40px',
+              boxShadow: '0 0 8px rgba(0,0,0,0.1)',
+              border: '1px solid #DADADA',
+              marginBottom: '30px',
+            }}
+          >
+            {/* 연도 선택 드롭다운 */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                marginBottom: '10px',
+              }}
+            >
+              <label htmlFor="year-select" style={{ marginRight: '8px' }}>연도 선택:</label>
+              <select
+                id="year-select"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                style={{ padding: '5px 10px' }}
+              >
+                {Array.from({ length: 11 }, (_, i) => currentYear - i).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          <AnnualLineChart chartData={lineChartData} />
+        </div>
+      </div>
+
         {/* Monthly Reading Amount */}
-        <div style={{ marginBottom: '50px' }}>
-          <h4 style={{ fontSize: '18px', margin: '0 0 20px 0', fontWeight: 'bold' }}>월별 독서량</h4>
+        <div style={{ marginBottom: '30px',  }}>
+          <h4 style={{ fontSize: '18px', margin: '0 0 10px 0', fontWeight: 'bold' }}>월별 독서량</h4>
           <MonthlyBarChart chartData={barChartData} monthlyGoal={monthlyGoal} />
         </div>
 
         {/* Genre Reading Ratio */}
-        <h4 style={{ fontSize: '18px', margin: '0 0 20px 0', fontWeight: 'bold' }}>장르별 독서 비율</h4>
+        <h4 style={{ fontSize: '18px', margin: '0 0 10px 0', fontWeight: 'bold' }}>장르별 독서 비율</h4>
         <div
           style={{
             backgroundColor: '#fff',
-            borderRadius: '10px',
             padding: '20px 40px',
             boxShadow: '0 0 8px rgba(0,0,0,0.1)',
             marginBottom: '40px',
@@ -562,7 +645,7 @@ const ProgressPage: React.FC = () => {
           </div>
         </div>
       </div>
-
+    </div>
       {/* Yearly Goal Modal */}
       {showYearlyGoalModal && (
         <div

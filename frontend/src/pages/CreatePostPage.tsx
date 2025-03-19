@@ -225,6 +225,7 @@ const CreatePostPage: React.FC = () => {
         maxWidth: '900px',
         margin: '0 auto',
         padding: '60px 20px',
+        paddingTop: '100px',
       }}
     >
       {/* ── 상단 영역: 책을 펴낸 날, 독서중, 뒤로가기 ── */}

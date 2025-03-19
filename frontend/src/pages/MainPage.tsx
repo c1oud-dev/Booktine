@@ -30,7 +30,9 @@ const MainPage: React.FC = () => {
   return (
     <div
       style={{
+        maxWidth: '1200px',
         width: '100%',
+        minHeight: '100vh',
         height: 'calc(100vh - 60px)', // 헤더 높이 제외
         background: 'url(/Main.jpg) no-repeat left top / cover', 
         position: 'relative',
@@ -43,6 +45,7 @@ const MainPage: React.FC = () => {
           top: '100px',
           left: '80px',
           color: '#000',
+          paddingTop: '100px'
         }}
       >
         <h1 style={{ fontSize: '40px', marginBottom: '16px' }}>
