@@ -150,6 +150,7 @@ const BookNote: React.FC = () => {
               display: 'grid',
               gridTemplateColumns: 'repeat(3, 1fr)', // 한 줄에 최대 3개
               gap: '20px',                           // 박스 간격
+            
             }}
           >
             {filteredPosts.map((post) => {
@@ -170,7 +171,7 @@ const BookNote: React.FC = () => {
               }
 
               // 3) 메모 일부 (snippet)
-              const snippetLength = 120;
+              const snippetLength = 60; //4줄
               const snippet = (post.memos && post.memos.length > 0)
                 ? (post.memos[0].memo.length > snippetLength
                     ? post.memos[0].memo.slice(0, snippetLength) + '...'
@@ -187,6 +188,7 @@ const BookNote: React.FC = () => {
                     padding: '20px',              // 내부 여백
                     boxSizing: 'border-box',
                     cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.25)',
                   }}
                 >
                   {/* 독서 상태 뱃지 */}
@@ -198,31 +200,31 @@ const BookNote: React.FC = () => {
                       borderRadius: '15px',
                       padding: '4px 12px',
                       fontSize: '15px',
-                      marginBottom: '8px',
+                      marginBottom: '15px',
                     }}
                   >
                     {badgeLabel}
                   </div>
 
                   {/* 책 제목 */}
-                  <h3 style={{ margin: '8px 0 15px 0', fontSize: '18px', fontWeight: 'bold' }}>
+                  <h3 style={{ margin: '20px 0 px 0', fontSize: '18px', fontWeight: 'bold' }}>
                     {post.title}
                   </h3>
 
                   {/* 저자 */}
-                  <div style={{ marginBottom: '20px', fontSize: '12px' }}>
+                  <div style={{ marginTop: '20px', marginBottom: '20px', fontSize: '12px', color: '#111111' }}>
                     {post.inputAuthor || '저자 미상'}
                   </div>
 
                   {/* 메모 일부 (snippet) */}
-                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.4', color: '#666'  }}>
+                  <p style={{ margin: 0, fontSize: '14px', lineHeight: '1.4', color: '#979797'  }}>
                     {snippet}
                   </p>
 
                   {/* 작성 날짜 (createdAt이 있다고 가정) */}
                   <div
                     style={{
-                      textAlign: 'right',
+                      textAlign: 'left',
                       marginTop: '20px',
                       fontSize: '12px',
                       color: '#999',

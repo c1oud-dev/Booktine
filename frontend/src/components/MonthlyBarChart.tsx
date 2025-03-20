@@ -57,6 +57,10 @@ const MonthlyBarChart: React.FC<Props> = ({ chartData, monthlyGoal }) => {
         type: 'category',
         grid: { display: false },
         ticks: { color: '#666' },
+        title: {
+          display: true,
+          color: '#666',
+        },
       },
       y: {
         min: 0, max: maxY, ticks: { stepSize, color: '#666' }, grid: { color: '#f5f5f5' }

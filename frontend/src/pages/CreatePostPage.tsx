@@ -10,11 +10,40 @@ interface Memo {
 
 const CreatePostPage: React.FC = () => {
   const navigate = useNavigate();
+  const { id: postId } = useParams(); // URL 파라미터로부터 id (수정 모드 여부)
 
-  const { id: postId } = useParams(); // URL 경로 파라미터로부터 id를 받아옴
+  // 기존 로직 그대로
+  const [showToast, setShowToast] = useState(false);
+  const [showConfirmBackModal, setShowConfirmBackModal] = useState(false);
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [readingStatus, setReadingStatus] = useState<'독서중' | '완독'>('독서중');
 
+  const [title, setTitle] = useState('');
+  const [titleError, setTitleError] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const [memos, setMemos] = useState<Memo[]>([
+    { id: Date.now(), pageNumber: '', memo: '', isMemoSaved: false },
+  ]);
+
+  const textAreaRefs = useRef<{ [key: number]: HTMLTextAreaElement | null }>({});
+
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [inputAuthor, setInputAuthor] = useState('');
+  const [genre, setGenre] = useState('');
+  const [publisher, setPublisher] = useState('');
+  const [summary, setSummary] = useState('');
+  const [review, setReview] = useState('');
+
+  // 추가: 사진 추가하기 (파일 업로드) 상태
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+
+  // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
-    if (!postId) return; // 새 글쓰기면 postId가 없음
+    if (!postId) return; // 새 글쓰기면 postId 없음
     fetch(`http://localhost:8083/posts/${postId}`)
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
@@ -29,9 +58,9 @@ const CreatePostPage: React.FC = () => {
         setPublisher(data.publisher);
         setSummary(data.summary);
         setReview(data.review);
-        
+        setEndDate(data.endDate); // 책을 닫은 날짜도 세팅
 
-        // 백엔드에서 받은 memos 배열이 있다면, 아래처럼 state에 반영
+        // memos
         if (data.memos) {
           setMemos(
             data.memos.map((m: any) => ({
@@ -46,18 +75,9 @@ const CreatePostPage: React.FC = () => {
       .catch((err) => console.error('Error fetching post:', err));
   }, [postId]);
 
-  // ──────────────────────────────────────────────
-  // 1) 모달 관련 상태 및 핸들러들
-  // ──────────────────────────────────────────────
-
-  const [showToast, setShowToast] = useState(false);
-  const [showConfirmBackModal, setShowConfirmBackModal] = useState(false); // "뒤로가기" 확인 모달
-  const [showCongratsModal, setShowCongratsModal] = useState(false); // "완독 축하합니다!" 모달
-  const [isSaved, setIsSaved] = useState(false);
-  const [readingStatus, setReadingStatus] = useState<'독서중' | '완독'>('독서중');
-
+  // (2) 뒤로가기 로직
   const handleGoBack = () => {
-    if (isSaved) {// 저장하지 않은 내용이 있다면 뒤로가기 모달 띄우기
+    if (isSaved) {
       navigate('/booknote');
     } else {
       setShowConfirmBackModal(true);
@@ -71,226 +91,151 @@ const CreatePostPage: React.FC = () => {
     setShowConfirmBackModal(false);
   };
 
+  // (3) 책을 닫은 날 → 완독
   const handleCloseBookDate = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
-        // 책을 닫은 날짜가 지정되면 "완독" 상태로 변경
-        setReadingStatus('완독');
-        setShowCongratsModal(true);
-      }
+      setReadingStatus('완독');
+      setShowCongratsModal(true);
+    }
   };
   const handleCloseCongratsModal = () => {
     setShowCongratsModal(false);
   };
 
-  // ──────────────────────────────────────────────
-  // 2) 제목 관련 상태 (제목 미입력 시 오류 처리)
-  // ──────────────────────────────────────────────
-  const [title, setTitle] = useState('');
-  const [titleError, setTitleError] = useState(false);
-  const titleInputRef = useRef<HTMLInputElement>(null);
-
-  // ──────────────────────────────────────────────
-  // 3) 메모 관련 상태 및 로직 (다중 메모)
-  // ──────────────────────────────────────────────
-  const [memos, setMemos] = useState<Memo[]>([
-    { id: Date.now(), pageNumber: '', memo: '', isMemoSaved: false },
-  ]);
-
-  // 각 textarea DOM을 저장할 ref 객체 (key: 메모 id)
-  const textAreaRefs = useRef<{ [key: number]: HTMLTextAreaElement | null }>({});
-
-  // 자동 높이 조정 함수
+  // (4) 메모 로직
   const autoResize = (element: HTMLTextAreaElement) => {
     element.style.height = 'auto';
     element.style.height = element.scrollHeight + 'px';
   };
-
   const handleAddMemo = () => {
-    const newMemo: Memo = { id: Date.now(), pageNumber: '', memo: '', isMemoSaved: false };
+    const newMemo: Memo = {
+      id: Date.now(),
+      pageNumber: '',
+      memo: '',
+      isMemoSaved: false,
+    };
     setMemos([...memos, newMemo]);
   };
-
-  // 메모 등록 버튼은 단순히 해당 메모의 isMemoSaved 상태를 변경만 함
   const handleRegisterMemo = (id: number) => {
     setMemos((prev) =>
       prev.map((m) => (m.id === id ? { ...m, isMemoSaved: true } : m))
     );
     setTimeout(() => {
       const el = textAreaRefs.current[id];
-      if (el) {
-        autoResize(el);
-      }
+      if (el) autoResize(el);
     }, 0);
   };
-
   const handleEditMemo = (id: number) => {
-    setMemos(memos.map((m) => (m.id === id ? { ...m, isMemoSaved: false } : m)));
+    setMemos((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, isMemoSaved: false } : m))
+    );
   };
-
   const handleDeleteMemo = (id: number) => {
     setMemos(memos.filter((m) => m.id !== id));
   };
-
   const handleMemoChange = (id: number, field: 'pageNumber' | 'memo', value: string) => {
     setMemos(memos.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
   };
 
-  // 추가: 책 관련 추가 입력값 상태
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [inputAuthor, setInputAuthor] = useState('');
-  const [genre, setGenre] = useState('');
-  const [publisher, setPublisher] = useState('');
-  const [summary, setSummary] = useState('');
-  const [review, setReview] = useState('');
-  
+  // (5) 사진 추가하기
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setUploadedImage(e.target.files[0]);
+      // 필요 시 미리보기 로직 추가
+    }
+  };
 
-
-  // ──────────────────────────────────────────────
-  // 4) 저장하기 버튼 처리 (페이지 하단)
-  // ──────────────────────────────────────────────
+  // (6) 저장하기
   const handleSave = (
     e?: React.MouseEvent<HTMLButtonElement>,
     navigateAfterSave = false
   ) => {
-    if (e) {
-      e.preventDefault(); // 혹시 모를 폼 submit 방지
-    }
-
-    if (title.trim() === '') {// 만약 제목이 입력되지 않았다면, 제목 입력 필드로 포커스 이동 및 빨간 테두리 처리
+    if (e) e.preventDefault();
+    if (title.trim() === '') {
       setTitleError(true);
       if (titleInputRef.current) {
         titleInputRef.current.focus();
-        titleInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });// 스크롤도 제목 입력 필드로 이동
+        titleInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
 
-    const username = localStorage.getItem('username'); // 회원가입 시 설정한 사용자 이름(예: firstName+lastName)
+    const username = localStorage.getItem('username');
     if (!username) {
-      alert("로그인이 필요합니다. 로그인 후 다시 시도해주세요.");
+      alert('로그인이 필요합니다.');
       return;
     }
-    const defaultAvatar = '/default_avatar.png'; // 기본 회색 원 이미지 경로
-    
-    const postData = {// 저장 로직 처리 (예: 백엔드 API 호출 등)
-        title,
-        startDate,
-        readingStatus,
-        author: {
-            name: username,               // 실제 사용자 이름으로 변경 필요
-            avatar: defaultAvatar // 실제 사용자 아바타 URL로 변경 필요
-          },
-        inputAuthor,
-        genre,
-        publisher,
-        summary,
-        review,
-        endDate,
-        memos,
+    const defaultAvatar = '/default_avatar.png';
+
+    const postData = {
+      title,
+      startDate,
+      readingStatus,
+      author: { name: username, avatar: defaultAvatar },
+      inputAuthor,
+      genre,
+      publisher,
+      summary,
+      review,
+      endDate,
+      memos,
+      // uploadedImage 등 파일 업로드는 백엔드 API에 맞춰 추가 구현 필요
     };
 
-    const requestMethod = postId ? 'PUT' : 'POST'; // postId가 있으면 수정(PUT), 없으면 신규 생성(POST)
-    const backendUrl = 'http://localhost:8083'; // 백엔드 서버 주소와 포트
-    const requestUrl = postId ? `${backendUrl}/posts/${postId}` : `${backendUrl}/posts`;
+    const requestMethod = postId ? 'PUT' : 'POST';
+    const requestUrl = postId
+      ? `http://localhost:8083/posts/${postId}`
+      : 'http://localhost:8083/posts';
 
     fetch(requestUrl, {
-        method: requestMethod,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
-      })
-        .then((res) => {
+      method: requestMethod,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postData),
+    })
+      .then((res) => {
         if (!res.ok) throw new Error('Save failed');
         return res.json();
       })
-        .then(() => {
-          setIsSaved(true);
-          window.dispatchEvent(new Event('postsUpdated'));
-          if (navigateAfterSave) {// 저장 완료 후, Book Note 페이지로 이동하거나 토스트 메시지 표시 등
-            navigate('/booknote');
-          }
+      .then(() => {
+        setIsSaved(true);
+        window.dispatchEvent(new Event('postsUpdated'));
+        if (navigateAfterSave) {
+          navigate('/booknote');
+        }
       })
-        .catch((error) => {
-          console.error('Error saving post:', error);
-      });
+      .catch((error) => console.error('Error saving post:', error));
 
-    // 토스트 메시지 표시
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000); // 3초 후 토스트 숨김
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   return (
     <div
       style={{
-        maxWidth: '900px',
-        margin: '0 auto',
-        padding: '60px 20px',
-        paddingTop: '100px',
+        backgroundColor: '#F7F5F5',
+        minHeight: '100vh',
+        paddingBottom: '120px', // 아래 고정 버튼영역 확보
       }}
     >
-      {/* ── 상단 영역: 책을 펴낸 날, 독서중, 뒤로가기 ── */}
+      {/* 상단 영역: 제목 입력 + 사진 추가하기 버튼 */}
       <div
         style={{
+          height: '250px',
           display: 'flex',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
           alignItems: 'center',
-          marginBottom: '40px',
+          justifyContent: 'center',
+          backgroundColor: '#999', // 원하는 배경색(예시), 또는 #ccc
+          color: '#fff',
+          marginTop: '60px'
         }}
       >
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <img
-            src="/openbook_icon.png"
-            alt="open book icon"
-            style={{ width: '30px', height: '30px' }}
-          />
-          <label style={{ fontSize: '20px', fontWeight: 'bold' }}>책을 펴낸 날</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            style={{
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
-
-        {/* 상태 표시 (독서중 / 완독) */}
-        <div
-            style={{
-            backgroundColor: readingStatus === '독서중' ? '#fff' : '#0538ff', 
-            color: readingStatus === '독서중' ? '#333' : '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '20px',
-            padding: '8px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontWeight: 'bold',
-            cursor: 'default', // 클릭 불가
-            }}
-        >
-            {readingStatus === '독서중' ? '🔥 독서중' : '✅ 완독'}
-            </div>
-        </div>
-        <button
-          onClick={handleGoBack}
-          style={{
-            backgroundColor: '#333',
-            color: '#fff',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '8px 16px',
-            cursor: 'pointer',
-          }}
-        >
-          뒤로가기
-        </button>
-      </div>
-
-      {/* ── 제목 입력 영역 (제목 미입력 시 빨간 테두리 처리) ── */}
-      <div style={{ marginBottom: '10px' }}>
+        {/* 제목 입력 */}
         <input
           ref={titleInputRef}
           type="text"
@@ -301,338 +246,389 @@ const CreatePostPage: React.FC = () => {
               setTitleError(false);
             }
           }}
-          placeholder="책 제목을 입력해주세요."
+          placeholder="제목을 입력하세요."
+          className="title-input"
           style={{
-            width: '100%',
-            fontSize: '32px',
+            fontSize: '24px',
             fontWeight: 'bold',
-            color: 'black',
-            border: titleError ? '2px solid red' : 'none',
+            border: 'none',
             outline: 'none',
+            backgroundColor: 'transparent',
+            color: '#fff',
+            textAlign: 'center',
+            marginBottom: '15px',
+            width: '60%',
+            borderBottom: titleError ? '2px solid red' : '2px solid #fff',
           }}
         />
-      </div>
-      <hr style={{ marginBottom: '30px' }} />
-
-      {/* ── 글쓰기 폼 영역 ── */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '50px' }}>
-        {/* 저자 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <label style={{ width: '70px', fontWeight: 'bold' }}>저 자</label>
-          <input
-            type="text"
-            placeholder="저자를 입력하세요."
-            value={inputAuthor}
-            onChange={(e) => setInputAuthor(e.target.value)}
-            style={{
-              width: '50%',
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
-        </div>
-
-        {/* 장르 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <label style={{ width: '70px', fontWeight: 'bold' }}>장 르</label>
-          <select
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            style={{
-              width: '50%',
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            <option value="">장르 선택</option>
-            <option value="총류">총류</option>
-            <option value="철학">철학</option>
-            <option value="종교">종교</option>
-            <option value="사회과학">사회과학</option>
-            <option value="자연과학">자연과학</option>
-            <option value="기술과학">기술과학</option>
-            <option value="예술">예술</option>
-            <option value="언어">언어</option>
-            <option value="문학">문학</option>
-            <option value="역사">역사</option>
-          </select>
-        </div>
-
-        {/* 출판사 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-          <label style={{ width: '70px', fontWeight: 'bold' }}>출판사</label>
-          <input
-            type="text"
-            placeholder="출판사를 입력하세요."
-            value={publisher}
-            onChange={(e) => setPublisher(e.target.value)}
-            style={{
-              width: '50%',
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
-        </div>
-
-        {/* 한줄요약 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <label style={{ width: '70px', fontWeight: 'bold' }}>한줄요약</label>
-          <textarea
-            placeholder="책을 한줄로 요약하세요."
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            style={{
-              width: '95%',
-              height: '50px',
-              padding: '10px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
-        </div>
+        {/* 사진 추가하기 버튼 */}
+        <button
+          onClick={handleUploadClick}
+          style={{
+            backgroundColor: '#444',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer',
+            fontSize: '12px',
+          }}
+        >
+          사진 추가하기
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+          onChange={handleFileChange}
+        />
       </div>
 
-      {/* ── 메모 입력 영역 (다중 메모) ── */}
-      {memos.map((m) => (
-        <div key={m.id}>
-          {/* 책 페이지 입력 + 등록/수정/삭제 버튼 */}
+      {/* 컨텐츠 래퍼 */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+        {/* Book Information */}
+        <div style={{ marginBottom: '70px' }}>
+          <h2 style={{ fontSize: '25px', fontWeight: 'bold', marginBottom: '25px' }}>
+            Book Information
+          </h2>
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '10px',
+              display: 'grid',
+              gridTemplateColumns: '1fr 2fr', // 왼쪽/오른쪽
+              gap: '20px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label style={{ fontWeight: 'bold' }}>P. </label>
-              <input
-                type="text"
-                placeholder="책 페이지"
-                value={m.pageNumber}
-                onChange={(e) =>
-                  handleMemoChange(m.id, 'pageNumber', e.target.value)
-                }
-                disabled={m.isMemoSaved}
+            {/* 왼쪽: 책을 펴낸 날, 저자, 장르, 출판사 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {/* 책을 펴낸 날 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <label style={{ width: '100px', fontWeight: 'bold' }}>책을 펴낸 날</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                  }}
+                />
+              </div>
+              {/* 저자 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="text"
+                  value={inputAuthor}
+                  onChange={(e) => setInputAuthor(e.target.value)}
+                  placeholder="저자를 입력하세요."
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                  }}
+                />
+              </div>
+              {/* 장르 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <select
+                  value={genre}
+                  onChange={(e) => setGenre(e.target.value)}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                  }}
+                >
+                  <option value="">장르 선택</option>
+                  <option value="총류">총류</option>
+                  <option value="철학">철학</option>
+                  <option value="종교">종교</option>
+                  <option value="사회과학">사회과학</option>
+                  <option value="자연과학">자연과학</option>
+                  <option value="기술과학">기술과학</option>
+                  <option value="예술">예술</option>
+                  <option value="언어">언어</option>
+                  <option value="문학">문학</option>
+                  <option value="역사">역사</option>
+                </select>
+              </div>
+              {/* 출판사 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <input
+                  type="text"
+                  value={publisher}
+                  onChange={(e) => setPublisher(e.target.value)}
+                  placeholder="출판사를 입력하세요."
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    border: '1px solid #ccc',
+                  }}
+                />
+              </div>
+            </div>
+            {/* 오른쪽: Summary */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontWeight: 'bold', marginBottom: '8px' }}>Summary</label>
+              <textarea
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                placeholder="책을 간단히 요약하세요."
                 style={{
-                  width: '120px',
-                  padding: m.isMemoSaved ? '0px' : '5px',
-                  border: m.isMemoSaved ? 'none' : '1px solid #ccc',
-                  borderRadius: '4px',
-                  boxShadow: m.isMemoSaved ? 'none' : '0 2px 4px rgba(0,0,0,0.1)',
-                  backgroundColor: m.isMemoSaved ? '#fff' : undefined,
-                  fontWeight: m.isMemoSaved ? 'bold' : 'normal',
+                  flex: 1,
+                  padding: '10px',
+                  border: '1px solid #ccc',
+                  resize: 'none',
                 }}
               />
             </div>
-            <div>
-              {!m.isMemoSaved ? (
-                <button
-                  onClick={() => handleRegisterMemo(m.id)}
-                  style={{
-                    backgroundColor: '#b1b1b1',
-                    color: '#fff',
-                    border: '1px solid #666',
-                    borderRadius: '4px',
-                    padding: '5px 19px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  등록
-                </button>
-              ) : (
-                <>
-                  <button
-                    onClick={() => handleEditMemo(m.id)}
-                    style={{
-                      backgroundColor: '#b1b1b1',
-                      color: '#fff',
-                      border: '1px solid #666',
-                      borderRadius: '4px',
-                      padding: '5px 19px',
-                      cursor: 'pointer',
-                      marginRight: '5px',
-                    }}
-                  >
-                    수정
-                  </button>
-                  <button
-                    onClick={() => handleDeleteMemo(m.id)}
-                    style={{
-                      backgroundColor: '#b1b1b1',
-                      color: '#fff',
-                      border: '1px solid #666',
-                      borderRadius: '4px',
-                      padding: '5px 19px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    삭제
-                  </button>
-                </>
-              )}
-            </div>
+          </div>
+        </div>
+
+        {/* Memo */}
+        <div style={{ marginBottom: '70px' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '15px', 
+              alignItems: 'center',
+            }}
+          >
+            <h2 style={{ fontSize: '22px', fontWeight: 'bold' }}>Memo</h2>
+            <button
+              onClick={handleAddMemo}
+              style={{
+                fontSize: '14px',
+                backgroundColor: '#979797',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '6px 14px',
+                cursor: 'pointer',
+              }}
+            >
+              메모 추가하기
+            </button>
           </div>
 
-          {/* 메모 입력창 */}
-          <div style={{ marginBottom: '30px' }}>
+          {/* 메모 목록 렌더링 */}
+          {memos.map((m) => (
+            <div key={m.id}>
+              {/* (A) 버튼 영역: 메모 박스 바깥, 상단에 위치 */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end', // 오른쪽 정렬
+                  gap: '15px',
+                  marginBottom: '8px',       // 메모 박스와의 간격
+                  
+                }}
+              >
+                {/* 메모가 아직 등록되지 않은 상태라면: 삭제 + 등록 버튼 */}
+                {!m.isMemoSaved ? (
+                  <>
+                    <button onClick={() => handleDeleteMemo(m.id)}
+                      style={{
+                        backgroundColor: '#fff',
+                        color: '#333',
+                        border: '1px solid #999',
+                        borderRadius: '10px',
+                        padding: '5px 20px',
+                        cursor: 'pointer',
+                      }}
+                      >삭제</button>
+                    <button onClick={() => handleRegisterMemo(m.id)}
+                      style={{
+                        backgroundColor: '#000',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '5px 20px',
+                        cursor: 'pointer',
+                      }}
+                      >등록</button>
+                  </>
+                ) : (
+                  /* 이미 등록된 상태라면: 삭제 + 수정 버튼 */
+                  <>
+                    <button onClick={() => handleDeleteMemo(m.id)}
+                      style={{
+                        backgroundColor: '#fff',
+                        color: '#333',
+                        border: '1px solid #999',
+                        borderRadius: '10px',
+                        padding: '5px 20px',
+                        cursor: 'pointer',
+                      }}>삭제</button>
+                    <button onClick={() => handleEditMemo(m.id)}
+                      style={{
+                        backgroundColor: '#999',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '5px 20px',
+                        cursor: 'pointer',
+                      }}>수정</button>
+                  </>
+                )}
+              </div>
+
+              {/* (B) 메모 박스 본문 */}
+              <div
+                style={{
+                  position: 'relative',
+                  backgroundColor: '#fff',
+                  boxShadow: '4px 4px 4px rgba(0,0,0,0.25)',
+                  marginBottom: '20px',
+                  padding: '20px',
+                }}
+              >
+                {/* 왼쪽 상단 책갈피 아이콘 자리 */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -12,
+                    left: 10,
+                    width: '30px',
+                    height: '30px',
+                    backgroundColor: 'red',
+                    backgroundImage: 'url("/bookmark_icon.png")',
+                    backgroundSize: 'cover',
+                  }}
+                />
+
+                {/* 메모 내용 textarea */}
+                <textarea
+                  ref={(el) => (textAreaRefs.current[m.id] = el)}
+                  value={m.memo}
+                  onChange={(e) => handleMemoChange(m.id, 'memo', e.target.value)}
+                  disabled={m.isMemoSaved}
+                  placeholder="책의 내용을 입력하세요."
+                  style={{
+                    width: '100%',
+                    minHeight: '100px',
+                    border: 'none',
+                    outline: 'none',
+                    resize: 'none',
+                    marginTop: '20px',
+                    backgroundColor: '#fff',
+                  }}
+                />
+
+                {/* 페이지 입력 (오른쪽 하단) */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    right: '20px',
+                    fontWeight: 'bold',
+                    color: '#666',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span>p.</span>
+                  <input
+                    type="text"
+                    value={m.pageNumber}
+                    onChange={(e) => handleMemoChange(m.id, 'pageNumber', e.target.value)}
+                    disabled={m.isMemoSaved}
+                    style={{
+                      width: '50px',
+                      border: 'none',
+                      borderBottom: '1px solid #ccc',
+                      backgroundColor: m.isMemoSaved ? '#f9f9f9' : '#fff',
+                      outline: 'none',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+          
+
+        {/* Review */}
+        <div style={{ marginBottom: '50px' }}>
+          <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px' }}>Review</h2>
+          <div
+            style={{
+              backgroundColor: '#fff',
+              boxShadow: '4px 4px 4px rgba(0,0,0,0.25)',
+              padding: '20px',
+            }}
+          >
             <textarea
-              ref={(el) => (textAreaRefs.current[m.id] = el)}
-              placeholder="기록하고 싶은 내용을 입력하세요."
-              value={m.memo}
-              onChange={(e) =>
-                handleMemoChange(m.id, 'memo', e.target.value)
-              }
-              disabled={m.isMemoSaved}
+              value={review}
+              onChange={(e) => setReview(e.target.value)}
+              placeholder="리뷰를 작성하세요."
               style={{
                 width: '100%',
-                height: m.isMemoSaved ? 'auto' : '100px',
-                padding: '12px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                backgroundColor: m.isMemoSaved ? '#f0f0f0' : '#fff',
-                overflow: 'hidden',
+                minHeight: '100px',
+                border: 'none',
+                outline: 'none',
                 resize: 'none',
               }}
             />
           </div>
         </div>
-      ))}
 
-      {/* + 추가하기 버튼 (항상 최하단에 위치) */}
-      <div style={{ textAlign: 'left', marginBottom: '40px' }}>
-        <button
-          onClick={handleAddMemo}
-          style={{
-            backgroundColor: '#fff',
-            color: '#333',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '8px 16px',
-            cursor: 'pointer',
-          }}
-        >
-          + 추가하기
-        </button>
-      </div>
-
-      {/* ── 리뷰 영역 ── */}
-      <div style={{ marginBottom: '10px' }}>
-        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px' }}>
-          리뷰
-        </label>
-        <textarea
-          placeholder="리뷰를 작성하세요."
-          value={review}
-          onChange={(e) => setReview(e.target.value)}
-          style={{
-            width: '100%',
-            height: '100px',
-            padding: '12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        />
-      </div>
-
-      {/* ── 책을 닫은 날 입력 영역 ── */}
-      <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '10px',
-            alignItems: 'center',
-            marginTop: '30px',
-          }}
-        >
-          <img
-            src="/closebook_icon.png"
-            alt="close book icon"
-            style={{ width: '30px', height: '30px' }}
-          />
-          <label style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            책을 닫은 날
-          </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value);
-              handleCloseBookDate(e);
-            }}
+        {/* 책을 닫은 날 */}
+        <div style={{ textAlign: 'right', marginTop: '50px' }}>
+          <label style={{ fontWeight: 'bold', marginRight: '10px' }}>책을 닫은 날</label>
+          <div
             style={{
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          />
-        </div>
-
-        {/* 저장하기 버튼 (제목 미입력 시 제목 입력란으로 이동 후 빨간 테두리 적용) */}
-        <div style={{ textAlign: 'center', marginTop: '30px' }}>
-          <button
-            onClick={handleSave}
-            style={{
-              backgroundColor: '#333',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '4px',
-              padding: '12px 24px',
-              cursor: 'pointer',
+              display: 'inline-block',
+              position: 'relative',
             }}
           >
-            저장하기
-          </button>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                handleCloseBookDate(e);
+              }}
+              style={{
+                padding: '8px',
+                border: '1px solid #ccc',
+                backgroundColor: '#fff',
+                cursor: 'pointer',
+              }}
+            />
+            {/* 오른쪽에 화살표 아이콘 넣고 싶으면 background-image나 pseudo-element 활용 */}
+          </div>
         </div>
       </div>
 
-      {/* ── 모달 영역 ── */}
-      {/* (1) "저장이 정상적으로 완료되었습니다." 모달 (저장하기 버튼 클릭 시) */}
+      {/* 모달/토스트 영역들 (기존 로직 그대로) */}
       {showToast && (
-        <div style={{
-          fontWeight: 'bold',
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: '#fff',
-          border: '1px solid #979797',
-          color: '#000',
-          padding: '12px 24px',
-          borderRadius: '4px',
-          zIndex: 1000,
-          display: 'flex',       // 추가: 가로 배치를 위해 flex 사용
-          alignItems: 'center',   // 수직 가운데 정렬
-        }}>
-          <img
-            src="/save_icon.png"
-            alt="save icon"
-            style={{ marginRight: '10px', width: '35px' }}
-          />
-            저장이 정상적으로 완료되었습니다.
+        <div
+          style={{
+            fontWeight: 'bold',
+            position: 'fixed',
+            top: '100px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#fff',
+            border: '1px solid #979797',
+            color: '#000',
+            padding: '12px 24px',
+            borderRadius: '4px',
+            zIndex: 1000,
+          }}
+        >
+          저장이 정상적으로 완료되었습니다.
         </div>
       )}
-
-      {/* (2) "뒤로가기" 확인 모달 */}
       {showConfirmBackModal && (
         <div
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.4)',
             display: 'flex',
             justifyContent: 'center',
@@ -649,9 +645,7 @@ const CreatePostPage: React.FC = () => {
             }}
           >
             <p style={{ marginBottom: '20px' }}>
-              글이 저장되지 않았습니다.
-              <br/>
-              저장하시겠습니까?
+              글이 저장되지 않았습니다.<br />저장하시겠습니까?
             </p>
             <button
               onClick={confirmGoBack}
@@ -683,16 +677,11 @@ const CreatePostPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* (3) "완독을 축하합니다!" 모달 (아이콘 이미지를 중앙에 배치) */}
       {showCongratsModal && (
         <div
           style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            top: 0, left: 0, right: 0, bottom: 0,
             backgroundColor: 'rgba(0,0,0,0.4)',
             display: 'flex',
             justifyContent: 'center',
@@ -708,12 +697,16 @@ const CreatePostPage: React.FC = () => {
               textAlign: 'center',
             }}
           >
-            <img
-              src="/success_icon.png"
-              alt="success icon"
-              style={{ display: 'block', margin: '0 auto 20px', width: '100px' }}
-            />
-            <p style={{ marginTop: '30px', marginBottom: '30px', fontSize: '20px', fontWeight: 'bold', }}>완독을 축하합니다!</p>
+            <p
+              style={{
+                marginTop: '30px',
+                marginBottom: '30px',
+                fontSize: '20px',
+                fontWeight: 'bold',
+              }}
+            >
+              완독을 축하합니다!
+            </p>
             <button
               onClick={handleCloseCongratsModal}
               style={{
@@ -730,6 +723,49 @@ const CreatePostPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 하단 고정 버튼 영역 (뒤로가기 / 저장하기) */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          backgroundColor: '#C4C4C4',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '10px 20px',
+          zIndex: 999,
+        }}
+      >
+        <button
+          onClick={handleGoBack}
+          style={{
+            backgroundColor: '#fff',
+            color: '#4C4C4C',
+            border: '1px solid #D6D6D6',
+            borderRadius: '20px',
+            padding: '5px 16px',
+            marginRight: '15px',
+            cursor: 'pointer',
+          }}
+        >
+          뒤로가기
+        </button>
+        <button
+          onClick={handleSave}
+          style={{
+            backgroundColor: '#000',
+            color: '#fff',
+            borderRadius: '20px',
+            padding: '5px 16px',
+            cursor: 'pointer',
+          }}
+        >
+          저장하기
+        </button>
+      </div>
     </div>
   );
 };

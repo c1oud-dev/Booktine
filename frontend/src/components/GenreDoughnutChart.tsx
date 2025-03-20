@@ -28,24 +28,44 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
     ? genreData.reduce((prev, curr) => (curr.value > prev.value ? curr : prev), genreData[0])
     : null;
 
-  // (1) 실제 데이터 (장르가 있을 때)
-  const labels = genreData.map((g) => g.label);
-  const values = genreData.map((g) => g.value);
+  // (1) 상위 7개 + '기타' 처리
+  const sortedByValue = [...genreData].sort((a, b) => b.value - a.value); // 내림차순 정렬
+  const top7 = sortedByValue.slice(0, 7);
+  const rest = sortedByValue.slice(7);
+  if (rest.length > 0) {
+    const sumRest = rest.reduce((acc, curr) => acc + curr.value, 0);
+    top7.push({ label: '기타', value: sumRest });
+  }
 
-  // (2) "가짜" 데이터 (장르가 없을 때)
-  //    → [1]짜리 데이터를 사용해 도넛 모양 유지
-  const fallbackData = {
-    labels: ['없음'],
-    datasets: [
-      {
-        data: [1],
-        backgroundColor: ['#ddd'], // 회색
-        borderWidth: 0,
-        cutout: '80%',
-        color: '#737373'
-      },
-    ],
-  };
+  // (2) 차트용 라벨/값 생성
+  const labels = top7.map((g) => g.label);
+  const values = top7.map((g) => g.value);
+    // (2) "가짜" 데이터 (장르가 없을 때)
+    //    → [1]짜리 데이터를 사용해 도넛 모양 유지
+    const fallbackData = {
+      labels: ['없음'],
+      datasets: [
+        {
+          data: [1],
+          backgroundColor: ['#ddd'], // 회색
+          borderWidth: 0,
+          cutout: '80%',
+          color: '#737373'
+        },
+      ],
+    };
+  
+  // 색상 팔레트 (최대 8개 정도)
+  const colorPalette = [
+    '#FF6384', // 진한 핑크
+    '#FF9F40', // 진한 오렌지
+    '#FFCD56', // 진한 옐로우
+    '#4CAF50', // 진한 그린
+    '#36A2EB', // 진한 블루
+    '#9575CD', // 진한 라벤더
+    '#EC407A', // 진한 로즈
+    '#29B6F6', // 진한 스카이 블루
+  ];
 
   const data = hasData 
   ? {
@@ -53,16 +73,10 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
       datasets: [
         {
           data: values,
-          backgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56',
-            '#62AADF', '#E6EEF5', '#b38feb',
-          ],
-          hoverBackgroundColor: [
-            '#FF6384', '#36A2EB', '#FFCE56',
-            '#62AADF', '#E6EEF5', '#b38feb',
-          ],
+          backgroundColor: labels.map((_, idx) => colorPalette[idx % colorPalette.length]),
+          hoverBackgroundColor: labels.map((_, idx) => colorPalette[idx % colorPalette.length]),
           borderWidth: 1,
-          cutout: '75%', // 도넛 굵기
+          cutout: '75%',
         },
       ],
     }

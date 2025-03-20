@@ -227,7 +227,7 @@ const ProgressPage: React.FC = () => {
   return (
     <div
       style={{
-        minWidth: '1200px',
+        minWidth: '1300px',
         backgroundColor: '#f5f5f5',
         minHeight: '100vh',
         paddingTop: '80px',  // 헤더 높이(65px)보다 조금 크게

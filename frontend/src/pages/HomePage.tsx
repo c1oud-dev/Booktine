@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom'; // BookNote 페이지로 이동하기 위해 추가
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import GenreDoughnutChart from '../components/GenreDoughnutChart';
+import HomeGenreDoughnutChart from '../components/HomeGenreDoughnutChart';
 
 interface ProgressData {
   yearlyData: { month: string; count: number }[];     // 연간 독서량
@@ -17,6 +18,7 @@ interface Post {
   readingStatus: '독서중' | '완독';
   startDate?: string;
   endDate?: string;
+  genre?: string;
 }
 
 interface RecommendedBook {
@@ -32,9 +34,8 @@ const HomePage: React.FC = () => {
   // (1) 연간 목표/달성 수 상태
   const [yearlyGoal, setYearlyGoal] = useState(0);
   const [yearlyAchieved, setYearlyAchieved] = useState(0);
-  // ─ 추가: 통계 탭 인덱스 (0: 연간, 1: 월간, 2: 장르별)
+  const [monthlyGoal, setMonthlyGoal] = useState(0);
   const [statTabIndex, setStatTabIndex] = useState(0);
-  // ─ 추가: Progress 데이터
   const [progressData, setProgressData] = useState<ProgressData | null>(null);
 
   
@@ -65,7 +66,6 @@ const HomePage: React.FC = () => {
   const [homeYearlyChartData, setHomeYearlyChartData] = useState<{ month: string; count: number }[]>([]);
 
   useEffect(() => {
-    // 예: localStorage에서 가져오기
     const storedGoal = localStorage.getItem('yearlyGoal');
     const storedAchieved = localStorage.getItem('yearlyAchieved');
     if (storedGoal) {
@@ -75,11 +75,14 @@ const HomePage: React.FC = () => {
       setYearlyAchieved(parseInt(storedAchieved, 10));
     }
 
-    // 또는 /progress API를 fetch하여 setYearlyGoal, setYearlyAchieved 할 수도 있음
+    // 추가: localStorage에서 월간 목표 불러오기
+    const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
+    if (storedMonthlyGoal) {
+      setMonthlyGoal(parseInt(storedMonthlyGoal, 10));
+    }
   }, []);
 
   useEffect(() => {
-    // 예시) 올해(year)만 가져온다고 가정
     const currentYear = new Date().getFullYear();
   
     fetch(`http://localhost:8083/progress?year=${currentYear}`)
@@ -181,6 +184,23 @@ const HomePage: React.FC = () => {
         alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
       });
   }
+
+  //통계 Card의 장르별 독서 비율
+  const computedGenreData = useMemo(() => {
+    // 모든 게시글 중 genre가 존재하는 항목 선택 (완독, 독서중 모두 포함)
+    const postsWithGenre = posts.filter(p => p.genre && p.genre.trim() !== '');
+    const total = postsWithGenre.length;
+    const genreCount: Record<string, number> = {};
+    postsWithGenre.forEach((p) => {
+      const genre = p.genre!;
+      genreCount[genre] = (genreCount[genre] || 0) + 1;
+    });
+    const genreData = Object.keys(genreCount).map((genre) => ({
+      label: genre,
+      value: total > 0 ? (genreCount[genre] / total) * 100 : 0,
+    }));
+    return genreData;
+  }, [posts]);
 
 
   return (
@@ -601,38 +621,36 @@ const HomePage: React.FC = () => {
                     )}
 
                     {/* 두 번째 점: 월간 독서량 */}
-                    {statTabIndex === 1 && (
-                      <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        overflow: 'hidden'   // 부모 범위를 벗어나지 않도록
-                      }}
-                    >
-                      <MonthlyBarChart
-                        chartData={
-                          progressData.recent6Months.map(item => ({
-                            month: item.month,
-                            goal: 0,            // 필요하면 로직에 맞게 설정
-                            achieved: item.count
-                          }))
-                        }
-                        monthlyGoal={0}        // 필요하면 로직에 맞게 설정
-                      />
-                    </div>
-                    )}
+                    {statTabIndex === 1 && (() => {
+                      const currentMonth = new Date().getMonth() + 1;
+                      return (
+                        <div
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          <MonthlyBarChart
+                            chartData={
+                              progressData.recent6Months.map(item => ({
+                                month: item.month,
+                                // item.month가 "현재월월"과 일치하면 monthlyGoal을, 아니면 0
+                                goal: item.month === `${currentMonth}월` ? monthlyGoal : 0,
+                                achieved: item.count
+                              }))
+                            }
+                            monthlyGoal={monthlyGoal}
+                          />
+                        </div>
+                      );
+                    })()}
+
 
                     {/* 세 번째 점: 장르별 독서 비율 */}
                     {statTabIndex === 2 && (
-                      // GenreDoughnutChart는 { label, value, count }[] 형태를 요구할 수 있으므로 변환 예시:
-                      <GenreDoughnutChart
-                        genreData={
-                          progressData.genreData.map(g => ({
-                            label: g.label,
-                            value: g.value,
-                            count: 0 // 필요시 백엔드에서 count도 받아오거나 로직에 맞게 세팅
-                          }))
-                        }
+                      <HomeGenreDoughnutChart
+                        genreData={computedGenreData}
                       />
                     )}
                   </>

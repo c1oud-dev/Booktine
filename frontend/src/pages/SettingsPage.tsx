@@ -111,13 +111,13 @@ const SettingsPage: React.FC = () => {
 
 
   return (
+    <div style={{backgroundColor: '#f5f5f5',}}>
     <div
       style={{
-        padding: '40px 60px',
-        boxSizing: 'border-box',
         maxWidth: '1200px',
-        margin: '0 auto',
-        paddingTop: '100px',
+          padding: '100px 60px',
+          margin: '0 auto',
+          minHeight: '100vh',
       }}
     >
       {/* 상단 영역: Settings 제목 */}
@@ -360,7 +360,7 @@ const SettingsPage: React.FC = () => {
       </div>
     </div>
   </div>
-  
+  </div>
   );
 };
 

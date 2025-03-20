@@ -31,3 +31,7 @@
   border-radius: 8px;
   position: relative;
 }
+
+.title-input::placeholder {
+  color: #fff;  /* 흰색 */
+}
