@@ -27,6 +27,8 @@ interface PostDetail {
   }[];
 }
 
+
+
 const PostDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -34,6 +36,21 @@ const PostDetailPage: React.FC = () => {
   const [post, setPost] = useState<PostDetail | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const formatDateTime = (isoString: string) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+  
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    // "YYYY.MM.DD HH:mm" 형태로 반환
+    return `${year}.${month}.${day} ${hours}:${minutes}`;
+  };
+  
 
   useEffect(() => {
     fetch(`http://localhost:8083/posts/${id}`) // 절대 경로 사용
@@ -66,334 +83,326 @@ const PostDetailPage: React.FC = () => {
 
   if (!post) return <div>Loading...</div>;
 
-  // PostDetailPage.tsx 내 최하단의 return(...) 부분만 교체
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '60px 20px',paddingTop: '100px', }}>
-      {/* ──────────────────────────────────────────────
-          (1) 상단 영역: 책을 펴낸 날짜 박스 + 독서 상태
-          ────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-        {/* 책을 펴낸 날 아이콘 + 날짜 박스 */}
-        <img
-          src="/openbook_icon.png"
-          alt="open book icon"
-          style={{ width: '30px', height: '30px' }}
-        />
-        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>책을 펴낸 날</span>
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            border: '1px solid #ccc',
-            backgroundColor: '#eee', 
-            padding: '6px 10px',
-            borderRadius: '4px',
-            fontWeight: 'bold',
-            minWidth: '50px',
-            minHeight: '2.3em',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          {post?.startDate}
-        </div>
-
-        {/* 독서 상태 (CreatePostPage와 동일 스타일) */}
-        {post?.readingStatus === '독서중' ? (
-          <div
-            style={{
-              backgroundColor: '#fff',
-              color: '#333',
-              border: '1px solid #ccc',
-              borderRadius: '20px',
-              padding: '8px 16px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🔥 독서중
-          </div>
-        ) : (
-          <div
-            style={{
-              backgroundColor: '#0538ff',
-              color: '#fff',
-              border: '1px solid #ccc',
-              borderRadius: '20px',
-              padding: '8px 16px',
-              fontWeight: 'bold',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            ✅ 완독
-          </div>
-        )}
-      </div>
-
-      {/* ──────────────────────────────────────────────
-          (2) 메인 제목
-          ────────────────────────────────────────────── */}
-      <h1 style={{ margin: '0 0 20px 0', fontSize: '36px', fontWeight: 'bold' }}>
-        {post?.title}
-      </h1>
-
-      {/* (3) 사용자 정보, 작성일자/시간, 메뉴 아이콘 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-        {/* 사용자 사진 */}
-        <div
-          style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            backgroundColor: '#ccc',
-            border: '1px solid #666',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {post.author.avatar && (
-            <img
-              src={post.author.avatar}
-              alt="Profile"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          )}
-        </div>
-        {/* 사용자명 및 작성일자/시간 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{post.author.name}</span>
-          <span style={{ fontSize: '14px', color: '#666' }}>{post.lastModified}</span>
-        </div>
-        {/* 메뉴 아이콘: 오른쪽 정렬 */}
-        <div style={{ marginLeft: 'auto', position: 'relative' }}>
-          <div
-            onClick={() => setShowMenu(!showMenu)}
-            style={{ cursor: 'pointer', fontSize: '24px' }}
-          >
-            ⋮
-          </div>
-          {showMenu && (
-            <div
-              style={{
-                position: 'absolute',
-                right: 0,
-                top: '30px',
-                backgroundColor: '#fff',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                zIndex: 10,
-                width: '130px',
-              }}
-            >
-              {/* 수정하기 */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  borderBottom: '1px solid #ccc',
-                }}
-                onClick={handleEdit}
-              >
-                <span style={{ fontSize: '14px' }}>수정하기</span>
-                <img
-                  src="/modify_icon.png"
-                  alt="modify"
-                  style={{ width: '16px', height: '16px' }}
-                />
-              </div>
-              {/* 삭제하기 */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '8px 12px',
-                  color: 'red',
-                }}
-                onClick={() => {
-                  setShowMenu(false);
-                  setShowDeleteModal(true);
-                }}
-              >
-                <span style={{ fontSize: '14px' }}>삭제하기</span>
-                <img
-                  src="/delete_icon.png"
-                  alt="delete"
-                  style={{ width: '16px', height: '16px' }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <hr style={{ marginBottom: '20px' }} />
-
-      {/* ──────────────────────────────────────────────
-          (5) 저자, 장르, 출판사, 한줄요약
-          ────────────────────────────────────────────── */}
-      <div style={{ marginTop: '40px', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-          <label style={{ fontWeight: 'bold' }}>저 자</label>
-          <span
-            style={{
-              display: 'inline-block',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              backgroundColor: '#eee',
-              fontSize: '13px',
-              width: 'fit-content',
-              whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
-              minWidth: '50px',      // 최소 가로 폭 설정
-              minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            {post.inputAuthor}
-          </span>
-        </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-          <label style={{ fontWeight: 'bold' }}>장 르</label>
-          <span
-            style={{
-              display: 'inline-block',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              backgroundColor: '#eee',
-              fontSize: '13px',
-              width: 'fit-content',
-              whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
-              minWidth: '50px',      // 최소 가로 폭 설정
-              minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            {post.genre}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-          <label style={{ fontWeight: 'bold' }}>출판사</label>
-          <span
-            style={{
-              display: 'inline-block',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              backgroundColor: '#eee',
-              fontSize: '13px',
-              width: 'fit-content',
-              whiteSpace: 'nowrap', // 텍스트가 줄바꿈되지 않도록
-              minWidth: '50px',      // 최소 가로 폭 설정
-              minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            {post.publisher}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-          <label style={{ fontWeight: 'bold' }}>한줄요약</label>
-          <span
-            style={{
-              display: 'inline-block',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              padding: '6px 8px',
-              backgroundColor: '#eee',
-              fontSize: '13px',
-              width: 'fit-content',
-              minWidth: '50px',      // 최소 가로 폭 설정
-              minHeight: '2.3em',    // 최소 높이 설정 (텍스트 라인 높이와 유사)
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            {post.summary}
-          </span>
-        </div>
-
-      </div>
-
-      {/* ──────────────────────────────────────────────
-          (6) 메모들
-          ────────────────────────────────────────────── */}
-      {post?.memos && post.memos.map((m) => (
-        <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>P. {m.pageNumber}
-        <div
-          key={m.id}
-          style={{
-            border: '1px solid #ccc',
-            borderRadius: '6px',
-            padding: '16px',
-            marginBottom: '20px',
-            backgroundColor: '#eee',
-            fontSize: '15px',
-            fontWeight: 'normal',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          <div>{m.memo}</div>
-        </div>
-          </div>
-      ))}
-
-      {/* ──────────────────────────────────────────────
-          (7) 후기
-          ────────────────────────────────────────────── */}
-      <label style={{ display: 'block', fontWeight: 'bold', marginTop: '50px', marginBottom: '4px' }}>
-      리뷰
-      </label>
+    <div style={{ 
+        backgroundColor: '#F7F5F5',
+        minHeight: '100vh',
+      }}
+    >
+      {/* 회색 배경 상단 영역 */}
       <div
         style={{
-          backgroundColor: '#FFE27D',
-          borderRadius: '8px',
-          padding: '16px',
-          marginBottom: '20px',
-          border: '1px solid #ccc',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+          height: '250px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#999',
+          color: '#fff',
+          marginTop: '60px',
         }}
       >
-        <p style={{ margin: 0 }}>{post?.review || ''}</p>
-      </div>
+        {/* (1) 독서 상태 뱃지 */}
+        <div
+          style={{
+            backgroundColor: post?.readingStatus === '독서중' ? '#fff' : '#486284',
+            color: post?.readingStatus === '독서중' ? '#333' : '#fff',
+            border: '1px solid #C4C4C4',
+            borderRadius: '20px',
+            padding: '5px 11px',
+            fontWeight: 'bold',
+            marginBottom: '30px',
+            fontSize: '14 px',
+          }}
+        >
+          {post?.readingStatus === '독서중' ? '🔥 독서중' : '✅ 완독'}
+        </div>
 
-      {/* ──────────────────────────────────────────────
-          (8) 책을 닫은 날 (오른쪽 하단)
-          ────────────────────────────────────────────── */}
-      <div style={{ textAlign: 'right', marginTop: '30px' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-          <img
-            src="/closebook_icon.png"
-            alt="close book icon"
-            style={{ width: '20px', height: '20px' }}
-          />
-          <span style={{ fontSize: '20px', fontWeight: 'bold' }}>책을 닫은 날</span>
+        {/* (2) 제목 */}
+        <h1
+          style={{
+            fontSize: '24px',
+            textAlign: 'center',
+            width: '60%',
+            color: '#fff',
+            paddingBottom: '15px',
+            fontWeight: 'bold'
+          }}
+        >
+          {post?.title}
+        </h1>
+
+        {/* (3) 사용자 정보 */}
+        <div
+          style={{
+            width: '70%',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            justifyContent: 'center',
+            marginTop: '30px'
+          }}
+        >
+          {/* 사용자 프로필 사진 */}
           <div
             style={{
-              border: '1px solid #ccc',
-              backgroundColor: '#eee',
-              padding: '5px 10px',
-              borderRadius: '4px',
-              fontWeight: 'bold',
-              minWidth: '50px',
-              minHeight: '2.3em',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              width: '30px',
+              height: '30px',
+              borderRadius: '50%',
+              overflow: 'hidden',
             }}
           >
-            {post?.endDate}
+            {post?.author.avatar && (
+              <img
+                src={post.author.avatar}
+                alt="Profile"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            )}
+          </div>
+
+          {/* 사용자명 */}
+          <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
+            {post?.author.name}
+          </span>
+
+          {/* 작성일자 */}
+          <div style={{ fontSize: '14px', color: '#ddd',}}>
+            {formatDateTime(post?.lastModified ?? '')}
+          </div>
+
+          {/* 메뉴 아이콘 (오른쪽 정렬) */}
+          <div style={{  marginLeft: 'auto', position: 'relative' }}>
+            <div
+              onClick={() => setShowMenu(!showMenu)}
+              style={{ cursor: 'pointer', fontSize: '24px' }}
+            >
+              ⋮
+            </div>
+            {showMenu && (
+              <div
+                style={{
+                  position: 'absolute',
+                  right: '5px',
+                  top: '35px',
+                  backgroundColor: '#fff',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  zIndex: 10,
+                  width: '130px',
+                }}
+              >
+                {/* 수정하기 */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderBottom: '1px solid #ccc',
+                    color: 'black',
+                  }}
+                  onClick={handleEdit}
+                >
+                  <span style={{ fontSize: '14px' }}>수정하기</span>
+                  <img
+                    src="/modify_icon.png"
+                    alt="modify"
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                </div>
+                {/* 삭제하기 */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    color: 'red',
+                  }}
+                  onClick={() => {
+                    setShowMenu(false);
+                    setShowDeleteModal(true);
+                  }}
+                >
+                  <span style={{ fontSize: '14px' }}>삭제하기</span>
+                  <img
+                    src="/delete_icon.png"
+                    alt="delete"
+                    style={{ width: '16px', height: '16px' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
+      {/* Book Information */}
+      <div style={{ marginBottom: '70px' }}>
+        <h2 style={{ fontSize: '25px', fontWeight: 'bold', marginBottom: '25px' }}>
+          Book Information
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+          {/* 왼쪽: 책을 펴낸 날, 저자, 장르, 출판사 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ width: '100px', fontWeight: 'bold' }}>책을 펴낸 날</label>
+              <input
+                type="date"
+                value={post?.startDate || ''}
+                readOnly
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ width: '60px', fontWeight: 'bold' }}>저 자 명</label>
+              <input
+                type="text"
+                value={post?.inputAuthor || ''}
+                readOnly
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ width: '60px', fontWeight: 'bold' }}>장 르</label>
+              <input
+                type="text"
+                value={post?.genre || ''}
+                readOnly
+                placeholder="장르"
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc' }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <label style={{ width: '60px', fontWeight: 'bold' }}>출 판 사</label>
+              <input
+                type="text"
+                value={post?.publisher || ''}
+                readOnly
+                style={{ flex: 1, padding: '8px', border: '1px solid #ccc' }}
+              />
+            </div>
+          </div>
+          {/* 오른쪽: Summary */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <label style={{ fontWeight: 'bold', marginBottom: '8px' }}>Summary</label>
+            <textarea
+              value={post?.summary || ''}
+              readOnly
+              placeholder="요약한 내용이 없어요."
+              style={{ flex: 1, padding: '10px', border: '1px solid #ccc', resize: 'none' }}
+            />
+          </div>
+        </div>
+      </div>
+
+
+      {/* Memo */}
+      <div style={{ marginBottom: '70px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px' }}>Memo</h2>
+        {post?.memos && post.memos.map((m) => (
+          <div key={m.id}>
+            <div
+              style={{
+                position: 'relative',
+                backgroundColor: '#fff',
+                boxShadow: '4px 4px 4px rgba(0,0,0,0.25)',
+                marginBottom: '40px',
+                padding: '20px',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -12,
+                  left: 10,
+                  width: '30px',
+                  height: '30px',
+                  backgroundColor: 'red',
+                  backgroundImage: 'url("/bookmark_icon.png")',
+                  backgroundSize: 'cover',
+                }}
+              />
+              <textarea
+                value={m.memo}
+                readOnly
+                style={{
+                  width: '100%',
+                  minHeight: '100px',
+                  border: 'none',
+                  outline: 'none',
+                  resize: 'none',
+                  marginTop: '20px',
+                  backgroundColor: '#fff',
+                }}
+              />
+              {m.pageNumber && m.pageNumber.trim() !== '' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '10px',
+                  right: '20px',
+                  fontWeight: 'bold',
+                  color: '#666',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <span>Page</span>
+                <input
+                  type="text"
+                  value={m.pageNumber}
+                  readOnly
+                  style={{
+                    textAlign: 'center',
+                    width: '80px',
+                    border: 'none',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+            )}
+
+
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Review */}
+      <div style={{ marginBottom: '50px' }}>
+        <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px' }}>Review</h2>
+        <div style={{ backgroundColor: '#fff', boxShadow: '4px 4px 4px rgba(0,0,0,0.25)', padding: '20px' }}>
+          <textarea
+            value={post?.review || ''}
+            readOnly
+            placeholder="리뷰를 작성한 게 없어요."
+            style={{ width: '100%', minHeight: '100px', border: 'none', outline: 'none', resize: 'none' }}
+          />
+        </div>
+      </div>
+
+      {/* 책을 닫은 날 */}
+      <div style={{ textAlign: 'right', marginTop: '50px' }}>
+        <label style={{ fontWeight: 'bold', marginRight: '10px' }}>책을 닫은 날</label>
+        <div style={{ display: 'inline-block', position: 'relative' }}>
+          <input
+            type="date"
+            value={post?.endDate || ''}
+            readOnly
+            style={{ padding: '8px', border: '1px solid #ccc', backgroundColor: '#fff' }}
+          />
+        </div>
+      </div>
+    </div>
+
+
 
       {/* ──────────────────────────────────────────────
           (9) 삭제 확인 Modal
@@ -460,7 +469,6 @@ const PostDetailPage: React.FC = () => {
       )}
     </div>
   );
-
 };
 
 export default PostDetailPage;

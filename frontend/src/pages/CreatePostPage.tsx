@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 interface Memo {
-  id: number;
+  id: string;
   pageNumber: string;
   memo: string;
   isMemoSaved: boolean;
@@ -17,17 +17,27 @@ const CreatePostPage: React.FC = () => {
   const [showConfirmBackModal, setShowConfirmBackModal] = useState(false);
   const [showCongratsModal, setShowCongratsModal] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [readingStatus, setReadingStatus] = useState<'독서중' | '완독'>('독서중');
 
   const [title, setTitle] = useState('');
   const [titleError, setTitleError] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const [memos, setMemos] = useState<Memo[]>([
-    { id: Date.now(), pageNumber: '', memo: '', isMemoSaved: false },
-  ]);
+  const [startDateError, setStartDateError] = useState(false);
+  const [inputAuthorError, setInputAuthorError] = useState(false);
+  const [genreError, setGenreError] = useState(false);
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const inputAuthorRef = useRef<HTMLInputElement>(null);
+  const genreRef = useRef<HTMLSelectElement>(null);
 
-  const textAreaRefs = useRef<{ [key: number]: HTMLTextAreaElement | null }>({});
+  const [memos, setMemos] = useState<Memo[]>([
+    { id: String(Date.now()), pageNumber: '', memo: '', isMemoSaved: false },
+  ]);
+  const [savedPostId, setSavedPostId] = useState<string | null>(null);
+
+  
+  const textAreaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -39,7 +49,7 @@ const CreatePostPage: React.FC = () => {
 
   // 추가: 사진 추가하기 (파일 업로드) 상태
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [_uploadedImage, setUploadedImage] = useState<File | null>(null);
 
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
@@ -63,8 +73,8 @@ const CreatePostPage: React.FC = () => {
         // memos
         if (data.memos) {
           setMemos(
-            data.memos.map((m: any) => ({
-              id: m.id,
+            data.memos.map((m: any, index: number) => ({
+              id: m.id ? String(m.id) : `${Date.now()}-${index}`,
               pageNumber: m.pageNumber,
               memo: m.memo,
               isMemoSaved: true,
@@ -85,7 +95,8 @@ const CreatePostPage: React.FC = () => {
   };
   const confirmGoBack = () => {
     setShowConfirmBackModal(false);
-    handleSave(undefined, true);
+    handleSave(undefined, true, false);
+    //navigate('/booknote');
   };
   const cancelGoBack = () => {
     setShowConfirmBackModal(false);
@@ -109,33 +120,46 @@ const CreatePostPage: React.FC = () => {
   };
   const handleAddMemo = () => {
     const newMemo: Memo = {
-      id: Date.now(),
+      id: String(Date.now()),
       pageNumber: '',
       memo: '',
       isMemoSaved: false,
     };
     setMemos([...memos, newMemo]);
   };
-  const handleRegisterMemo = (id: number) => {
+  // 메모 등록
+  const handleRegisterMemo = (id: string) => {
     setMemos((prev) =>
       prev.map((m) => (m.id === id ? { ...m, isMemoSaved: true } : m))
     );
+    // textarea 자동 리사이즈
     setTimeout(() => {
       const el = textAreaRefs.current[id];
       if (el) autoResize(el);
     }, 0);
   };
-  const handleEditMemo = (id: number) => {
+  
+  // 메모 수정
+  const handleEditMemo = (id: string) => {
     setMemos((prev) =>
       prev.map((m) => (m.id === id ? { ...m, isMemoSaved: false } : m))
     );
   };
-  const handleDeleteMemo = (id: number) => {
-    setMemos(memos.filter((m) => m.id !== id));
+  // 메모 삭제
+  const handleDeleteMemo = (id: string) => {
+    setMemos((prev) => prev.filter((m) => m.id !== id));
   };
-  const handleMemoChange = (id: number, field: 'pageNumber' | 'memo', value: string) => {
-    setMemos(memos.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
+  // 메모 변경
+  const handleMemoChange = (
+    id: string,
+    field: 'pageNumber' | 'memo',
+    value: string
+  ) => {
+    setMemos((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+    );
   };
+  
 
   // (5) 사진 추가하기
   const handleUploadClick = () => {
@@ -153,25 +177,59 @@ const CreatePostPage: React.FC = () => {
   // (6) 저장하기
   const handleSave = (
     e?: React.MouseEvent<HTMLButtonElement>,
-    navigateAfterSave = false
+    navigateAfterSave = false,
+    skipValidation = false 
   ) => {
     if (e) e.preventDefault();
+    if (isSaving) return;
+    setIsSaving(true);
+    
+    //필수 입력
     if (title.trim() === '') {
       setTitleError(true);
       if (titleInputRef.current) {
         titleInputRef.current.focus();
         titleInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
+      setIsSaving(false);
       return;
     }
 
+    if (startDate.trim() === '') {
+      setStartDateError(true);
+      if (startDateRef.current) {
+        startDateRef.current.focus();
+        startDateRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsSaving(false);
+      return;
+    }
+    if (inputAuthor.trim() === '') {
+      setInputAuthorError(true);
+      if (inputAuthorRef.current) {
+        inputAuthorRef.current.focus();
+        inputAuthorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsSaving(false);
+      return;
+    }
+    if (genre.trim() === '') {
+      setGenreError(true);
+      if (genreRef.current) {
+        genreRef.current.focus();
+        genreRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setIsSaving(false);
+      return;
+    }
+  
     const username = localStorage.getItem('username');
     if (!username) {
       alert('로그인이 필요합니다.');
       return;
     }
     const defaultAvatar = '/default_avatar.png';
-
+  
     const postData = {
       title,
       startDate,
@@ -184,12 +242,12 @@ const CreatePostPage: React.FC = () => {
       review,
       endDate,
       memos,
-      // uploadedImage 등 파일 업로드는 백엔드 API에 맞춰 추가 구현 필요
     };
-
-    const requestMethod = postId ? 'PUT' : 'POST';
-    const requestUrl = postId
-      ? `http://localhost:8083/posts/${postId}`
+  
+    const effectivePostId = postId || savedPostId;
+    const requestMethod = effectivePostId ? 'PUT' : 'POST';
+    const requestUrl = effectivePostId
+      ? `http://localhost:8083/posts/${effectivePostId}`
       : 'http://localhost:8083/posts';
 
     fetch(requestUrl, {
@@ -197,22 +255,32 @@ const CreatePostPage: React.FC = () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     })
-      .then((res) => {
-        if (!res.ok) throw new Error('Save failed');
-        return res.json();
-      })
-      .then(() => {
-        setIsSaved(true);
-        window.dispatchEvent(new Event('postsUpdated'));
-        if (navigateAfterSave) {
-          navigate('/booknote');
-        }
-      })
-      .catch((error) => console.error('Error saving post:', error));
-
+    .then((res) => {
+      if (!res.ok) throw new Error('Save failed');
+      return res.json();
+    })
+    .then((data) => {
+      // 새 게시글 저장 시 반환된 id가 있으면 저장된 id를 보관합니다.
+      if (!effectivePostId && data.id) {
+        setSavedPostId(String(data.id));
+      }
+      setIsSaved(true);
+      window.dispatchEvent(new Event('postsUpdated'));
+      if (navigateAfterSave) {
+        navigate('/booknote');
+      }
+    })
+    .catch((error) => {
+      console.error('Error saving post:', error);
+    })
+    .finally(() => {
+      setIsSaving(false);
+    });
+      
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    setTimeout(() => setShowToast(false), 2000);
   };
+  
 
   return (
     <div
@@ -242,6 +310,7 @@ const CreatePostPage: React.FC = () => {
           value={title}
           onChange={(e) => {
             setTitle(e.target.value);
+            setIsSaved(false); // 폼이 변경되면 저장 상태를 해제합니다.
             if (e.target.value.trim() !== '') {
               setTitleError(false);
             }
@@ -250,7 +319,6 @@ const CreatePostPage: React.FC = () => {
           className="title-input"
           style={{
             fontSize: '24px',
-            fontWeight: 'bold',
             border: 'none',
             outline: 'none',
             backgroundColor: 'transparent',
@@ -306,12 +374,16 @@ const CreatePostPage: React.FC = () => {
                 <label style={{ width: '100px', fontWeight: 'bold' }}>책을 펴낸 날</label>
                 <input
                   type="date"
+                  ref={startDateRef}
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setStartDateError(false);
+                  }}
                   style={{
                     flex: 1,
                     padding: '8px',
-                    border: '1px solid #ccc',
+                    border: startDateError ? '2px solid red' : '1px solid #ccc',
                   }}
                 />
               </div>
@@ -319,13 +391,17 @@ const CreatePostPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input
                   type="text"
+                  ref={inputAuthorRef}
                   value={inputAuthor}
-                  onChange={(e) => setInputAuthor(e.target.value)}
+                  onChange={(e) => {
+                    setInputAuthor(e.target.value);
+                    setInputAuthorError(false);
+                  }}
                   placeholder="저자를 입력하세요."
                   style={{
                     flex: 1,
                     padding: '8px',
-                    border: '1px solid #ccc',
+                    border: inputAuthorError ? '2px solid red' : '1px solid #ccc',
                   }}
                 />
               </div>
@@ -333,11 +409,15 @@ const CreatePostPage: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <select
                   value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
-                  style={{
+                  ref={genreRef}
+                  onChange={(e) => {
+                    setGenre(e.target.value);
+                    setGenreError(false);
+                  }}
+                  style={{  
                     flex: 1,
                     padding: '8px',
-                    border: '1px solid #ccc',
+                    border: genreError ? '2px solid red' : '1px solid #ccc',
                   }}
                 >
                   <option value="">장르 선택</option>
@@ -521,7 +601,7 @@ const CreatePostPage: React.FC = () => {
                   style={{
                     position: 'absolute',
                     bottom: '10px',
-                    right: '20px',
+                    right: '10px',
                     fontWeight: 'bold',
                     color: '#666',
                     display: 'flex',
@@ -529,17 +609,18 @@ const CreatePostPage: React.FC = () => {
                     gap: '6px',
                   }}
                 >
-                  <span>p.</span>
+                  <span>Page</span>
                   <input
                     type="text"
                     value={m.pageNumber}
                     onChange={(e) => handleMemoChange(m.id, 'pageNumber', e.target.value)}
                     disabled={m.isMemoSaved}
                     style={{
-                      width: '50px',
+                      textAlign: 'center',
+                      width: '80px',
                       border: 'none',
                       borderBottom: '1px solid #ccc',
-                      backgroundColor: m.isMemoSaved ? '#f9f9f9' : '#fff',
+                      backgroundColor: m.isMemoSaved ? '#fff' : '#fff',
                       outline: 'none',
                     }}
                   />
@@ -621,7 +702,7 @@ const CreatePostPage: React.FC = () => {
             zIndex: 1000,
           }}
         >
-          저장이 정상적으로 완료되었습니다.
+          ✅ 저장이 정상적으로 완료되었습니다.
         </div>
       )}
       {showConfirmBackModal && (
@@ -678,6 +759,7 @@ const CreatePostPage: React.FC = () => {
         </div>
       )}
       {showCongratsModal && (
+        
         <div
           style={{
             position: 'fixed',
@@ -697,6 +779,17 @@ const CreatePostPage: React.FC = () => {
               textAlign: 'center',
             }}
           >
+            <img
+                src="/success_icon.png"
+                alt="success"
+                style={{
+                  width: '100px',
+                  marginBottom: '20px',
+                  display: 'block',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                }}
+              />
             <p
               style={{
                 marginTop: '30px',
@@ -755,6 +848,7 @@ const CreatePostPage: React.FC = () => {
         </button>
         <button
           onClick={handleSave}
+          disabled={isSaving} // ← 저장 중이면 비활성화
           style={{
             backgroundColor: '#000',
             color: '#fff',

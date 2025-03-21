@@ -2,7 +2,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom'; // BookNote 페이지로 이동하기 위해 추가
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
-import GenreDoughnutChart from '../components/GenreDoughnutChart';
 import HomeGenreDoughnutChart from '../components/HomeGenreDoughnutChart';
 
 interface ProgressData {
@@ -160,7 +159,7 @@ const HomePage: React.FC = () => {
     // localStorage.setItem('yearlyAchieved', '0');
   }
 
-  {/* 추천받기 로직 (OK 버튼 핸들러 */}
+  /* 추천받기 로직 (OK 버튼 핸들러 */
   function handleRecommendOk() {
     if (!selectedGenre) {
       alert('장르를 선택해주세요.');

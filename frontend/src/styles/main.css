@@ -35,3 +35,7 @@
 .title-input::placeholder {
   color: #fff;  /* 흰색 */
 }
+
+.post-title:hover {
+  text-decoration: underline;
+}
