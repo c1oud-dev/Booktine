@@ -1,6 +1,7 @@
 package booktine.Booktine.controller;
 
 import booktine.Booktine.model.Post;
+import booktine.Booktine.model.User;
 import booktine.Booktine.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,13 @@ public class PostController {
     // 1) 게시글 생성
     @PostMapping
     public Post createPost(@RequestBody Post post) {
-        return postService.createPost(post);
+        // 예시: 실제 환경에서는 Spring Security 등에서 현재 사용자 정보를 가져와야 합니다.
+        User currentUser = new User();
+        currentUser.setEmail("test@example.com");
+        currentUser.setFirstName("Test");
+        currentUser.setLastName("User");
+
+        return postService.createPost(post, currentUser);
     }
 
     // 2) 전체 게시글 조회

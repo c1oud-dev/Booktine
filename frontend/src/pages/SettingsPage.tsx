@@ -91,14 +91,12 @@ const SettingsPage: React.FC = () => {
         return res.json();
       })
       .then((data) => {
+        console.log('Fetched user settings:', data);
         setFirstName(data.firstName || '');
         setLastName(data.lastName || '');
-
         setDisplayFirstName(data.firstName || '');
         setDisplayLastName(data.lastName || '');
         setEmail(data.email || '');
-        // password는 해시된 상태이므로, 보안을 위해 보통은 미리 입력하지 않거나 빈 문자열로 둡니다.
-        // 만약 프론트에서 보여주길 원한다면 data.password를 사용 (주의)
         setPassword('');
         setAboutMe(data.aboutMe || '');
         setDisplayAboutMe(data.aboutMe || '');
@@ -108,6 +106,10 @@ const SettingsPage: React.FC = () => {
       })
       .catch((err) => console.error('Error fetching user settings:', err));
   }, []);
+  
+
+  
+  
 
 
   return (
@@ -191,7 +193,7 @@ const SettingsPage: React.FC = () => {
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{completedCount}</div>
-            <div>완독 책</div>
+            <div>완독한 책</div>
           </div>
         </div>
 

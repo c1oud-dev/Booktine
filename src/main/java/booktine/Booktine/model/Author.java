@@ -10,7 +10,7 @@ public class Author {
 
     public Author() {}
 
-    public Author(String name, String avatar) {
+    public Author(String name, String avatar, String email) {
         this.name = name;
         this.avatar = avatar;
         this.email = email;

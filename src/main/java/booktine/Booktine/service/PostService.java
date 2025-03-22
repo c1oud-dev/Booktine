@@ -1,6 +1,8 @@
 package booktine.Booktine.service;
 
+import booktine.Booktine.model.Author;
 import booktine.Booktine.model.Post;
+import booktine.Booktine.model.User;
 import booktine.Booktine.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +23,15 @@ public class PostService {
     private PostRepository postRepository;
 
     // 1) 게시글 생성
-    public Post createPost(Post post) {
+    public Post createPost(Post post, User user) {
+        // 만약 post 객체에 author 정보가 없다면, 현재 로그인한 User 정보를 이용해 채워줌
+        if (post.getAuthor() == null) {
+            Author author = new Author();
+            author.setEmail(user.getEmail());
+            // Author 클래스에 이름을 위한 필드가 있다면, 아래와 같이 설정 (예: fullName)
+            author.setName(user.getFirstName() + " " + user.getLastName());
+            post.setAuthor(author);
+        }
         return postRepository.save(post);
     }
 

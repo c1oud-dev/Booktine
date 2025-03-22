@@ -56,20 +56,20 @@ public class UserService {
         }
         return user;
     }
-
+    //이메일로 유저 조회
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
-
+    //user 업데이트
     public User updateUser(User user) {
         return userRepository.save(user);
     }
 
-    // (추가) 게시글 수, 완독 책 수 조회
+    // 게시글 수, 완독 책 수 조회
     public int getPostCount(String email) {
-       return postRepository.countByAuthorEmail(email);
+        return postRepository.countByAuthor_Email(email);
     }
    public int getCompletedBookCount(String email) {
-       return postRepository.countByAuthorEmailAndReadingStatus(email, "완독");
+       return postRepository.countByAuthor_EmailAndReadingStatus(email, "완독");
    }
 }
