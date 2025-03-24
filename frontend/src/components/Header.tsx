@@ -13,6 +13,7 @@ const Header: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
   const [profileImage, setProfileImage] = useState<string>('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // 로그인 상태를 로컬 스토리지에서 불러오기
   useEffect(() => {
@@ -20,6 +21,10 @@ const Header: React.FC = () => {
     if (storedUsername) {
       setIsLoggedIn(true);
       setUsername(storedUsername);
+    }
+    const storedProfileImage = localStorage.getItem('profileImage');
+    if (storedProfileImage) {
+      setProfileImage(storedProfileImage);
     }
   }, []);
 
@@ -156,11 +161,7 @@ const Header: React.FC = () => {
                 padding: '8px 16px',
                 cursor: 'pointer',
               }}
-              onClick={() => {
-                setIsLoggedIn(false);
-                setUsername('');
-                setProfileImage('');
-              }}
+              onClick={() => setShowLogoutModal(true)}
             >
               Log Out
             </button>
@@ -216,7 +217,7 @@ const Header: React.FC = () => {
         >
           <div
             style={{
-              width: '400px',
+              width: '350px',
               backgroundColor: '#fff',
               borderRadius: '8px',
               padding: '30px',
@@ -292,6 +293,92 @@ const Header: React.FC = () => {
           }}
         />
       )}
+
+      {/* (5) 로그아웃 모달 */}
+      {showLogoutModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              width: '350px',
+              backgroundColor: '#fff',
+              borderRadius: '8px',
+              padding: '30px',
+              textAlign: 'center',
+              position: 'relative',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: '5px',
+                right: '10px',
+                cursor: 'pointer',
+                fontSize: '20px',
+              }}
+              onClick={() => setShowLogoutModal(false)}
+            >
+              &times;
+            </div>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+              로그아웃 하시겠습니까?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <button
+                style={{
+                  width: '120px',
+                  backgroundColor: '#fff',
+                  color: '#333',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setShowLogoutModal(false)}
+              >
+                취소
+              </button>
+              <button
+                style={{
+                  width: '120px',
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  setShowLogoutModal(false);
+                  setIsLoggedIn(false);
+                  setUsername('');
+                  setProfileImage('');
+                  localStorage.removeItem('username'); // 로컬스토리지에서 로그인 정보 제거
+                  navigate('/'); // 메인 페이지로 이동
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
     </header>
   );
 };

@@ -30,12 +30,14 @@ const MainPage: React.FC = () => {
   return (
     <div
       style={{
-        maxWidth: '1200px',
         width: '100%',
         minHeight: '100vh',
-        height: 'calc(100vh - 60px)', // 헤더 높이 제외
-        background: 'url(/Main.jpg) no-repeat left top / cover', 
+        backgroundImage: 'url(/Main.jpg)',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
         position: 'relative',
+        
       }}
     >
       {/* 왼쪽 상단에 문구/버튼 */}
