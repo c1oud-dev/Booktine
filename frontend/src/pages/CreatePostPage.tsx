@@ -6,6 +6,7 @@ interface Memo {
   pageNumber: string;
   memo: string;
   isMemoSaved: boolean;
+  
 }
 
 const CreatePostPage: React.FC = () => {
@@ -31,10 +32,14 @@ const CreatePostPage: React.FC = () => {
   const inputAuthorRef = useRef<HTMLInputElement>(null);
   const genreRef = useRef<HTMLSelectElement>(null);
 
+
   const [memos, setMemos] = useState<Memo[]>([
     { id: String(Date.now()), pageNumber: '', memo: '', isMemoSaved: false },
   ]);
   const [savedPostId, setSavedPostId] = useState<string | null>(null);
+
+  const [hasShownCongrats, setHasShownCongrats] = useState(false);
+
 
   
   const textAreaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
@@ -50,6 +55,7 @@ const CreatePostPage: React.FC = () => {
   // 추가: 사진 추가하기 (파일 업로드) 상태
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [_uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [backgroundImage, setBackgroundImage] = useState('');
 
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
@@ -68,7 +74,10 @@ const CreatePostPage: React.FC = () => {
         setPublisher(data.publisher);
         setSummary(data.summary);
         setReview(data.review);
-        setEndDate(data.endDate); // 책을 닫은 날짜도 세팅
+        setEndDate(data.endDate);
+        if (data.endDate) {
+          setHasShownCongrats(true);
+        }
 
         // memos
         if (data.memos) {
@@ -104,11 +113,18 @@ const CreatePostPage: React.FC = () => {
 
   // (3) 책을 닫은 날 → 완독
   const handleCloseBookDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) {
+    const newEndDate = e.target.value;
+    if (newEndDate) {
       setReadingStatus('완독');
-      setShowCongratsModal(true);
+      if (!hasShownCongrats) {
+        setShowCongratsModal(true);
+        setHasShownCongrats(true);
+      }
+    } else {
+      setReadingStatus('독서중');
     }
   };
+
   const handleCloseCongratsModal = () => {
     setShowCongratsModal(false);
   };
@@ -169,8 +185,10 @@ const CreatePostPage: React.FC = () => {
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setUploadedImage(e.target.files[0]);
-      // 필요 시 미리보기 로직 추가
+      const file = e.target.files[0];
+      setUploadedImage(file);
+      const previewUrl = URL.createObjectURL(file);
+      setBackgroundImage(previewUrl);
     }
   };
 
@@ -178,7 +196,9 @@ const CreatePostPage: React.FC = () => {
   const handleSave = (
     e?: React.MouseEvent<HTMLButtonElement>,
     navigateAfterSave = false,
-    skipValidation = false 
+    skipValidation = false,
+    overrideEndDate?: string,
+    overrideReadingStatus?: string
   ) => {
     if (e) e.preventDefault();
     if (isSaving) return;
@@ -233,22 +253,77 @@ const CreatePostPage: React.FC = () => {
     const postData = {
       title,
       startDate,
-      readingStatus,
+      readingStatus: overrideReadingStatus !== undefined ? overrideReadingStatus : readingStatus,
       author: { name: username, avatar: defaultAvatar },
       inputAuthor,
       genre,
       publisher,
       summary,
       review,
-      endDate,
+      endDate: overrideEndDate !== undefined ? overrideEndDate : endDate,
       memos,
+      
     };
-  
-    const effectivePostId = postId || savedPostId;
-    const requestMethod = effectivePostId ? 'PUT' : 'POST';
-    const requestUrl = effectivePostId
-      ? `http://localhost:8083/posts/${effectivePostId}`
-      : 'http://localhost:8083/posts';
+
+    if (_uploadedImage) {
+      const formData = new FormData();
+      formData.append('image', _uploadedImage);
+      fetch('http://localhost:8083/api/upload-post-background', {
+        method: 'POST',
+        body: formData,
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Background image upload failed');
+          return res.json();
+        })
+        .then((data) => {
+          // data.imageUrl가 업로드된 이미지 URL임
+          (postData as any).titleBackgroundImage = data.imageUrl;
+          // 진행: effectivePostId, requestMethod, requestUrl은 그대로 사용
+          const effectivePostId = postId || savedPostId;
+          const requestMethod = effectivePostId ? 'PUT' : 'POST';
+          const requestUrl = effectivePostId
+            ? `http://localhost:8083/posts/${effectivePostId}`
+            : 'http://localhost:8083/posts';
+
+          fetch(requestUrl, {
+            method: requestMethod,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(postData),
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error('Save failed');
+              return res.json();
+            })
+            .then((data) => {
+              if (!effectivePostId && data.id) {
+                setSavedPostId(String(data.id));
+              }
+              setIsSaved(true);
+              window.dispatchEvent(new Event('postsUpdated'));
+              if (navigateAfterSave) {
+                navigate('/booknote');
+            }
+            })
+            .catch((error) => {
+              console.error('Error saving post:', error);
+            })
+            .finally(() => {
+              setIsSaving(false);
+          });
+        })
+        .catch((error) => {
+          console.error(error);
+          alert('배경 이미지 업로드에 실패했습니다.');
+          setIsSaving(false);
+        });
+    } else {
+      // 사진 선택 없으면 바로 저장 진행
+      const effectivePostId = postId || savedPostId;
+      const requestMethod = effectivePostId ? 'PUT' : 'POST';
+      const requestUrl = effectivePostId
+        ? `http://localhost:8083/posts/${effectivePostId}`
+        : 'http://localhost:8083/posts';
 
     fetch(requestUrl, {
       method: requestMethod,
@@ -276,6 +351,7 @@ const CreatePostPage: React.FC = () => {
     .finally(() => {
       setIsSaving(false);
     });
+  }
       
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
@@ -298,7 +374,7 @@ const CreatePostPage: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#999', // 원하는 배경색(예시), 또는 #ccc
+          background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : '#999',
           color: '#fff',
           marginTop: '60px'
         }}
@@ -670,8 +746,11 @@ const CreatePostPage: React.FC = () => {
               type="date"
               value={endDate}
               onChange={(e) => {
-                setEndDate(e.target.value);
+                const newEndDate = e.target.value;
+                setEndDate(newEndDate);
                 handleCloseBookDate(e);
+                // 새 endDate가 있으면 '완독', 없으면 '독서중'을 override해서 저장
+                handleSave(undefined, false, true, newEndDate, newEndDate ? '완독' : '독서중');
               }}
               style={{
                 padding: '8px',

@@ -37,19 +37,57 @@ const PostDetailPage: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const formatDateTime = (isoString: string) => {
-    if (!isoString) return '';
-    const date = new Date(isoString);
+  const convertToDateInputFormat = (value: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    // 파싱 실패 시 빈 문자열 반환
+    if (isNaN(date.getTime())) return '';
+    // 'YYYY-MM-DD'만 추출
+    return date.toISOString().split('T')[0];
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return '';
   
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
-    const day = String(date.getDate()).padStart(2, '0');
+    // 1) 먼저 new Date(...)로 시도
+    let date = new Date(dateString);
+  
+    // 2) 파싱 실패하면(Invalid Date) 커스텀 형식 "YYYY,MM,DD"를 수동 파싱
+    if (isNaN(date.getTime())) {
+      if (typeof dateString === 'string' && dateString.includes(',')) {
+        const parts = dateString.split(',');
+        if (parts.length === 3) {
+          const [yearStr, monthStr, dayStr] = parts.map(s => s.trim());
+          const year = parseInt(yearStr, 10);
+          const month = parseInt(monthStr, 10);
+          const day = parseInt(dayStr, 10);
+    
+          if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+            date = new Date(year, month - 1, day);
+          }
+        }
+      } else {
+        // 문자열이 아니거나 콤마가 없는 경우 → 그대로 빈 문자열 처리
+        return '';
+      }
+    }
+  
+    // 3) 그래도 유효하지 않다면 빈 문자열 반환
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+  
+    // 4) 정상 파싱된 경우 포매팅
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
   
-    // "YYYY.MM.DD HH:mm" 형태로 반환
-    return `${year}.${month}.${day} ${hours}:${minutes}`;
+    return `${yyyy}.${mm}.${dd} ${hours}:${minutes}`;
   };
+
+  
   
 
   useEffect(() => {
@@ -62,6 +100,27 @@ const PostDetailPage: React.FC = () => {
       })
       .then((data) => setPost(data))
       .catch((err) => console.error('Error fetching post:', err));
+
+    const handleProfileImageUpdate = () => {
+      fetch(`http://localhost:8083/posts/${id}`)
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error('게시글 불러오기 실패');
+          }
+          return res.json();
+        })
+        .then((data) => setPost(data))
+        .catch((err) => console.error('Error re-fetching post:', err));
+    };
+  
+    // 이벤트 리스너 등록
+    window.addEventListener('profileImageUpdated', handleProfileImageUpdate);
+  
+    // cleanup
+    return () => {
+      window.removeEventListener('profileImageUpdated', handleProfileImageUpdate);
+    };
+
   }, [id]);
 
   const handleEdit = () => {
@@ -109,10 +168,10 @@ const PostDetailPage: React.FC = () => {
             color: post?.readingStatus === '독서중' ? '#333' : '#fff',
             border: '1px solid #C4C4C4',
             borderRadius: '20px',
-            padding: '5px 11px',
+            padding: '5px 15px',
             fontWeight: 'bold',
             marginBottom: '30px',
-            fontSize: '14 px',
+            fontSize: '16px',
           }}
         >
           {post?.readingStatus === '독서중' ? '🔥 독서중' : '✅ 완독'}
@@ -147,19 +206,17 @@ const PostDetailPage: React.FC = () => {
           {/* 사용자 프로필 사진 */}
           <div
             style={{
-              width: '30px',
-              height: '30px',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               overflow: 'hidden',
             }}
           >
-            {post?.author.avatar && (
-              <img
-                src={post.author.avatar}
-                alt="Profile"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            )}
+            <img
+              src={localStorage.getItem('profileImage') || post?.author.avatar || '/default_avatar.png'}
+              alt="Profile"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
 
           {/* 사용자명 */}
@@ -254,7 +311,7 @@ const PostDetailPage: React.FC = () => {
               <label style={{ width: '100px', fontWeight: 'bold' }}>책을 펴낸 날</label>
               <input
                 type="date"
-                value={post?.startDate || ''}
+                value={convertToDateInputFormat(post?.startDate)}
                 readOnly
                 style={{ flex: 1, padding: '8px', border: '1px solid #ccc' }}
               />

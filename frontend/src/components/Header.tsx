@@ -17,15 +17,20 @@ const Header: React.FC = () => {
 
   // 로그인 상태를 로컬 스토리지에서 불러오기
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
-      setIsLoggedIn(true);
-      setUsername(storedUsername);
-    }
     const storedProfileImage = localStorage.getItem('profileImage');
     if (storedProfileImage) {
       setProfileImage(storedProfileImage);
     }
+
+    const handleProfileImageUpdate = () => {
+      const updatedImage = localStorage.getItem('profileImage') || '';
+      setProfileImage(updatedImage);
+    };
+
+    window.addEventListener('profileImageUpdated', handleProfileImageUpdate);
+    return () => {
+      window.removeEventListener('profileImageUpdated', handleProfileImageUpdate);
+    };
   }, []);
 
   // "로그인 필요" 모달
@@ -126,27 +131,20 @@ const Header: React.FC = () => {
       {/* 오른쪽: 로그인/로그아웃 영역 */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {isLoggedIn ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
             <div
               style={{
-                width: '35px',
-                height: '35px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '50%',
-                backgroundColor: '#ccc',
-                border: '1px solid #666',
+                backgroundImage: `url(${profileImage || '/default_avatar.png'})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
                 overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                marginRight: '5px'
+                
               }}
             >
-              {profileImage && (
-                <img
-                  src={profileImage}
-                  alt="Profile"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              )}
             </div>
 
             <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{username}</div>
@@ -366,6 +364,8 @@ const Header: React.FC = () => {
                   setUsername('');
                   setProfileImage('');
                   localStorage.removeItem('username'); // 로컬스토리지에서 로그인 정보 제거
+                  localStorage.removeItem('profileImage');
+                  localStorage.removeItem('email');
                   navigate('/'); // 메인 페이지로 이동
                 }}
               >

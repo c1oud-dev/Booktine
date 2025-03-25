@@ -334,7 +334,7 @@ const ProgressPage: React.FC = () => {
                   ? '100%'
                   : `${Math.round(yearlyRatio * 100)}%`}
               </span>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              <div style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
                 {yearlyGoal === 0
                   ? '목표를 설정하세요'
                   : yearlyAchieved === 0
@@ -446,7 +446,7 @@ const ProgressPage: React.FC = () => {
                   ? '100%'
                   : `${Math.round(monthlyRatio * 100)}%`}
               </span>
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
+              <div style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
                 {monthlyGoal === 0
                   ? '목표를 설정하세요'
                   : monthlyAchieved === 0

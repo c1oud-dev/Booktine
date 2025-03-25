@@ -108,7 +108,7 @@ const GenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
       >
         {hasData && maxGenre && maxGenre.value > 0 ? (
           <>
-            <div style={{ fontSize: '11px', color: '#666' }}>가장 많이 읽은 장르</div>
+            <div style={{ fontSize: '12px', color: '#666' }}>가장 많이 읽은 장르</div>
             <div style={{ marginTop: '4px', fontWeight: 'bold'}}>{maxGenre.label}</div>
           </>
         ) : (

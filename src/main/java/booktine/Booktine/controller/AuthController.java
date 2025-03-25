@@ -34,12 +34,15 @@ public class AuthController {
             user.setLastName(request.getLastName());
 
 
-            user.setAvatarUrl("default_gray.png");
+            user.setAvatarUrl("default_avatar.png");
             user.setAboutMe("");
 
             userService.registerUser(user, request.getPassword()); //실제 DB에 저장
 
-            return ResponseEntity.ok("회원가입이 성공적으로 되었습니다!");
+            return ResponseEntity
+                    .ok()
+                    .header("Content-Type", "text/plain;charset=UTF-8")
+                    .body("회원가입이 성공적으로 되었습니다!");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

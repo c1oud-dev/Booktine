@@ -50,10 +50,10 @@ const MainPage: React.FC = () => {
           paddingTop: '100px'
         }}
       >
-        <h1 style={{ fontSize: '40px', marginBottom: '16px' }}>
+        <h1 style={{ fontSize: '40px', marginBottom: '16px', fontWeight: 'bold' }}>
           안녕하세요 Booktine입니다.
         </h1>
-        <p style={{ fontSize: '18px', marginBottom: '32px' }}>
+        <p style={{ fontSize: '20px', marginBottom: '32px' }}>
           독서 습관 추적 & 목표 관리 서비스 <br />
           랜덤 책 추천 서비스 <br />
           독서 노트 & 메모 서비스

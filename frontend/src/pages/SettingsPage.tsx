@@ -7,7 +7,7 @@ const SettingsPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [aboutMe, setAboutMe] = useState('');
-  const [profileImage, setProfileImage] = useState('/default_gray.png');
+  const [profileImage, setProfileImage] = useState('/default_avatar.png');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [postCount, setPostCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
@@ -20,11 +20,40 @@ const SettingsPage: React.FC = () => {
     document.getElementById('profile-file-input')?.click();
   };
 
+  const [showDeleteButton, setShowDeleteButton] = useState(false);
+  
+  const handleDeleteProfileImage = async () => {
+    const email = localStorage.getItem('email');
+    if (!email) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:8083/api/settings/${email}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        // 오직 avatarUrl만 업데이트하도록 수정 (passwordConfirmation 미포함)
+        body: JSON.stringify({ avatarUrl: '/default_avatar.png' }),
+      });
+      if (!res.ok) throw new Error('프로필 사진 삭제 실패');
+  
+      setProfileImage('/default_avatar.png');
+      localStorage.setItem('profileImage', '/default_avatar.png');
+      window.dispatchEvent(new Event('profileImageUpdated'));
+      alert('프로필 사진이 삭제되었습니다.');
+    } catch (error) {
+      console.error(error);
+      alert('프로필 사진 삭제에 실패했습니다.');
+    }
+  };
+  
+
   // 파일 업로드 후 응답 처리
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const formData = new FormData();
+      formData.append('email', email);
       formData.append('profileImage', file);
 
       try {
@@ -42,6 +71,7 @@ const SettingsPage: React.FC = () => {
         setProfileImage(uploadedUrl);
         // 2) 로컬스토리지나 글로벌 상태에 저장하여 Header 등에서도 불러오기
         localStorage.setItem('profileImage', uploadedUrl);
+        window.dispatchEvent(new Event('profileImageUpdated'));
 
         alert('프로필 사진이 성공적으로 업로드되었습니다.');
       } catch (error) {
@@ -133,16 +163,12 @@ const SettingsPage: React.FC = () => {
         setPassword('');
         setAboutMe(data.aboutMe || '');
         setDisplayAboutMe(data.aboutMe || '');
-        setProfileImage(data.avatarUrl || '/default_gray.png');
+        setProfileImage(data.avatarUrl || '/default_avatar.png');
         setPostCount(data.postCount || 0);
         setCompletedCount(data.completedCount || 0);
       })
       .catch((err) => console.error('Error fetching user settings:', err));
   }, []);
-
-
-
-
 
 
   return (
@@ -179,16 +205,19 @@ const SettingsPage: React.FC = () => {
             {/* 프로필 이미지 */}
             <div
               style={{
-                width: '150px',
-                height: '150px',
+                position: 'relative',
+                width: '180px',
+                height: '180px',
                 borderRadius: '50%',
                 overflow: 'hidden',
-                margin: '20px auto 20px auto',
+                margin: '30px auto 20px auto',
                 border: '1px solid #ccc',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
+              onMouseEnter={() => setShowDeleteButton(true)}
+              onMouseLeave={() => setShowDeleteButton(false)}
             >
               {profileImage ? (
                 <img
@@ -199,6 +228,25 @@ const SettingsPage: React.FC = () => {
               ) : (
                 <div style={{ color: '#999' }}>No Image</div>
               )}
+              {showDeleteButton && (
+                <button
+                  onClick={handleDeleteProfileImage}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '24px',
+                    padding: '5px 20px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  삭제
+                </button>
+                )}
             </div>
 
             {/* 이름 */}
@@ -207,23 +255,26 @@ const SettingsPage: React.FC = () => {
             </div>
 
             {/* 소개 문구 */}
-            <div style={{ textAlign: 'center', fontSize: '14px', color: '#777', marginBottom: '20px' }}>
-              {displayAboutMe}
+            <div style={{ textAlign: 'center', fontSize: '14px', color: '#777', marginBottom: '40px' }}>
+              {displayAboutMe || '자기소개를 해주세요.'}
             </div>
 
             {/* 게시물 수 / 완독 책 수 */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '20px',
-              marginBottom: '20px',
-              fontSize: '14px',
-              color: '#333',
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: '20px',
+                fontSize: '14px',
+                color: '#333',
+              }}
+            >
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{postCount}</div>
                 <div>게시물</div>
               </div>
+              <div style={{ borderLeft: '2px solid #ccc', height: '40px', margin: '0 20px' }}></div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{completedCount}</div>
                 <div>완독한 책</div>
@@ -236,12 +287,14 @@ const SettingsPage: React.FC = () => {
               style={{
                 display: 'block',
                 margin: '0 auto',
-                backgroundColor: '#fff',
+                backgroundColor: '#6B705C',
                 border: '1px solid #ccc',
-                borderRadius: '20px',
-                padding: '10px 20px',
+                borderRadius: '10px',
+                padding: '8px 20px',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: '16px',
+                color: '#fff',
+
               }}
             >
               Upload new Profile
@@ -282,7 +335,7 @@ const SettingsPage: React.FC = () => {
                 <button
                   onClick={handleSave}
                   style={{
-                    backgroundColor: '#000',
+                    backgroundColor: '#A5A58D',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
@@ -377,6 +430,9 @@ const SettingsPage: React.FC = () => {
                     marginBottom: '20px'
                   }}
                 />
+                <div style={{ color: 'red', fontSize: '12px', marginTop: '-15px', marginBottom: '20px' }}>
+                  암호를 입력한 후에 SAVE 버튼을 눌러주세요.
+                </div>
               </div>
 
               {/* ABOUT ME */}

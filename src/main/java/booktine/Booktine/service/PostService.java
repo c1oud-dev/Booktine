@@ -31,6 +31,11 @@ public class PostService {
             // Author 클래스에 이름을 위한 필드가 있다면, 아래와 같이 설정 (예: fullName)
             author.setName(user.getFirstName() + " " + user.getLastName());
             post.setAuthor(author);
+        } else {
+            // 이미 author가 있으면 email이 들어 있는지 확인
+            if (post.getAuthor().getEmail() == null) {
+                post.getAuthor().setEmail(user.getEmail());
+            }
         }
         return postRepository.save(post);
     }
@@ -65,6 +70,14 @@ public class PostService {
                     return postRepository.save(existing);
                 })
                 .orElseThrow(() -> new RuntimeException("Post not found with id " + id));
+    }
+
+    public int getPostCountByUser(String email) {
+        return postRepository.countByAuthor_Email(email);
+    }
+
+    public int getCompletedBookCountByUser(String email) {
+        return postRepository.countByAuthor_EmailAndReadingStatus(email, "완독");
     }
 
     // 5) 게시글 삭제

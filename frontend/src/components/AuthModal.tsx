@@ -380,14 +380,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 padding: '40px',
                 textAlign: 'center',
                 position: 'relative',
-                width: '300px',
+                width: '400px',
               }}
             >
               {/* 닫기 버튼 */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '10px',
+                  top: '1px',
                   right: '10px',
                   cursor: 'pointer',
                   fontSize: '24px',
@@ -400,8 +400,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 src="/success_icon.png"
                 alt="success"
                 style={{
-                  width: '60px',
-                  marginBottom: '20px',
+                  width: '100px',
+                  marginBottom: '30px',
                   display: 'block',
                   marginLeft: 'auto',
                   marginRight: 'auto',
@@ -409,8 +409,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
               />
               <h2
                 style={{
-                  fontSize: '20px',
-                  marginBottom: '16px',
+                  fontSize: '18px',
+                  marginBottom: '30px',
                   fontWeight: 'bold',
                 }}
               >
@@ -423,7 +423,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   color: '#fff',
                   border: 'none',
                   borderRadius: '20px',
-                  padding: '12px',
+                  padding: '10px',
                   cursor: 'pointer',
                 }}
                 onClick={() => {

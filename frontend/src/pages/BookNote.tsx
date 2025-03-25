@@ -48,8 +48,8 @@ const BookNote: React.FC = () => {
           // (1) lastModified 기준으로 최근 게시물 우선 정렬
           data.sort((a, b) => {
             if (!a.lastModified || !b.lastModified) return 0;
-            // 더 최근 날짜(시간)이 앞으로 오도록 내림차순
-            return new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime();
+            const timeDiff = new Date(b.lastModified.replace(" ", "T")).getTime() - new Date(a.lastModified.replace(" ", "T")).getTime();
+            return timeDiff !== 0 ? timeDiff : b.id - a.id;
           });
   
           // (2) 정렬된 배열을 state에 저장
@@ -260,7 +260,7 @@ const BookNote: React.FC = () => {
                         borderRadius: '16px',
                         border: '1px solid #C4C4C4',
                         padding: '4px 12px',
-                        fontSize: '12px',
+                        fontSize: '14px',
                       }}
                     >
                       {badgeLabel}

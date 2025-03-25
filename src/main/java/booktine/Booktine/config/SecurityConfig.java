@@ -31,6 +31,8 @@ public class SecurityConfig {
                         .requestMatchers("/progress/**").permitAll()
                         .requestMatchers("/api/settings/**").permitAll()
                         .requestMatchers("/api/upload-profile").permitAll()
+                        .requestMatchers("/api/upload-post-background").permitAll()
+                        .requestMatchers("/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
