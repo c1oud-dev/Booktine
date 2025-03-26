@@ -90,6 +90,9 @@ const CreatePostPage: React.FC = () => {
             }))
           );
         }
+        if (data.titleBackgroundImage) {
+          setBackgroundImage(data.titleBackgroundImage);
+        }
       })
       .catch((err) => console.error('Error fetching post:', err));
   }, [postId]);
@@ -369,12 +372,12 @@ const CreatePostPage: React.FC = () => {
       {/* 상단 영역: 제목 입력 + 사진 추가하기 버튼 */}
       <div
         style={{
-          height: '250px',
+          height: '300px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : '#999',
+          background: backgroundImage ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),url(${backgroundImage}) no-repeat center/cover` : '#999',
           color: '#fff',
           marginTop: '60px'
         }}
@@ -409,8 +412,8 @@ const CreatePostPage: React.FC = () => {
         <button
           onClick={handleUploadClick}
           style={{
-            backgroundColor: '#444',
-            color: '#fff',
+            backgroundColor: '#fff',
+            color: '#000',
             border: 'none',
             borderRadius: '4px',
             padding: '8px 16px',
@@ -418,7 +421,7 @@ const CreatePostPage: React.FC = () => {
             fontSize: '12px',
           }}
         >
-          사진 추가하기
+          Upload Photo
         </button>
         <input
           type="file"
@@ -528,7 +531,7 @@ const CreatePostPage: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <label style={{ fontWeight: 'bold', marginBottom: '8px' }}>Summary</label>
               <textarea
-                value={summary}
+                value={summary || ''}
                 onChange={(e) => setSummary(e.target.value)}
                 placeholder="책을 간단히 요약하세요."
                 style={{
@@ -657,7 +660,7 @@ const CreatePostPage: React.FC = () => {
                 {/* 메모 내용 textarea */}
                 <textarea
                   ref={(el) => (textAreaRefs.current[m.id] = el)}
-                  value={m.memo}
+                  value={m.memo || ''}
                   onChange={(e) => handleMemoChange(m.id, 'memo', e.target.value)}
                   disabled={m.isMemoSaved}
                   placeholder="책의 내용을 입력하세요."
@@ -688,7 +691,7 @@ const CreatePostPage: React.FC = () => {
                   <span>Page</span>
                   <input
                     type="text"
-                    value={m.pageNumber}
+                    value={m.pageNumber || ''}
                     onChange={(e) => handleMemoChange(m.id, 'pageNumber', e.target.value)}
                     disabled={m.isMemoSaved}
                     style={{
@@ -705,8 +708,6 @@ const CreatePostPage: React.FC = () => {
             </div>
           ))}
         </div>
-
-          
 
         {/* Review */}
         <div style={{ marginBottom: '50px' }}>

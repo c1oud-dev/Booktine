@@ -41,6 +41,15 @@ public class Post {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime lastModified;
 
+    public String getTitleBackgroundImage() {
+        return titleBackgroundImage;
+    }
+
+    public void setTitleBackgroundImage(String titleBackgroundImage) {
+        this.titleBackgroundImage = titleBackgroundImage;
+    }
+
+    private String titleBackgroundImage;
     @ElementCollection
     private List<Memo> memos = new ArrayList<>();
 

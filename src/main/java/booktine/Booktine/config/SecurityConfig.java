@@ -15,32 +15,56 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 public class SecurityConfig {
-    @Bean
+    /*@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            // 1) CORS 허용 설정
-            .cors(Customizer.withDefaults())
-
-                // 2) CSRF 비활성화
+        return http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-
-                // 3) 특정 경로는 공개, 나머지는 인증 요구
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // 1) /api 이하 모든 경로 허용
+                        .requestMatchers("/api/**").permitAll()
+                        // 2) /posts 이하 모든 경로 허용
                         .requestMatchers("/posts/**").permitAll()
+                        // 3) /progress 이하 모든 경로 허용
                         .requestMatchers("/progress/**").permitAll()
-                        .requestMatchers("/api/settings/**").permitAll()
-                        .requestMatchers("/api/upload-profile").permitAll()
-                        .requestMatchers("/api/upload-post-background").permitAll()
+                        // 4) /images 이하 모든 경로 허용
                         .requestMatchers("/images/**").permitAll()
+                        // 5) 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
+                .httpBasic(Customizer.withDefaults())
+                .build();
+    }*/
+   /* @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()  // ← 모든 경로 허용
+                )
+                .build();
+    }*/
 
-                // 4) HTTP Basic 인증
-                .httpBasic(Customizer.withDefaults());
-        return http.build();
+    /* 1) CORS 설정 Bean */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        // 허용할 Origin
+        config.addAllowedOrigin("http://localhost:3000");
+        // 모든 메서드(GET, POST, PUT, DELETE...) 허용
+        config.addAllowedMethod("*");
+        // 모든 헤더 허용
+        config.addAllowedHeader("*");
+        // 인증정보(쿠키 등) 포함 여부
+        config.setAllowCredentials(true);
+
+        // 모든 경로에 대해 CORS 설정 적용
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
-    // 5) CORS 설정 Bean 등록
+
+    /*// 5) CORS 설정 Bean 등록
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -56,5 +80,20 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
+    }*/
+
+    /* 2) SecurityFilterChain 최소화 */
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        return http
+                // CORS 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // CSRF 비활성화
+                .csrf(csrf -> csrf.disable())
+                // 모든 요청 허용 (임시)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()
+                )
+                .build();
     }
 }

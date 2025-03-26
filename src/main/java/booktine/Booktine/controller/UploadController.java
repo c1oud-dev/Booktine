@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -82,7 +83,7 @@ public class UploadController {
         }
     }
 
-    @PostMapping("/upload-post-background")
+    @PostMapping(value = "/upload-post-background", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadPostBackground(
             @RequestParam("image") MultipartFile file
     ) {

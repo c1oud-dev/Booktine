@@ -164,7 +164,7 @@ const SettingsPage: React.FC = () => {
         setAboutMe(data.aboutMe || '');
         setDisplayAboutMe(data.aboutMe || '');
         setProfileImage(data.avatarUrl || '/default_avatar.png');
-        setPostCount(data.postCount || 0);
+        setPostCount(data.postsCount || 0);
         setCompletedCount(data.completedCount || 0);
       })
       .catch((err) => console.error('Error fetching user settings:', err));
@@ -272,7 +272,7 @@ const SettingsPage: React.FC = () => {
             >
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{postCount}</div>
-                <div>게시물</div>
+                <div>총 게시물</div>
               </div>
               <div style={{ borderLeft: '2px solid #ccc', height: '40px', margin: '0 20px' }}></div>
               <div style={{ textAlign: 'center' }}>

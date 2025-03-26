@@ -12,7 +12,7 @@ interface PostDetail {
   summary: string;
   review: string;
   endDate: string;
-  
+  titleBackgroundImage?: string;
   author: {
     name: string;
     avatar: string;
@@ -151,12 +151,14 @@ const PostDetailPage: React.FC = () => {
       {/* 회색 배경 상단 영역 */}
       <div
         style={{
-          height: '250px',
+          height: '300px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#999',
+          background: post?.titleBackgroundImage
+            ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(${post.titleBackgroundImage}) no-repeat center/cover`
+            : '#999',
           color: '#fff',
           marginTop: '60px',
         }}
