@@ -32,12 +32,11 @@ const MainPage: React.FC = () => {
       style={{
         width: '100%',
         minHeight: '100vh',
-        backgroundImage: 'url(/Main.jpg)',
+        backgroundImage: 'url(/Main.png)',
         backgroundPosition: 'center',
-        backgroundSize: 'cover',
+        backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
         position: 'relative',
-        
       }}
     >
       {/* 왼쪽 상단에 문구/버튼 */}
