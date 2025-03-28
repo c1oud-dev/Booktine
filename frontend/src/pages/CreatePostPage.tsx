@@ -252,12 +252,12 @@ const CreatePostPage: React.FC = () => {
       return;
     }
     const defaultAvatar = '/default_avatar.png';
-  
+    const email = localStorage.getItem('email'); // 추가: 실제 사용자의 이메일
     const postData = {
       title,
       startDate,
       readingStatus: overrideReadingStatus !== undefined ? overrideReadingStatus : readingStatus,
-      author: { name: username, avatar: defaultAvatar },
+      author: { name: username, avatar: defaultAvatar, email: email },
       inputAuthor,
       genre,
       publisher,
@@ -265,7 +265,7 @@ const CreatePostPage: React.FC = () => {
       review,
       endDate: overrideEndDate !== undefined ? overrideEndDate : endDate,
       memos,
-      
+      email: email,
     };
 
     if (_uploadedImage) {
