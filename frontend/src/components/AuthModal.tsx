@@ -13,9 +13,23 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   // 현재 탭 상태
   const [activeTab, setActiveTab] = useState(isSignUp ? 'signup' : 'login');
 
+  const [emailValidationMessage, setEmailValidationMessage] = useState('');
+  const [emailValidationColor, setEmailValidationColor] = useState('');
+  const [passwordValidationMessage, setPasswordValidationMessage] = useState('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+  const [passwordValidationColor, setPasswordValidationColor] = useState('red');
+
+  // 로그인 에러 메시지와 로그인 유지 체크 상태 추가
+  const [loginErrorMessage, setLoginErrorMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // 추가: 이메일 중복 확인 여부와 비밀번호 유효성 여부 상태
+  const [isEmailChecked, setIsEmailChecked] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
+
+
+
   // ▼ 로그인 API 요청 핸들러 추가
   const handleLogin = async () => {
-    console.log("handleLogin called");
     try {
       const response = await fetch('http://localhost:8083/api/auth/login', {
         method: 'POST',
@@ -25,34 +39,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
           password: loginPassword,
         }),
       });
-
       if (!response.ok) {
-        // 실패 처리 (에러 메시지 등)
+        setLoginErrorMessage("이메일 또는 암호를 다시 한번 확인해주세요.");
         return;
       }
-
-      // 로그인 성공 시, 응답 JSON에서 firstName과 lastName을 합쳐 사용자 이름 생성
       const result = await response.json();
-
-      // localStorage에 email 저장
+  
       localStorage.setItem('email', result.email);
-
-
       const fullName = `${result.firstName}${result.lastName}`;
       localStorage.setItem('username', fullName);
-
-      // 로그인 성공 콜백 호출
+  
       if (onLoginSuccess) {
         onLoginSuccess(result.firstName || '', result.lastName || '');
       }
-      
-
       onClose();
       navigate('/home');
     } catch (error) {
       console.error('Login Error:', error);
+      setLoginErrorMessage("이메일이나 암호를 다시 한번 확인해주세요.");
     }
   };
+  
 
   // 입력값 상태
   const [firstName, setFirstName] = useState('');
@@ -71,7 +78,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
     !firstName.trim() ||
     !lastName.trim() ||
     !signUpEmail.trim() ||
-    !signUpPassword.trim();
+    !signUpPassword.trim() ||
+    !isEmailChecked ||
+    !isPasswordValid;
+
 
   const isLoginDisabled =
     !loginEmail.trim() ||
@@ -79,7 +89,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
   // 회원가입 API 요청 핸들러
   const handleSignUp = async () => {
-    console.log("handleSignUp called");
+    // 이메일 중복 확인이 안 된 경우 경고 후 진행 중단
+    if (!isEmailChecked) {
+      alert("이메일 중복 확인을 해주세요.");
+      return;
+    }
     try {
       const response = await fetch('http://localhost:8083/api/auth/signup', {
         method: 'POST',
@@ -105,6 +119,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       console.error('SignUp Error:', error);
     }
   };
+
+  const handleForgotPassword = async () => {
+    const email = prompt("비밀번호를 찾으실 이메일을 입력해주세요:");
+    if (!email) return;
+    try {
+      const response = await fetch('http://localhost:8083/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (response.ok) {
+        alert("비밀번호 재설정 이메일을 발송했습니다.");
+      } else {
+        alert("이메일 전송에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Forgot Password Error:", error);
+      alert("이메일 전송에 실패했습니다.");
+    }
+  };
+  
 
   return (
     <div
@@ -232,28 +267,68 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
               {/* Email */}
               <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '4px' }}>
-                  Email address
-                </label>
-                <input
-                  type="email"
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    marginBottom: '10px',
-                  }}
-                  value={signUpEmail}
-                  onChange={(e) => setSignUpEmail(e.target.value)}
-                />
+                <label style={{ display: 'block', marginBottom: '4px' }}>Email address</label>
+                <div style={{ display: 'flex' }}>
+                  <input
+                    type="email"
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      marginBottom: '10px',
+                    }}
+                    value={signUpEmail}
+                    onChange={(e) => {
+                      setSignUpEmail(e.target.value);
+                      setEmailValidationMessage('');
+                      setIsEmailChecked(false); // 이메일 변경 시 중복 확인 상태 리셋
+                    }}
+                  />
+                  <button
+                    style={{
+                      marginLeft: '8px',
+                      height: '50px',         // 고정 높이 지정
+                      lineHeight: '40px',      // 텍스트가 중앙에 오도록 설정
+                      padding: '0 12px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      border: 'none',
+                      backgroundColor: '#000',
+                      color: '#fff',
+                    }}
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`http://localhost:8083/api/auth/check-email?email=${signUpEmail}`);
+                        if (response.ok) {
+                          setEmailValidationMessage('사용 가능한 이메일입니다.');
+                          setEmailValidationColor('blue');
+                          setIsEmailChecked(true);
+                        } else {
+                          setEmailValidationMessage('중복된 이메일입니다.');
+                          setEmailValidationColor('red');
+                          setIsEmailChecked(false);
+                        }
+                      } catch (error) {
+                        console.error('Email check error:', error);
+                      }
+                    }}
+                  >
+                    중복 확인
+                  </button>
+                </div>
+                {emailValidationMessage && (
+                  <div style={{ color: emailValidationColor, fontSize: '12px' }}>
+                    {emailValidationMessage}
+                  </div>
+                )}
               </div>
+
 
               {/* Password */}
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '4px' }}>
-                  Password
-                </label>
+                <label style={{ display: 'block', marginBottom: '4px' }}>Password</label>
                 <input
                   type="password"
                   style={{
@@ -261,12 +336,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                     padding: '12px',
                     border: '1px solid #ccc',
                     borderRadius: '4px',
-                    marginBottom: '20px',
+                    marginBottom: '8px',
                   }}
                   value={signUpPassword}
-                  onChange={(e) => setSignUpPassword(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setSignUpPassword(value);
+                    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
+                    if (passwordRegex.test(value)) {
+                      setPasswordValidationMessage('사용 가능한 비밀번호입니다.');
+                      setPasswordValidationColor('blue');
+                      setIsPasswordValid(true);
+                    } else {
+                      setPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+                      setPasswordValidationColor('red');
+                      setIsPasswordValid(false);
+                    }
+                  }}
                 />
+                <div style={{ color: passwordValidationColor, fontSize: '12px', marginBottom: '20px' }}>
+                  {passwordValidationMessage}
+                </div>
               </div>
+
 
               {/* Sign up 버튼 */}
               <button
@@ -287,6 +379,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
             </>
           )}
 
+          
+          {/* 로그인 탭 */}
           {activeTab === 'login' && (
             <>
               <h2
@@ -315,9 +409,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                     marginBottom: '20px',
                   }}
                   value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  onChange={(e) => {
+                    setLoginEmail(e.target.value);
+                    setLoginErrorMessage(''); // 이메일 입력 시 에러 메시지 초기화
+                  }}
                 />
-              </div>
+            </div>
 
               {/* Password */}
               <div style={{ marginBottom: '20px' }}>
@@ -331,11 +428,51 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                     padding: '12px',
                     border: '1px solid #ccc',
                     borderRadius: '4px',
-                    marginBottom: '20px',
+                    marginBottom: '8px',
                   }}
                   value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
+                  onChange={(e) => {
+                    setLoginPassword(e.target.value);
+                    setLoginErrorMessage(''); // 비밀번호 입력 시 에러 메시지 초기화
+                  }}
                 />
+                {/* 로그인 실패 에러 메시지 */}
+                {loginErrorMessage && (
+                  <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
+                    {loginErrorMessage}
+                  </div>
+                )}
+              </div>
+
+              {/* 로그인 유지 체크박스와 비밀번호 찾기 링크 */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '20px',
+                }}
+              >
+                <label style={{ display: 'flex', alignItems: 'center', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    style={{ marginRight: '5px' }}
+                  />
+                  로그인 유지
+                </label>
+                <span
+                  style={{
+                    color: '#0000EE',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                  onClick={handleForgotPassword}
+                >
+                  비밀번호 찾기
+                </span>
               </div>
 
               <button
@@ -355,6 +492,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
               </button>
             </>
           )}
+
         </div>
 
         {/* 회원가입 성공 모달 */}

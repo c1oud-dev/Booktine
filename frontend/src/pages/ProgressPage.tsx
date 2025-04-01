@@ -349,7 +349,10 @@ const ProgressPage: React.FC = () => {
           {/* Yearly Goal Modal Trigger */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
             <button
-              onClick={() => setShowYearlyGoalModal(true)}
+               onClick={() => {
+                setTempGoalValue(String(yearlyGoal));
+                setShowYearlyGoalModal(true);
+              }}
               style={{
                 backgroundColor: '#666',
                 color: '#fff',
@@ -461,7 +464,10 @@ const ProgressPage: React.FC = () => {
           {/* Monthly Goal Modal Trigger */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
             <button
-              onClick={() => setShowMonthlyGoalModal(true)}
+              onClick={() => {
+                setTempMonthlyGoalValue(String(monthlyGoal));
+                setShowMonthlyGoalModal(true);
+              }}
               style={{
                 backgroundColor: '#666',
                 color: '#fff',
@@ -470,6 +476,7 @@ const ProgressPage: React.FC = () => {
                 padding: '8px 20px',
                 cursor: 'pointer',
                 fontSize: '14px',
+                
               }}
             >
               목표 설정
@@ -768,8 +775,8 @@ const ProgressPage: React.FC = () => {
             <div
               style={{
                 position: 'absolute',
-                top: '10px',
-                right: '15px',
+                top: '1px',
+                right: '5px',
                 cursor: 'pointer',
                 fontSize: '20px',
               }}
@@ -778,7 +785,7 @@ const ProgressPage: React.FC = () => {
               &times;
             </div>
 
-            <p style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>
+            <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
               이번달 달성할 책의 수를 입력하세요.
             </p>
 

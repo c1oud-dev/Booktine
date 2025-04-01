@@ -90,6 +90,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
+                // H2 Console 접근을 위해 frameOptions를 sameOrigin으로 설정
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 // 모든 요청 허용 (임시)
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()

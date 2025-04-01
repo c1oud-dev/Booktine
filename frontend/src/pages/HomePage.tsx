@@ -207,7 +207,7 @@ const HomePage: React.FC = () => {
     <div
       style={{
         minWidth: '1300px',
-        background: "url('/Main.png') center center / cover no-repeat",
+        background: "url('/Home.jpg') center center / cover no-repeat",
         margin: 0,
         paddingTop: '10px', // 헤더 높이 등을 고려하여 적절히 조정
       }}

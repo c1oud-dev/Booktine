@@ -4,11 +4,9 @@ package booktine.Booktine.controller;
 import booktine.Booktine.model.User;
 import booktine.Booktine.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 회원가입/로그인 등 인증 관련 API 엔드포인트
@@ -58,6 +56,25 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        boolean exists = userService.findByEmail(email).isPresent();
+        if (exists) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("중복된 이메일입니다.");
+        } else {
+            return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        if (userService.findByEmail(request.getEmail()).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("존재하지 않는 이메일입니다.");
+        }
+        // TODO: 여기에 임시 비밀번호 발급 및 이메일 전송 로직 구현
+        return ResponseEntity.ok("비밀번호 재설정 이메일을 발송했습니다.");
     }
 }
 
@@ -124,4 +141,10 @@ class LoginRequest {
     public void setPassword(String password) {
         this.password = password;
     }
+}
+
+class ForgotPasswordRequest {
+    private String email;
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
