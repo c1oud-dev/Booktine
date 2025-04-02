@@ -61,6 +61,9 @@ const ProgressPage: React.FC = () => {
   const monthlyRatio = monthlyGoal > 0 ? (monthlyAchieved / monthlyGoal) : 0;
   const monthlyAngle = monthlyRatio * 360;
 
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth + 1);
+  const [monthlyGoalVersion, setMonthlyGoalVersion] = useState(0);
+
   const colorPalette = [
     '#FF6384', // 빨강
     '#36A2EB', // 파랑
@@ -106,18 +109,25 @@ const ProgressPage: React.FC = () => {
   );
 
   
+  // 년도별 목표 불러오기
   useEffect(() => {
-    // 컴포넌트 마운트 시 localStorage에서 목표값 불러오기
-    const storedYearlyGoal = localStorage.getItem('yearlyGoal');
+    const storedYearlyGoal = localStorage.getItem(`yearlyGoal_${selectedYear}`);
     if (storedYearlyGoal) {
       setYearlyGoal(Number(storedYearlyGoal));
+    } else {
+      setYearlyGoal(0);
     }
-    
-    const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
+  }, [selectedYear]);
+
+  // 월별 목표 불러오기 (선택된 년도와 월 기준)
+  useEffect(() => {
+    const storedMonthlyGoal = localStorage.getItem(`monthlyGoal_${selectedYear}_${selectedMonth}`);
     if (storedMonthlyGoal) {
       setMonthlyGoal(Number(storedMonthlyGoal));
+    } else {
+      setMonthlyGoal(0);
     }
-  }, []); // 의존성 배열 비워두어야 첫 마운트 시에만 실행
+  }, [selectedYear, selectedMonth]);
 
 
 
@@ -137,13 +147,13 @@ const ProgressPage: React.FC = () => {
   // (D) 이번달 달성 수 계산 (현재 연도, 현재 월 기준)
   // ──────────────────────────────────────────────
   useEffect(() => {
-    const thisMonthFinished = posts.filter((post) => {
+    const monthFinished = posts.filter((post) => {
       if (post.readingStatus !== '완독' || !post.endDate) return false;
       const d = new Date(post.endDate);
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      return (d.getFullYear() === selectedYear && d.getMonth() + 1 === selectedMonth);
     });
-    setMonthlyAchieved(thisMonthFinished.length);
-  }, [posts, currentYear, currentMonth]);
+    setMonthlyAchieved(monthFinished.length);
+  }, [posts, selectedYear, selectedMonth]);
 
   // ──────────────────────────────────────────────
   // (E) 로컬에서 연간 독서량 계산 (최근 6년)
@@ -166,7 +176,8 @@ const ProgressPage: React.FC = () => {
   useEffect(() => {
     const today = new Date();
     const tempData: { month: string; goal: number; achieved: number }[] = [];
-    for (let i = 0; i < 6; i++) {
+    // 최근 6개월 데이터를 오름차순(과거→현재)으로 생성
+    for (let i = 5; i >= 0; i--) {
       const target = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const y = target.getFullYear();
       const m = target.getMonth() + 1;
@@ -175,15 +186,22 @@ const ProgressPage: React.FC = () => {
         const d = new Date(p.endDate);
         return d.getFullYear() === y && d.getMonth() + 1 === m;
       }).length;
+      // 각 달의 목표값은 로컬 스토리지에서 읽어옴
+      const goalKey = `monthlyGoal_${y}_${m}`;
+      const storedGoal = localStorage.getItem(goalKey);
+      const goal = storedGoal ? Number(storedGoal) : 0;
       tempData.push({
         month: `${m}월`,
-        goal: (currentYear === y && currentMonth + 1 === m) ? monthlyGoal : 0,
-        achieved: achievedCount
+        goal,
+        achieved: achievedCount,
       });
     }
-    tempData.reverse();
     setBarChartData(tempData);
-  }, [finishedPosts, monthlyGoal, currentYear, currentMonth]);
+  }, [finishedPosts, monthlyGoalVersion]);
+  
+  
+  
+  
 
   // ──────────────────────────────────────────────
   // (G) 로컬에서 장르별 독서 비율 계산
@@ -210,7 +228,7 @@ const ProgressPage: React.FC = () => {
   const handleYearlyGoalSubmit = () => {
     const newGoal = parseInt(tempGoalValue, 10) || 0;
     setYearlyGoal(newGoal);
-    localStorage.setItem('yearlyGoal', String(newGoal)); // 로컬 스토리지 저장
+    localStorage.setItem(`yearlyGoal_${selectedYear}`, String(newGoal));
     setShowYearlyGoalModal(false);
     setTempGoalValue('');
   };
@@ -218,10 +236,11 @@ const ProgressPage: React.FC = () => {
   // 월간 목표 모달 'OK' 핸들러
   const handleMonthlyGoalSubmit = () => {
     const newGoal = parseInt(tempMonthlyGoalValue, 10) || 0;
+    localStorage.setItem(`monthlyGoal_${selectedYear}_${selectedMonth}`, String(newGoal));
     setMonthlyGoal(newGoal);
-    localStorage.setItem('monthlyGoal', String(newGoal)); // 로컬 스토리지 저장
     setShowMonthlyGoalModal(false);
     setTempMonthlyGoalValue('');
+    setMonthlyGoalVersion(prev => prev + 1); // 차트 리렌더링을 위한 버전 업데이트
   };
 
   return (
@@ -282,9 +301,20 @@ const ProgressPage: React.FC = () => {
             width: '100%',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '10px' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>올해 목표</h3>
-            <span style={{ fontSize: '16px', color: '#555', marginLeft: '8px' }}>Annual Goal</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{selectedYear}년 목표</h3>
+              <span style={{ fontSize: '13px', color: '#555' }}>Annual Goal</span>
+            </div>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              style={{ padding: '5px 10px' }}
+            >
+              {Array.from({ length: 11 }, (_, i) => currentYear + 5 - i).map((year) => (
+                <option key={year} value={year}>{year}년</option>
+              ))}
+            </select>
           </div>
           <hr style={{ border: '0.5px solid #ccc', marginBottom: '30px' }} />
           
@@ -336,9 +366,9 @@ const ProgressPage: React.FC = () => {
               </span>
               <div style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
                 {yearlyGoal === 0
-                  ? '목표를 설정하세요'
+                  ? <>목표를<br />설정하세요.</>
                   : yearlyAchieved === 0
-                  ? '아직 완독한 게 없어요.'
+                  ? <>아직 완독한<br />책이 없어요.</>
                   : yearlyAchieved < yearlyGoal
                   ? `목표 달성까지 ${100 - Math.round(yearlyRatio * 100)}% 남았어요.`
                   : '목표 달성!'}
@@ -401,9 +431,24 @@ const ProgressPage: React.FC = () => {
             width: '100%',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: '10px' }}>
-            <h3 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>이번달 목표</h3>
-            <span style={{ fontSize: '16px', color: '#555', marginLeft: '8px' }}>Monthly Goal</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                {selectedMonth.toString().padStart(2, '0')}월 목표
+              </h3>
+              <span style={{ fontSize: '13px', color: '#555' }}>Monthly Goal</span>
+            </div>
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              style={{ padding: '5px 10px' }}
+            >
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                <option key={month} value={month}>
+                  {month.toString().padStart(2, '0')}월
+                </option>
+              ))}
+            </select>
           </div>
           <hr style={{ border: '0.5px solid #ccc', marginBottom: '30px' }} />
 
@@ -451,9 +496,9 @@ const ProgressPage: React.FC = () => {
               </span>
               <div style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
                 {monthlyGoal === 0
-                  ? '목표를 설정하세요'
+                  ? <>목표를<br />설정하세요.</>
                   : monthlyAchieved === 0
-                  ? '아직 완독한 게 없어요.'
+                  ? <>아직 완독한<br />책이 없어요.</>
                   : monthlyAchieved < monthlyGoal
                   ? `목표 달성까지 ${100 - Math.round(monthlyRatio * 100)}% 남았어요.`
                   : '목표 달성!'}

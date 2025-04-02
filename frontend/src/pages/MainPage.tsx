@@ -34,7 +34,7 @@ const MainPage: React.FC = () => {
         minHeight: '100vh',
         backgroundImage: 'url(/Main.png)',
         backgroundPosition: 'center',
-        backgroundSize: 'contain',
+        backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
         position: 'relative',
       }}

@@ -26,6 +26,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
 
+  // Forgot Password / Reset Password 모달 관련 상태 추가
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmailError, setForgotEmailError] = useState('');
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordValidationMessage, setNewPasswordValidationMessage] = useState('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+  const [newPasswordValidationColor, setNewPasswordValidationColor] = useState('red');
+
+
 
 
   // ▼ 로그인 API 요청 핸들러 추가
@@ -53,7 +63,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
         onLoginSuccess(result.firstName || '', result.lastName || '');
       }
       onClose();
-      navigate('/home');
+      navigate('/');
     } catch (error) {
       console.error('Login Error:', error);
       setLoginErrorMessage("이메일이나 암호를 다시 한번 확인해주세요.");
@@ -119,27 +129,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       console.error('SignUp Error:', error);
     }
   };
-
-  const handleForgotPassword = async () => {
-    const email = prompt("비밀번호를 찾으실 이메일을 입력해주세요:");
-    if (!email) return;
-    try {
-      const response = await fetch('http://localhost:8083/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (response.ok) {
-        alert("비밀번호 재설정 이메일을 발송했습니다.");
-      } else {
-        alert("이메일 전송에 실패했습니다.");
-      }
-    } catch (error) {
-      console.error("Forgot Password Error:", error);
-      alert("이메일 전송에 실패했습니다.");
-    }
-  };
-  
 
   return (
     <div
@@ -469,7 +458,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                     cursor: 'pointer',
                     fontSize: '14px',
                   }}
-                  onClick={handleForgotPassword}
+                  onClick={() => setShowForgotPasswordModal(true)}
                 >
                   비밀번호 찾기
                 </span>
@@ -494,6 +483,169 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
           )}
 
         </div>
+
+
+        {/* 비밀번호 찾기 모달 */}
+        {showForgotPasswordModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}>
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              padding: '40px',
+              width: '400px',
+              position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '1px',
+                right: '10px',
+                cursor: 'pointer',
+                fontSize: '24px',
+              }} onClick={() => setShowForgotPasswordModal(false)}>
+                &times;
+              </div>
+              <h2 style={{ textAlign: 'center', marginBottom: '25px', fontSize: '20px', fontWeight: 'bold' }}>비밀번호 찾기</h2>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '4px' }}>Email address</label>
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  placeholder='이메일을 입력해주세요.'
+                  onChange={(e) => { setForgotEmail(e.target.value); setForgotEmailError(''); }}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                />
+                {forgotEmailError && (
+                  <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{forgotEmailError}</div>
+                )}
+              </div>
+              <button
+                style={{
+                  width: '100%',
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                }}
+                onClick={async () => {
+                  try {
+                    const response = await fetch('http://localhost:8083/api/auth/forgot-password', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email: forgotEmail }),
+                    });
+                    if (response.ok) {
+                      setShowForgotPasswordModal(false);
+                      setShowResetPasswordModal(true);
+                    } else {
+                      const errorText = await response.text();
+                      if (errorText === "존재하지 않는 이메일입니다.") {
+                        setForgotEmailError("이메일이 존재하지 않습니다");
+                      } else {
+                        setForgotEmailError("오류가 발생했습니다");
+                      }
+                    }
+                  } catch (error) {
+                    console.error("Forgot Password Error:", error);
+                    setForgotEmailError("오류가 발생했습니다");
+                  }
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 비밀번호 수정 모달 */}
+        {showResetPasswordModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          }}>
+            <div style={{
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              padding: '40px',
+              width: '400px',
+              position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '1px',
+                right: '10px',
+                cursor: 'pointer',
+                fontSize: '24px',
+              }} onClick={() => setShowResetPasswordModal(false)}>
+                &times;
+              </div>
+              <h2 style={{ textAlign: 'center', marginBottom: '25px', fontSize: '20px', fontWeight: 'bold' }}>비밀번호 재설정</h2>
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '4px' }}>새 비밀번호</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewPassword(value);
+                    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
+                    if (passwordRegex.test(value)) {
+                      setNewPasswordValidationMessage('사용 가능한 비밀번호입니다.');
+                      setNewPasswordValidationColor('blue');
+                    } else {
+                      setNewPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+                      setNewPasswordValidationColor('red');
+                    }
+                  }}
+                  style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                />
+                <div style={{ color: newPasswordValidationColor, fontSize: '12px', marginTop: '4px' }}>
+                  {newPasswordValidationMessage}
+                </div>
+              </div>
+              <button
+                style={{
+                  width: '100%',
+                  backgroundColor: '#000',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '12px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  // 비밀번호 재설정 API 호출 등 추가 로직 필요 시 여기에 구현
+                  alert("비밀번호가 재설정되었습니다.");
+                  setShowResetPasswordModal(false);
+                }}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        )}
+
+
 
         {/* 회원가입 성공 모달 */}
         {signUpSuccess && (

@@ -8,9 +8,15 @@ import PostDetailPage from './pages/PostDetailPage';
 import Header from './components/Header';
 import ProgressPage from './pages/ProgressPage';
 import SettingsPage from './pages/SettingsPage';
+import { useEffect } from 'react';
+
 
 //라우팅 담당 파일
 const App: React.FC = () => {
+  useEffect(() => {
+    localStorage.clear();
+  }, []);
+
   return (
     <>
       <Header />

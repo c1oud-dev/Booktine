@@ -28,7 +28,6 @@ interface RecommendedBook {
 }
 
 const HomePage: React.FC = () => {
-  const username = localStorage.getItem('username');
 
   // (1) 연간 목표/달성 수 상태
   const [yearlyGoal, setYearlyGoal] = useState(0);
@@ -63,6 +62,28 @@ const HomePage: React.FC = () => {
   const angle = ratio * 360;
 
   const [homeYearlyChartData, setHomeYearlyChartData] = useState<{ month: string; count: number }[]>([]);
+
+  const [recommendationStep, setRecommendationStep] = useState<'select' | 'result'>('select');
+
+
+  const getCheerMessage = (ratio: number): string => {
+    const percent = Math.round(ratio * 100);
+    if (percent === 0) {
+      return "아직 시작하지 않았어요. 도전해보세요!";
+    } else if (percent > 0 && percent <= 20) {
+      return "시작이 반입니다! 조금만 더 힘내보세요! 🔥";
+    } else if (percent > 20 && percent <= 50) {
+      return "좋은 출발이에요! 꾸준히 하면 목표 달성이 눈앞에 있어요! 😊";
+    } else if (percent > 50 && percent <= 80) {
+      return "훌륭해요! 지금도 목표에 한 걸음 더 다가섰어요! 👍";
+    } else if (percent > 80 && percent < 100) {
+      return "거의 다 왔어요! 마지막 힘을 내서 꼭 달성하세요! 💪";
+    } else if (percent >= 100) {
+      return "목표 달성을 축하합니다! 이제 새로운 도전을 시작해보세요! 🎉";
+    }
+    return "";
+  };
+  
 
   useEffect(() => {
     const storedGoal = localStorage.getItem('yearlyGoal');
@@ -166,23 +187,32 @@ const HomePage: React.FC = () => {
       return;
     }
   
-    // 예: 백엔드 /recommend?genre=... API 호출
-    fetch(`http://localhost:8083/recommend?genre=${selectedGenre}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch recommendation');
-        return res.json();
-      })
-      .then((data: RecommendedBook) => {
-        // 서버가 내려준 책 정보
-        setRecommendedBook(data);
-        setShowRecommendModal(false);
-        setSelectedGenre('');
-      })
-      .catch((err) => {
-        console.error(err);
-        alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
-      });
+    const today = new Date().toISOString().split('T')[0];
+    const storedDate = localStorage.getItem('dailyRecommendationDate');
+    const storedBook = localStorage.getItem('dailyRecommendation');
+  
+    if (storedDate === today && storedBook) {
+      setRecommendedBook(JSON.parse(storedBook));
+      setRecommendationStep('result');
+    } else {
+      fetch(`http://localhost:8083/recommend?genre=${selectedGenre}`)
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to fetch recommendation');
+          return res.json();
+        })
+        .then((data: RecommendedBook) => {
+          setRecommendedBook(data);
+          setRecommendationStep('result');
+          localStorage.setItem('dailyRecommendationDate', today);
+          localStorage.setItem('dailyRecommendation', JSON.stringify(data));
+        })
+        .catch((err) => {
+          console.error(err);
+          alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
+        });
+    }
   }
+  
 
   //통계 Card의 장르별 독서 비율
   const computedGenreData = useMemo(() => {
@@ -206,12 +236,25 @@ const HomePage: React.FC = () => {
     // 전체 페이지 래퍼
     <div
       style={{
+        position: 'relative',
         minWidth: '1300px',
-        background: "url('/Home.jpg') center center / cover no-repeat",
+        backgroundColor: 'rgba(255,255,255,0)',
         margin: 0,
-        paddingTop: '10px', // 헤더 높이 등을 고려하여 적절히 조정
+        paddingTop: '10px',
       }}
     >
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: "url('/Home1.png') center center / cover no-repeat",
+          opacity: 0.6,
+          zIndex: -1,
+        }}
+      />
       {/* 가운데 정렬 및 콘텐츠 영역 래퍼 */}
       <div style={{ 
         maxWidth: '1200px',
@@ -523,8 +566,7 @@ const HomePage: React.FC = () => {
 
                     {/* 응원 문구 */}
                     <p style={{ fontWeight: 'bold', fontSize: '14px', margin: 0 }}>
-                      "지금 페이스를 유지하면 목표 달성이 가능해요!{' '}
-                      <span role="img" aria-label="muscle">💪</span>"
+                      "{getCheerMessage(ratio)}"
                     </p>
                   </div>
                 )}
@@ -812,7 +854,7 @@ const HomePage: React.FC = () => {
               {/* 왼쪽: 책 정보 */}
               <div style={{ flex: 1, marginRight: '20px' }}>
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
-                  {recommendedBook?.title || '클린 코드'}
+                  {recommendedBook?.title}
                 </h4>
                 <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#555' }}>
                   {recommendedBook?.author || '저자'}
@@ -958,7 +1000,6 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
-      {/* 추천 도서 Modal */}
       {showRecommendModal && (
         <div
           style={{
@@ -993,95 +1034,176 @@ const HomePage: React.FC = () => {
                 cursor: 'pointer',
                 fontSize: '20px',
               }}
-              onClick={() => setShowRecommendModal(false)}
+              onClick={() => {
+                setShowRecommendModal(false);
+                setRecommendationStep('select');
+                setSelectedGenre('');
+              }}
             >
               &times;
             </div>
 
-            <h3 style={{ margin: '10px 0 20px 0' }}>책 추천</h3>
-            
-            {/* 책 표지 (장르 선택 전이므로 기본 이미지를 표시하거나, 원하는 이미지 URL로 대체) */}
-            <div
-              style={{
-                width: '120px',
-                height: '160px',
-                margin: '0 auto 10px auto',
-                backgroundColor: '#ccc',
-                borderRadius: '8px',
-              }}
-            >
-              {/* 여기에 default 이미지나 아이콘을 넣어도 됨 */}
-              {/* <img src="/some-default-image.png" alt="default" style={{width: '100%', height: '100%'}}/> */}
-            </div>
-
-            <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
-              장르를 선택하세요.
-            </p>
-            <p style={{ fontSize: '12px', color: '#666', marginBottom: '10px' }}>
-              장르를 선택하면 그에 맞는 책을 추천드립니다.
-            </p>
-
-            {/* 장르 선택 셀렉트 */}
-            <select
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginBottom: '20px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-              }}
-            >
-              <option value="">장르를 선택하세요.</option>
-              <option value="소설">소설</option>
-              <option value="자기계발">자기계발</option>
-              <option value="에세이">에세이</option>
-              <option value="컴퓨터/IT">컴퓨터/IT</option>
-              <option value="인문">인문</option>
-              <option value="역사">역사</option>
-              {/* etc... */}
-            </select>
-
-            {/* 하단 버튼들 */}
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <button
-                onClick={() => {
-                  setShowRecommendModal(false);
-                  setSelectedGenre('');
-                }}
-                style={{
-                  backgroundColor: '#fff',
-                  color: '#333',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  flex: 1,
-                  marginRight: '5px',
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRecommendOk}
-                style={{
-                  backgroundColor: '#333',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  flex: 1,
-                  marginLeft: '5px',
-                }}
-              >
-                OK
-              </button>
-            </div>
+            {recommendationStep === 'select' ? (
+              <>
+                <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>책 추천</h3>
+                <select
+                  value={selectedGenre}
+                  onChange={(e) => setSelectedGenre(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    marginBottom: '20px',
+                    borderRadius: '4px',
+                    border: '1px solid #ccc',
+                  }}
+                >
+                  <option value="">장르를 선택하세요.</option>
+                  <option value="소설">소설</option>
+                  <option value="자기계발">자기계발</option>
+                  <option value="에세이">에세이</option>
+                  <option value="컴퓨터/IT">컴퓨터/IT</option>
+                  <option value="인문">인문</option>
+                  <option value="역사">역사</option>
+                </select>
+                <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
+                  장르를 선택하세요.
+                </p>
+                <p style={{ fontSize: '12px', color: '#666', marginBottom: '20px' }}>
+                  장르를 선택하면 그에 맞는 책을 추천드립니다.
+                </p>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <button
+                    onClick={() => {
+                      setShowRecommendModal(false);
+                      setSelectedGenre('');
+                    }}
+                    style={{
+                      backgroundColor: '#fff',
+                      color: '#333',
+                      border: '1px solid #ccc',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      flex: 1,
+                      marginRight: '5px',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleRecommendOk}
+                    style={{
+                      backgroundColor: '#333',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      flex: 1,
+                      marginLeft: '5px',
+                    }}
+                  >
+                    OK
+                  </button>
+                </div>
+              </>
+            ) : (
+              // 추천 결과 화면
+              <>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>책 추천</h3>
+                  {/* 책 표지 */}
+                  <div
+                    style={{
+                      width: '120px',
+                      height: '160px',
+                      backgroundColor: '#ccc',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    {recommendedBook?.coverUrl ? (
+                      <img
+                        src={recommendedBook.coverUrl}
+                        alt="Book Cover"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : null}
+                  </div>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
+                    {recommendedBook?.title || '추천할 책이 없습니다.'}
+                  </h4>
+                  <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#555' }}>
+                    {recommendedBook?.author || ''}
+                  </p>
+                  <p
+                    style={{
+                      margin: '0 0 20px 0',
+                      fontSize: '14px',
+                      lineHeight: '1.4',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {recommendedBook?.summary || ''}
+                  </p>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <button
+                    onClick={() => {
+                      // Retry: 돌아가서 다시 장르 선택
+                      setRecommendationStep('select');
+                      setSelectedGenre('');
+                      setRecommendedBook(null);
+                    }}
+                    style={{
+                      backgroundColor: '#fff',
+                      color: '#333',
+                      border: '1px solid #ccc',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      flex: 1,
+                      marginRight: '5px',
+                    }}
+                  >
+                    Retry
+                  </button>
+                  <button
+                    onClick={() => {
+                      // OK: Modal 닫기
+                      setShowRecommendModal(false);
+                      setRecommendationStep('select');
+                      setSelectedGenre('');
+                    }}
+                    style={{
+                      backgroundColor: '#333',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '8px 16px',
+                      cursor: 'pointer',
+                      flex: 1,
+                      marginLeft: '5px',
+                    }}
+                  >
+                    OK
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
+
 
 
 
