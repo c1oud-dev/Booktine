@@ -64,6 +64,8 @@ const ProgressPage: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(currentMonth + 1);
   const [monthlyGoalVersion, setMonthlyGoalVersion] = useState(0);
 
+  const [selectedGoalYear, setSelectedGoalYear] = useState(currentYear);
+
   const colorPalette = [
     '#FF6384', // 빨강
     '#36A2EB', // 파랑
@@ -90,8 +92,8 @@ const ProgressPage: React.FC = () => {
   // (B) /progress API 호출 → 통계 데이터 저장 (setProgressData 사용)
   // ──────────────────────────────────────────────
   useEffect(() => {
-    console.log("Fetching progress data for year:", selectedYear);
-    fetch(`http://localhost:8083/progress?year=${selectedYear}`)
+    console.log("Fetching progress data for current year:", currentYear);
+    fetch(`http://localhost:8083/progress?year=${currentYear}`)
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();
@@ -100,7 +102,7 @@ const ProgressPage: React.FC = () => {
         setProgressData(data);
       })
       .catch(console.error);
-  }, [selectedYear]);
+  }, [currentYear]);
 
   // '완독' 게시글 필터링
   const finishedPosts = useMemo(() => 
@@ -109,15 +111,15 @@ const ProgressPage: React.FC = () => {
   );
 
   
-  // 년도별 목표 불러오기
+  // 년도별 목표 불러오기 (목표 카드용)
   useEffect(() => {
-    const storedYearlyGoal = localStorage.getItem(`yearlyGoal_${selectedYear}`);
+    const storedYearlyGoal = localStorage.getItem(`yearlyGoal_${selectedGoalYear}`);
     if (storedYearlyGoal) {
       setYearlyGoal(Number(storedYearlyGoal));
     } else {
       setYearlyGoal(0);
     }
-  }, [selectedYear]);
+  }, [selectedGoalYear]);
 
   // 월별 목표 불러오기 (선택된 년도와 월 기준)
   useEffect(() => {
@@ -224,11 +226,11 @@ const ProgressPage: React.FC = () => {
     setGenreData(tempData);
   }, [posts]);
 
-  // 연간 목표 모달 'OK' 핸들러
+  // 연간 목표 설정 시 저장하는 핸들러
   const handleYearlyGoalSubmit = () => {
     const newGoal = parseInt(tempGoalValue, 10) || 0;
     setYearlyGoal(newGoal);
-    localStorage.setItem(`yearlyGoal_${selectedYear}`, String(newGoal));
+    localStorage.setItem(`yearlyGoal_${selectedGoalYear}`, String(newGoal));
     setShowYearlyGoalModal(false);
     setTempGoalValue('');
   };
@@ -303,12 +305,12 @@ const ProgressPage: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{selectedYear}년 목표</h3>
+              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{selectedGoalYear}년 목표</h3>
               <span style={{ fontSize: '13px', color: '#555' }}>Annual Goal</span>
             </div>
             <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              value={selectedGoalYear}
+              onChange={(e) => setSelectedGoalYear(Number(e.target.value))}
               style={{ padding: '5px 10px' }}
             >
               {Array.from({ length: 11 }, (_, i) => currentYear + 5 - i).map((year) => (
