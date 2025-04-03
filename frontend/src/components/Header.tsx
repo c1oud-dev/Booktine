@@ -287,7 +287,7 @@ const Header: React.FC = () => {
             const fullName = `${firstName}${lastName}`;
             setIsLoggedIn(true);
             setUsername(fullName);
-            localStorage.setItem('username', fullName);
+            sessionStorage.setItem('username', fullName);
           }}
         />
       )}

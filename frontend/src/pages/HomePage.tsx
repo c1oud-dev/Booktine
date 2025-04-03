@@ -51,6 +51,8 @@ const HomePage: React.FC = () => {
 
   // 추천 도서 관련 state
   const [recommendedBook, setRecommendedBook] = useState<RecommendedBook | null>(null);
+  const [defaultRecommendedBook, setDefaultRecommendedBook] = useState<RecommendedBook | null>(null);
+  const [modalRecommendedBook, setModalRecommendedBook] = useState<RecommendedBook | null>(null);
 
   // 추천 모달 열림/닫힘
   const [showRecommendModal, setShowRecommendModal] = useState(false);
@@ -187,31 +189,44 @@ const HomePage: React.FC = () => {
       return;
     }
   
+    fetch(`http://localhost:8083/recommend?genre=${selectedGenre}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch recommendation');
+        return res.json();
+      })
+      .then((data: RecommendedBook) => {
+        setModalRecommendedBook(data);
+        setRecommendationStep('result');
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
+      });
+  }
+
+  /* 기본 추천 도서 불러오기 */
+  useEffect(() => { 
     const today = new Date().toISOString().split('T')[0];
-    const storedDate = localStorage.getItem('dailyRecommendationDate');
-    const storedBook = localStorage.getItem('dailyRecommendation');
-  
+    const storedDate = localStorage.getItem('defaultDailyRecommendationDate');
+    const storedBook = localStorage.getItem('defaultDailyRecommendation');
+    
     if (storedDate === today && storedBook) {
-      setRecommendedBook(JSON.parse(storedBook));
-      setRecommendationStep('result');
+      setDefaultRecommendedBook(JSON.parse(storedBook));
     } else {
-      fetch(`http://localhost:8083/recommend?genre=${selectedGenre}`)
+      fetch('http://localhost:8083/recommend')
         .then((res) => {
-          if (!res.ok) throw new Error('Failed to fetch recommendation');
+          if (!res.ok) throw new Error('Failed to fetch default recommendation');
           return res.json();
         })
         .then((data: RecommendedBook) => {
-          setRecommendedBook(data);
-          setRecommendationStep('result');
-          localStorage.setItem('dailyRecommendationDate', today);
-          localStorage.setItem('dailyRecommendation', JSON.stringify(data));
+          setDefaultRecommendedBook(data);
+          localStorage.setItem('defaultDailyRecommendationDate', today);
+          localStorage.setItem('defaultDailyRecommendation', JSON.stringify(data));
         })
-        .catch((err) => {
-          console.error(err);
-          alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
-        });
+        .catch((err) => console.error(err));
     }
-  }
+  }, []);
+
   
 
   //통계 Card의 장르별 독서 비율
@@ -853,14 +868,14 @@ const HomePage: React.FC = () => {
             >
               {/* 왼쪽: 책 정보 */}
               <div style={{ flex: 1, marginRight: '20px' }}>
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
-                  {recommendedBook?.title}
+                <h4 style={{ margin: '0 0 15px 0', fontSize: '18px', fontWeight: 'bold' }}>
+                  {defaultRecommendedBook?.title || '책 제목'}
                 </h4>
-                <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#555' }}>
-                  {recommendedBook?.author || '저자'}
+                <p style={{ margin: '0 0 15px 0', fontSize: '12px', color: '#555' }}>
+                  {defaultRecommendedBook?.author || '저자'}
                 </p>
-                <p style={{ margin: '0 0 20px 0', fontSize: '14px', lineHeight: '1.4' }}>
-                  {recommendedBook?.summary || 'Please add your content here. Keep it short and simple. And smile :)'}
+                <p style={{ margin: '0 0 15px 0', fontSize: '12px', lineHeight: '1.5', }}>
+                  {defaultRecommendedBook?.summary || '책의 간단한 정보가 표시됩니다.'}
                 </p>
                 <button
                   onClick={() => setShowRecommendModal(true)}
@@ -869,7 +884,7 @@ const HomePage: React.FC = () => {
                     color: '#fff',
                     border: 'none',
                     borderRadius: '20px',
-                    padding: '8px 20px',
+                    padding: '5px 20px',
                     cursor: 'pointer',
                     fontSize: '14px',
                   }}
@@ -880,15 +895,15 @@ const HomePage: React.FC = () => {
 
               {/* 오른쪽: 책 표지 */}
               <div style={{
-                width: '120px',
-                height: '160px',
+                width: '150px',
+                height: '250px',
                 backgroundColor: '#ccc', // 표지 없을 때 회색
                 borderRadius: '8px',
                 overflow: 'hidden',
               }}>
-                {recommendedBook?.coverUrl ? (
+                {defaultRecommendedBook?.coverUrl ? (
                   <img
-                    src={recommendedBook.coverUrl}
+                    src={defaultRecommendedBook.coverUrl}
                     alt="Book Cover"
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
@@ -1045,7 +1060,9 @@ const HomePage: React.FC = () => {
 
             {recommendationStep === 'select' ? (
               <>
-                <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>책 추천</h3>
+                <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>
+                  책 추천
+                </h3>
                 <select
                   value={selectedGenre}
                   onChange={(e) => setSelectedGenre(e.target.value)}
@@ -1071,7 +1088,6 @@ const HomePage: React.FC = () => {
                 <p style={{ fontSize: '12px', color: '#666', marginBottom: '20px' }}>
                   장르를 선택하면 그에 맞는 책을 추천드립니다.
                 </p>
-                
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <button
                     onClick={() => {
@@ -1109,7 +1125,6 @@ const HomePage: React.FC = () => {
                 </div>
               </>
             ) : (
-              // 추천 결과 화면
               <>
                 <div
                   style={{
@@ -1119,8 +1134,9 @@ const HomePage: React.FC = () => {
                     marginBottom: '20px',
                   }}
                 >
-                  <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>책 추천</h3>
-                  {/* 책 표지 */}
+                  <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>
+                    책 추천
+                  </h3>
                   <div
                     style={{
                       width: '120px',
@@ -1131,19 +1147,19 @@ const HomePage: React.FC = () => {
                       marginBottom: '20px',
                     }}
                   >
-                    {recommendedBook?.coverUrl ? (
+                    {modalRecommendedBook?.coverUrl ? (
                       <img
-                        src={recommendedBook.coverUrl}
+                        src={modalRecommendedBook.coverUrl}
                         alt="Book Cover"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     ) : null}
                   </div>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
-                    {recommendedBook?.title || '추천할 책이 없습니다.'}
+                    {modalRecommendedBook?.title || '추천할 책이 없습니다.'}
                   </h4>
                   <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#555' }}>
-                    {recommendedBook?.author || ''}
+                    {modalRecommendedBook?.author || ''}
                   </p>
                   <p
                     style={{
@@ -1153,16 +1169,15 @@ const HomePage: React.FC = () => {
                       textAlign: 'center',
                     }}
                   >
-                    {recommendedBook?.summary || ''}
+                    {modalRecommendedBook?.summary || ''}
                   </p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <button
                     onClick={() => {
-                      // Retry: 돌아가서 다시 장르 선택
                       setRecommendationStep('select');
                       setSelectedGenre('');
-                      setRecommendedBook(null);
+                      setModalRecommendedBook(null);
                     }}
                     style={{
                       backgroundColor: '#fff',
@@ -1179,7 +1194,6 @@ const HomePage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      // OK: Modal 닫기
                       setShowRecommendModal(false);
                       setRecommendationStep('select');
                       setSelectedGenre('');
@@ -1200,6 +1214,7 @@ const HomePage: React.FC = () => {
                 </div>
               </>
             )}
+
           </div>
         </div>
       )}

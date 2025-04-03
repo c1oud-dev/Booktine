@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AuthModal from '../components/AuthModal'; // 실제 AuthModal 위치에 맞춰 경로 수정
+import AuthModal from '../components/AuthModal';
 
 const MainPage: React.FC = () => {
-  // (1) 로그인 여부 판단
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
-  // (2) 모달 열림 여부, SignUp/LogIn 구분을 위한 state
   const [showModal, setShowModal] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
-   // (3) 모달 열고/닫는 함수
-   const handleOpenModal = (signUp: boolean) => {
+  const handleOpenModal = (signUp: boolean) => {
     setIsSignUp(signUp);
     setShowModal(true);
   };
@@ -20,8 +17,9 @@ const MainPage: React.FC = () => {
     setShowModal(false);
   };
 
+  // sessionStorage에서 로그인 정보 확인
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
+    const storedUsername = sessionStorage.getItem('username');
     if (storedUsername) {
       setIsLoggedIn(true);
     }
@@ -39,7 +37,7 @@ const MainPage: React.FC = () => {
         position: 'relative',
       }}
     >
-      {/* 왼쪽 상단에 문구/버튼 */}
+      {/* 왼쪽 상단 문구 및 버튼 영역 */}
       <div
         style={{
           position: 'absolute',
@@ -58,9 +56,8 @@ const MainPage: React.FC = () => {
           독서 노트 & 메모 서비스
         </p>
 
-        {/* (3) 조건부 버튼 렌더링 */}
+        {/* 조건부 버튼 렌더링: 로그인 전이면 Log In, 로그인 후면 독서 노트 작성하러 가기 */}
         {!isLoggedIn ? (
-          // 로그인 전
           <button
             style={{
               backgroundColor: '#333',
@@ -71,12 +68,11 @@ const MainPage: React.FC = () => {
               cursor: 'pointer',
               fontSize: '16px',
             }}
-            onClick={() => handleOpenModal(false)} // 로그인 모달 오픈
+            onClick={() => handleOpenModal(false)}
           >
             Log In
           </button>
         ) : (
-          // 로그인 후
           <button
             style={{
               backgroundColor: '#333',
@@ -87,24 +83,30 @@ const MainPage: React.FC = () => {
               cursor: 'pointer',
               fontSize: '16px',
             }}
-            onClick={() => navigate('/booknote')} // Book Note 페이지로 이동
+            onClick={() => navigate('/booknote')}
           >
             독서 노트 작성하러 가기
           </button>
         )}
       </div>
 
-      {/* (5) 모달 표시 */}
+      {/* 로그인/회원가입 모달 */}
       {showModal && (
         <AuthModal
           isSignUp={isSignUp}
           onClose={handleCloseModal}
+          onLoginSuccess={(firstName, lastName) => {
+            const fullName = `${firstName}${lastName}`;
+            // 로그인 정보는 sessionStorage에 저장합니다.
+            sessionStorage.setItem('username', fullName);
+            // 로그인 성공 후 페이지를 새로고침하면 useEffect에서 sessionStorage를 읽어
+            // isLoggedIn이 true로 설정되어 버튼이 올바르게 바뀝니다.
+            window.location.reload();
+          }}
         />
       )}
-
     </div>
   );
 };
 
 export default MainPage;
-

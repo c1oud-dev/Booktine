@@ -55,15 +55,16 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       }
       const result = await response.json();
   
-      localStorage.setItem('email', result.email);
+      // localStorage 대신 sessionStorage 사용
+      sessionStorage.setItem('email', result.email);
       const fullName = `${result.firstName}${result.lastName}`;
-      localStorage.setItem('username', fullName);
+      sessionStorage.setItem('username', fullName);
   
       if (onLoginSuccess) {
         onLoginSuccess(result.firstName || '', result.lastName || '');
       }
       onClose();
-      navigate('/');
+      navigate('/home');
     } catch (error) {
       console.error('Login Error:', error);
       setLoginErrorMessage("이메일이나 암호를 다시 한번 확인해주세요.");
