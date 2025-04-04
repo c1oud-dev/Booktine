@@ -164,7 +164,7 @@ const SettingsPage: React.FC = () => {
         setAboutMe(data.aboutMe || '');
         setDisplayAboutMe(data.aboutMe || '');
         setProfileImage(data.avatarUrl || '/default_avatar.png');
-        setPostCount(data.postsCount || 0);
+        setPostCount(data.postCount || 0);
         setCompletedCount(data.completedCount || 0);
       })
       .catch((err) => console.error('Error fetching user settings:', err));

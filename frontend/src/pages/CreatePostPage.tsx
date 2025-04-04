@@ -40,9 +40,11 @@ const CreatePostPage: React.FC = () => {
 
   const [hasShownCongrats, setHasShownCongrats] = useState(false);
 
+  const [customGenre, setCustomGenre] = useState('');
 
-  
   const textAreaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
+
+  const [isDirectGenre, setIsDirectGenre] = useState(false);
 
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -486,32 +488,64 @@ const CreatePostPage: React.FC = () => {
               </div>
               {/* 장르 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <select
-                  value={genre}
-                  ref={genreRef}
-                  onChange={(e) => {
-                    setGenre(e.target.value);
-                    setGenreError(false);
-                  }}
-                  style={{  
-                    flex: 1,
-                    padding: '8px',
-                    border: genreError ? '2px solid red' : '1px solid #ccc',
-                  }}
-                >
-                  <option value="">장르 선택</option>
-                  <option value="총류">총류</option>
-                  <option value="철학">철학</option>
-                  <option value="종교">종교</option>
-                  <option value="사회과학">사회과학</option>
-                  <option value="자연과학">자연과학</option>
-                  <option value="기술과학">기술과학</option>
-                  <option value="예술">예술</option>
-                  <option value="언어">언어</option>
-                  <option value="문학">문학</option>
-                  <option value="역사">역사</option>
-                </select>
+                {isDirectGenre ? (
+                  <input
+                    type="text"
+                    value={customGenre}
+                    onChange={(e) => {
+                      setCustomGenre(e.target.value);
+                      setGenre(e.target.value);
+                      setGenreError(false);
+                    }}
+                    placeholder="직접 입력"
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: genreError ? '2px solid red' : '1px solid #ccc',
+                    }}
+                  />
+                ) : (
+                  <select
+                    value={genre}
+                    ref={genreRef}
+                    onChange={(e) => {
+                      if (e.target.value === '직접 입력') {
+                        setIsDirectGenre(true);
+                        setCustomGenre("");
+                        setGenre("");
+                        setGenreError(false);
+                      } else {
+                        setGenre(e.target.value);
+                        setGenreError(false);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: genreError ? '2px solid red' : '1px solid #ccc',
+                    }}
+                  >
+                    <option value="">장르 선택</option>
+                    <option value="총류">총류</option>
+                    <option value="철학">철학</option>
+                    <option value="종교">종교</option>
+                    <option value="사회과학">사회과학</option>
+                    <option value="자연과학">자연과학</option>
+                    <option value="기술/공학">기술/공학</option>
+                    <option value="인문">인문</option>
+                    <option value="에세이">에세이</option>
+                    <option value="소설">소설</option>
+                    <option value="예술">예술</option>
+                    <option value="언어">언어</option>
+                    <option value="문학">문학</option>
+                    <option value="역사">역사</option>
+                    <option value="자기계발">자기계발</option>
+                    <option value="경제/경영">경제/경영</option>
+                    <option value="직접 입력">직접 입력</option>
+                  </select>
+                )}
               </div>
+
               {/* 출판사 */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <input

@@ -17,9 +17,8 @@ const MainPage: React.FC = () => {
     setShowModal(false);
   };
 
-  // sessionStorage에서 로그인 정보 확인
   useEffect(() => {
-    const storedUsername = sessionStorage.getItem('username');
+    const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setIsLoggedIn(true);
     }
@@ -97,10 +96,7 @@ const MainPage: React.FC = () => {
           onClose={handleCloseModal}
           onLoginSuccess={(firstName, lastName) => {
             const fullName = `${firstName}${lastName}`;
-            // 로그인 정보는 sessionStorage에 저장합니다.
-            sessionStorage.setItem('username', fullName);
-            // 로그인 성공 후 페이지를 새로고침하면 useEffect에서 sessionStorage를 읽어
-            // isLoggedIn이 true로 설정되어 버튼이 올바르게 바뀝니다.
+            localStorage.setItem('username', fullName);
             window.location.reload();
           }}
         />

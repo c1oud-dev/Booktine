@@ -67,6 +67,7 @@ const HomePage: React.FC = () => {
 
   const [recommendationStep, setRecommendationStep] = useState<'select' | 'result'>('select');
 
+  
 
   const getCheerMessage = (ratio: number): string => {
     const percent = Math.round(ratio * 100);
@@ -1075,17 +1076,29 @@ const HomePage: React.FC = () => {
                   }}
                 >
                   <option value="">장르를 선택하세요.</option>
-                  <option value="소설">소설</option>
-                  <option value="자기계발">자기계발</option>
-                  <option value="에세이">에세이</option>
-                  <option value="컴퓨터/IT">컴퓨터/IT</option>
-                  <option value="인문">인문</option>
-                  <option value="역사">역사</option>
+                  {/* 전체도서, 국내도서, 외국도서는 별도 처리 */}
+                  <option value="0">전체도서</option>
+                  <option value="100">국내도서</option>
+                  <option value="200">외국도서</option>
+                  {/* 실제 CategoryId 값 사용 (PDF 참고 – 예시) */}
+                  <option value="1">소설/시/희곡</option>
+                  <option value="2">에세이</option>
+                  <option value="3">인문/사회</option>
+                  <option value="4">사회과학</option>
+                  <option value="5">자연과학</option>
+                  <option value="6">기술/공학</option>
+                  <option value="7">경제/경영</option>
+                  <option value="8">자기계발</option>
+                  <option value="9">인물</option>
+                  <option value="2551">만화</option>
+                  <option value="8983">어린이</option>
+                  <option value="8988">청소년</option>
+                  <option value="2554">예술/대중문화</option>
                 </select>
-                <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
+                <p style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>
                   장르를 선택하세요.
                 </p>
-                <p style={{ fontSize: '12px', color: '#666', marginBottom: '20px' }}>
+                <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
                   장르를 선택하면 그에 맞는 책을 추천드립니다.
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>

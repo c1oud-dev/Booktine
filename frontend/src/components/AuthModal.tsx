@@ -55,10 +55,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       }
       const result = await response.json();
   
-      // localStorage 대신 sessionStorage 사용
-      sessionStorage.setItem('email', result.email);
-      const fullName = `${result.firstName}${result.lastName}`;
-      sessionStorage.setItem('username', fullName);
+      localStorage.setItem('email', result.email);
+      localStorage.setItem('username', `${result.firstName}${result.lastName}`);
   
       if (onLoginSuccess) {
         onLoginSuccess(result.firstName || '', result.lastName || '');
