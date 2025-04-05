@@ -19,8 +19,10 @@ const MainPage: React.FC = () => {
 
   useEffect(() => {
     const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
+    if (storedUsername && storedUsername !== "undefined") {
       setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
     }
   }, []);
 

@@ -50,8 +50,8 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate(); // BookNote 페이지로 이동하기 위한 훅
 
   // 추천 도서 관련 state
-  const [recommendedBook, setRecommendedBook] = useState<RecommendedBook | null>(null);
-  const [defaultRecommendedBook, setDefaultRecommendedBook] = useState<RecommendedBook | null>(null);
+  const [recommendationStep, setRecommendationStep] = useState<'select' | 'result'>('select');
+  const [defaultRecommendedBook, setDefaultRecommendedBook] = useState<RecommendedBook | null>(null); 
   const [modalRecommendedBook, setModalRecommendedBook] = useState<RecommendedBook | null>(null);
 
   // 추천 모달 열림/닫힘
@@ -65,9 +65,6 @@ const HomePage: React.FC = () => {
 
   const [homeYearlyChartData, setHomeYearlyChartData] = useState<{ month: string; count: number }[]>([]);
 
-  const [recommendationStep, setRecommendationStep] = useState<'select' | 'result'>('select');
-
-  
 
   const getCheerMessage = (ratio: number): string => {
     const percent = Math.round(ratio * 100);
@@ -183,6 +180,21 @@ const HomePage: React.FC = () => {
     // localStorage.setItem('yearlyAchieved', '0');
   }
 
+  /* 기본 추천 도서 불러오기 */
+  useEffect(() => { 
+    fetch('http://localhost:8083/recommend') 
+    .then((res) => { 
+      if (!res.ok) 
+        throw new Error('Failed to fetch default recommendation'); 
+      return res.json(); 
+    }) 
+    .then((data: RecommendedBook) => {
+      setDefaultRecommendedBook(data); 
+    }) 
+    .catch((err) => console.error(err)); 
+  }, []);
+  
+
   /* 추천받기 로직 (OK 버튼 핸들러 */
   function handleRecommendOk() {
     if (!selectedGenre) {
@@ -204,30 +216,9 @@ const HomePage: React.FC = () => {
         alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
       });
   }
-
-  /* 기본 추천 도서 불러오기 */
-  useEffect(() => { 
-    const today = new Date().toISOString().split('T')[0];
-    const storedDate = localStorage.getItem('defaultDailyRecommendationDate');
-    const storedBook = localStorage.getItem('defaultDailyRecommendation');
-    
-    if (storedDate === today && storedBook) {
-      setDefaultRecommendedBook(JSON.parse(storedBook));
-    } else {
-      fetch('http://localhost:8083/recommend')
-        .then((res) => {
-          if (!res.ok) throw new Error('Failed to fetch default recommendation');
-          return res.json();
-        })
-        .then((data: RecommendedBook) => {
-          setDefaultRecommendedBook(data);
-          localStorage.setItem('defaultDailyRecommendationDate', today);
-          localStorage.setItem('defaultDailyRecommendation', JSON.stringify(data));
-        })
-        .catch((err) => console.error(err));
-    }
-  }, []);
-
+  
+  
+  
   
 
   //통계 Card의 장르별 독서 비율
@@ -595,329 +586,330 @@ const HomePage: React.FC = () => {
       </div>
 
 
-          {/* (2) 통계 제목 + 카드 컨테이너 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* 카드 위에 배치된 제목 */}
-            <h3 style={{ 
-              margin: 0,
-              fontWeight: 'bold', 
-              fontSize: '25px'
-            }}>
-              통계
-            </h3>
+      {/* (2) 통계 제목 + 카드 컨테이너 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* 카드 위에 배치된 제목 */}
+        <h3 style={{ 
+          margin: 0,
+          fontWeight: 'bold', 
+          fontSize: '25px'
+        }}>
+          통계
+        </h3>
 
-            {/* 바깥쪽(회색 반투명) */}
-            <div
-              style={{
-                backgroundColor: 'rgba(128,128,128,0.2)',
-                borderRadius: '10px',
-                padding: '20px',
-                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-              }}
-            >
-              {/* 안쪽(흰색) */}
-              <div
-                style={{
-                  backgroundColor: '#fff',
-                  borderRadius: '10px',
-                  width: '500px',
-                  height: '300px',
-                  margin: '0 auto',
-                  padding: '20px',
-                  position: 'relative',
-                }}
-              >
-                {/* 오른쪽 상단 점 3개 (탭 전환) */}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    display: 'flex',
-                    gap: '8px',
-                  }}
-                >
-                  <div
-                    onClick={() => setStatTabIndex(0)}
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: statTabIndex === 0 ? '#000' : '#ccc',
-                      cursor: 'pointer',
-                    }}
-                  />
-                  <div
-                    onClick={() => setStatTabIndex(1)}
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: statTabIndex === 1 ? '#000' : '#ccc',
-                      cursor: 'pointer',
-                    }}
-                  />
-                  <div
-                    onClick={() => setStatTabIndex(2)}
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      backgroundColor: statTabIndex === 2 ? '#000' : '#ccc',
-                      cursor: 'pointer',
-                    }}
-                  />
-                </div>
-
-                {/* 실제 통계 차트/그래프 표시 (ProgressPage와 연동) */}
-                {progressData ? (
-                  <>
-                    {/* 첫 번째 점: 연간 독서량 */}
-                    {statTabIndex === 0 && (
-                      <AnnualLineChart chartData={homeYearlyChartData} />
-                    )}
-
-                    {/* 두 번째 점: 월간 독서량 */}
-                    {statTabIndex === 1 && (() => {
-                      const currentMonth = new Date().getMonth() + 1;
-                      return (
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            overflow: 'hidden'
-                          }}
-                        >
-                          <MonthlyBarChart
-                            chartData={
-                              progressData.recent6Months.map(item => ({
-                                month: item.month,
-                                // item.month가 "현재월월"과 일치하면 monthlyGoal을, 아니면 0
-                                goal: item.month === `${currentMonth}월` ? monthlyGoal : 0,
-                                achieved: item.count
-                              }))
-                            }
-                            monthlyGoal={monthlyGoal}
-                          />
-                        </div>
-                      );
-                    })()}
-
-
-                    {/* 세 번째 점: 장르별 독서 비율 */}
-                    {statTabIndex === 2 && (
-                      <HomeGenreDoughnutChart
-                        genreData={computedGenreData}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <p>통계 데이터를 불러오는 중...</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-
-          {/* (3) 독서 기록 카드 + 카드 컨테이너 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* 카드 위에 배치된 제목 */}
-            <h3 style={{ 
-              margin: 0,
-              fontWeight: 'bold', 
-              fontSize: '25px'
-            }}>독서 기록</h3>
-
-            {/* 바깥쪽(회색 반투명) */}
-            <div
-              style={{
-                backgroundColor: 'rgba(128,128,128,0.2)',
-                borderRadius: '10px',
-                padding: '20px',
-                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-              }}
-            >
-              {/* 안쪽(흰색) */}
-              <div
-                style={{
-                  backgroundColor: '#fff',
-                  borderRadius: '10px',
-                  width: '500px',
-                  height: '300px',
-                  margin: '0 auto',
-                  padding: '20px',
-                }}
-              >
-                {currentReading.length === 0 && finishedReading.length === 0 ? (
-                  // 초기 사용자: 게시글이 하나도 없을 경우
-                  <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                    <p style={{ fontSize: '18px', color: '#555', marginBottom: '20px' }}>
-                      아직 독서 기록이 없습니다.
-                    </p>
-                    <button
-                      onClick={() => navigate('/booknote')}
-                      style={{
-                        backgroundColor: '#333',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: '20px',
-                        padding: '10px 24px',
-                        cursor: 'pointer',
-                        fontSize: '14px',
-                      }}
-                    >
-                      독서 노트 작성하러 가기
-                    </button>
-                  </div>
-                ) : (
-                  // 게시글이 있을 경우: 현재 읽는 책과 최근 완독한 책 각각 최대 2개씩 표시
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                    {/* 현재 읽고 있는 책 */}
-                    <div>
-                      <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
-                        현재 읽고 있는 책
-                      </h4>
-                      {currentReading.length === 0 ? (
-                        <p style={{ color: '#777' }}>현재 읽고 있는 책이 없습니다.</p>
-                      ) : (
-                        currentReading.map((post) => (
-                          <div
-                            key={post.id}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '10px 0',
-                              borderBottom: '1px solid #eee',
-                            }}
-                          >
-                            <span style={{ fontSize: '15px' }}>{post.title}</span>
-                            <span style={{ fontSize: '14px', color: '#555' }}>
-                              {post.startDate ? `시작일 | ${post.startDate}` : ''}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* 최근 완독한 책 */}
-                    <div>
-                      <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
-                        최근 완독한 책
-                      </h4>
-                      {finishedReading.length === 0 ? (
-                        <p style={{ color: '#777' }}>최근 완독한 책이 없습니다.</p>
-                      ) : (
-                        finishedReading.map((post) => (
-                          <div
-                            key={post.id}
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '10px 0',
-                              borderBottom: '1px solid #eee',
-                            }}
-                          >
-                            <span style={{ fontSize: '15px' }}>{post.title}</span>
-                            <span style={{ fontSize: '14px', color: '#555' }}>
-                              {post.endDate ? `완독일 | ${post.endDate}` : ''}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-
-
-          {/* (4) 추천 도서 카드 + 카드 컨테이너 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {/* 카드 위에 배치된 제목 */}
-          <h3 style={{ 
-            margin: 0,
-            fontWeight: 'bold', 
-            fontSize: '25px'
-          }}>추천 도서</h3>
-
-          {/* 바깥쪽(회색 반투명) */}
+        {/* 바깥쪽(회색 반투명) */}
+        <div
+          style={{
+            backgroundColor: 'rgba(128,128,128,0.2)',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+          }}
+        >
+          {/* 안쪽(흰색) */}
           <div
             style={{
-              backgroundColor: 'rgba(128,128,128,0.2)',
+              backgroundColor: '#fff',
               borderRadius: '10px',
+              width: '500px',
+              height: '300px',
+              margin: '0 auto',
               padding: '20px',
-              boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+              position: 'relative',
             }}
           >
-            {/* 안쪽(흰색) */}
-            <div
+            {/* 오른쪽 상단 점 3개 (탭 전환) */}
+            <div 
               style={{
-                backgroundColor: '#fff',
-                borderRadius: '10px',
-                width: '500px',
-                height: '300px',
-                margin: '0 auto',
-                padding: '20px',
-                display: 'flex',         // 왼쪽(텍스트) + 오른쪽(이미지) 가로 배치
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                display: 'flex',
+                gap: '8px',
               }}
             >
-              {/* 왼쪽: 책 정보 */}
-              <div style={{ flex: 1, marginRight: '20px' }}>
-                <h4 style={{ margin: '0 0 15px 0', fontSize: '18px', fontWeight: 'bold' }}>
-                  {defaultRecommendedBook?.title || '책 제목'}
-                </h4>
-                <p style={{ margin: '0 0 15px 0', fontSize: '12px', color: '#555' }}>
-                  {defaultRecommendedBook?.author || '저자'}
-                </p>
-                <p style={{ margin: '0 0 15px 0', fontSize: '12px', lineHeight: '1.5', }}>
-                  {defaultRecommendedBook?.summary || '책의 간단한 정보가 표시됩니다.'}
+              <div
+                onClick={() => setStatTabIndex(0)}
+                style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: statTabIndex === 0 ? '#000' : '#ccc',
+                  cursor: 'pointer',
+                }}
+              />
+              <div
+                onClick={() => setStatTabIndex(1)}
+                style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: statTabIndex === 1 ? '#000' : '#ccc',
+                  cursor: 'pointer',
+                }}
+              />
+              <div
+                onClick={() => setStatTabIndex(2)}
+                style={{
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: statTabIndex === 2 ? '#000' : '#ccc',
+                  cursor: 'pointer',
+                }}
+              />
+            </div>
+
+            {/* 실제 통계 차트/그래프 표시 (ProgressPage와 연동) */}
+            {progressData ? (
+              <>
+                {/* 첫 번째 점: 연간 독서량 */}
+                {statTabIndex === 0 && (
+                  <AnnualLineChart chartData={homeYearlyChartData} />
+                )}
+
+                {/* 두 번째 점: 월간 독서량 */}
+                {statTabIndex === 1 && (() => {
+                  const currentMonth = new Date().getMonth() + 1;
+                  return (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <MonthlyBarChart
+                        chartData={
+                          progressData.recent6Months.map(item => ({
+                            month: item.month,
+                            // item.month가 "현재월월"과 일치하면 monthlyGoal을, 아니면 0
+                            goal: item.month === `${currentMonth}월` ? monthlyGoal : 0,
+                            achieved: item.count
+                          }))
+                        }
+                        monthlyGoal={monthlyGoal}
+                      />
+                    </div>
+                  );
+                })()}
+
+
+                {/* 세 번째 점: 장르별 독서 비율 */}
+                {statTabIndex === 2 && (
+                  <HomeGenreDoughnutChart
+                    genreData={computedGenreData}
+                  />
+                )}
+              </>
+            ) : (
+              <p>통계 데이터를 불러오는 중...</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+
+      {/* (3) 독서 기록 카드 + 카드 컨테이너 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* 카드 위에 배치된 제목 */}
+        <h3 style={{ 
+          margin: 0,
+          fontWeight: 'bold', 
+          fontSize: '25px'
+        }}>독서 기록</h3>
+
+        {/* 바깥쪽(회색 반투명) */}
+        <div
+          style={{
+            backgroundColor: 'rgba(128,128,128,0.2)',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+          }}
+        >
+          {/* 안쪽(흰색) */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              width: '500px',
+              height: '300px',
+              margin: '0 auto',
+              padding: '20px',
+            }}
+          >
+            {currentReading.length === 0 && finishedReading.length === 0 ? (
+              // 초기 사용자: 게시글이 하나도 없을 경우
+              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                <p style={{ fontSize: '18px', color: '#555', marginBottom: '20px' }}>
+                  아직 독서 기록이 없습니다.
                 </p>
                 <button
-                  onClick={() => setShowRecommendModal(true)}
+                  onClick={() => navigate('/booknote')}
                   style={{
                     backgroundColor: '#333',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '20px',
-                    padding: '5px 20px',
+                    padding: '10px 24px',
                     cursor: 'pointer',
                     fontSize: '14px',
                   }}
                 >
-                  추천받기
+                  독서 노트 작성하러 가기
                 </button>
               </div>
+            ) : (
+              // 게시글이 있을 경우: 현재 읽는 책과 최근 완독한 책 각각 최대 2개씩 표시
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                {/* 현재 읽고 있는 책 */}
+                <div>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
+                    현재 읽고 있는 책
+                  </h4>
+                  {currentReading.length === 0 ? (
+                    <p style={{ color: '#777' }}>현재 읽고 있는 책이 없습니다.</p>
+                  ) : (
+                    currentReading.map((post) => (
+                      <div
+                        key={post.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '10px 0',
+                          borderBottom: '1px solid #eee',
+                        }}
+                      >
+                        <span style={{ fontSize: '15px' }}>{post.title}</span>
+                        <span style={{ fontSize: '14px', color: '#555' }}>
+                          {post.startDate ? `시작일 | ${post.startDate}` : ''}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
 
-              {/* 오른쪽: 책 표지 */}
-              <div style={{
-                width: '150px',
-                height: '250px',
-                backgroundColor: '#ccc', // 표지 없을 때 회색
-                borderRadius: '8px',
-                overflow: 'hidden',
-              }}>
-                {defaultRecommendedBook?.coverUrl ? (
-                  <img
-                    src={defaultRecommendedBook.coverUrl}
-                    alt="Book Cover"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : null}
+                {/* 최근 완독한 책 */}
+                <div>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
+                    최근 완독한 책
+                  </h4>
+                  {finishedReading.length === 0 ? (
+                    <p style={{ color: '#777' }}>최근 완독한 책이 없습니다.</p>
+                  ) : (
+                    finishedReading.map((post) => (
+                      <div
+                        key={post.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '10px 0',
+                          borderBottom: '1px solid #eee',
+                        }}
+                      >
+                        <span style={{ fontSize: '15px' }}>{post.title}</span>
+                        <span style={{ fontSize: '14px', color: '#555' }}>
+                          {post.endDate ? `완독일 | ${post.endDate}` : ''}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+
+
+      {/* (4) 추천 도서 카드 + 카드 컨테이너 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* 카드 위에 배치된 제목 */}
+        <h3 style={{ 
+          margin: 0,
+          fontWeight: 'bold', 
+          fontSize: '25px'
+        }}>추천 도서</h3>
+
+        {/* 바깥쪽(회색 반투명) */}
+        <div
+          style={{
+            backgroundColor: 'rgba(128,128,128,0.2)',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+          }}
+        >
+          {/* 안쪽(흰색) */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              width: '500px',
+              height: '300px',
+              margin: '0 auto',
+              padding: '20px',
+              display: 'flex',         // 왼쪽(텍스트) + 오른쪽(이미지) 가로 배치
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            {/* 왼쪽: 책 정보 */}
+            <div style={{ flex: 1, marginRight: '20px' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 'bold' }}>
+                {defaultRecommendedBook?.title || '책 제목'}
+              </h4>
+              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#555' }}>
+                {defaultRecommendedBook?.author || '저자'}
+              </p>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', lineHeight: '1.4' }}>
+                {defaultRecommendedBook?.summary || '이곳에 책의 정보가 표시됩니다.'}
+              </p>
+              <button
+                onClick={() => setShowRecommendModal(true)}
+                style={{
+                  backgroundColor: '#333',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '20px',
+                  padding: '8px 20px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                추천받기
+              </button>
+            </div>
+            {/* 오른쪽: 책 표지 */}
+            <div
+              style={{
+                width: '160px',
+                height: '290px',
+                backgroundColor: '#ccc',
+                //borderRadius: '8px',
+                //overflow: 'hidden',
+              }}
+            >
+              {defaultRecommendedBook?.coverUrl ? (
+                <img
+                  src={defaultRecommendedBook.coverUrl}
+                  alt="Book Cover"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : null}
             </div>
           </div>
         </div>
+      </div>
 
-
-        </div>
 
       </div>
+
+    </div>
 
 
       {/* 목표 관리 Modal */}
@@ -1041,7 +1033,7 @@ const HomePage: React.FC = () => {
               position: 'relative',
             }}
           >
-            {/* 닫기(X) 버튼 */}
+            {/* 닫기 버튼 */}
             <div
               style={{
                 position: 'absolute',
@@ -1053,7 +1045,6 @@ const HomePage: React.FC = () => {
               onClick={() => {
                 setShowRecommendModal(false);
                 setRecommendationStep('select');
-                setSelectedGenre('');
               }}
             >
               &times;
@@ -1076,29 +1067,22 @@ const HomePage: React.FC = () => {
                   }}
                 >
                   <option value="">장르를 선택하세요.</option>
-                  {/* 전체도서, 국내도서, 외국도서는 별도 처리 */}
-                  <option value="0">전체도서</option>
-                  <option value="100">국내도서</option>
-                  <option value="200">외국도서</option>
-                  {/* 실제 CategoryId 값 사용 (PDF 참고 – 예시) */}
-                  <option value="1">소설/시/희곡</option>
-                  <option value="2">에세이</option>
-                  <option value="3">인문/사회</option>
-                  <option value="4">사회과학</option>
-                  <option value="5">자연과학</option>
-                  <option value="6">기술/공학</option>
-                  <option value="7">경제/경영</option>
-                  <option value="8">자기계발</option>
-                  <option value="9">인물</option>
-                  <option value="2551">만화</option>
-                  <option value="8983">어린이</option>
-                  <option value="8988">청소년</option>
-                  <option value="2554">예술/대중문화</option>
+                  <option value="국내도서">국내도서</option>
+                  <option value="소설">소설</option>
+                  <option value="자기계발">자기계발</option>
+                  <option value="에세이">에세이</option>
+                  <option value="컴퓨터/IT">컴퓨터/IT</option>
+                  <option value="기술/공학">기술/공학</option>
+                  <option value="경제/경영">경제/경영</option>
+                  <option value="자연과학">자연과학</option>
+                  <option value="사회과학">사회과학</option>
+                  <option value="인문">인문</option>
+                  <option value="역사">역사</option>
                 </select>
-                <p style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>
+                <p style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>
                   장르를 선택하세요.
                 </p>
-                <p style={{ fontSize: '14px', color: '#666', marginBottom: '20px' }}>
+                <p style={{ fontSize: '12px', color: '#666', marginBottom: '20px' }}>
                   장르를 선택하면 그에 맞는 책을 추천드립니다.
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1231,9 +1215,6 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       )}
-
-
-
 
 
 

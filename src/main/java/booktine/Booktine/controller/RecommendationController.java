@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 엔드포인터 처리
+ */
 @RestController
 @RequestMapping("/recommend")
 public class RecommendationController {

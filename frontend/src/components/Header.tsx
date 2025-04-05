@@ -12,6 +12,15 @@ const Header: React.FC = () => {
   // 로그인 상태
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername && storedUsername !== "undefined") {
+      setUsername(storedUsername);
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const [profileImage, setProfileImage] = useState<string>('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 

@@ -15,7 +15,7 @@ import Footer from './components/Footer';
 //라우팅 담당 파일
 const App: React.FC = () => {
   useEffect(() => {
-    localStorage.clear();
+    
   }, []);
 
   return (
