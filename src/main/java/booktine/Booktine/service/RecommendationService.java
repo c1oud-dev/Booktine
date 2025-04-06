@@ -4,6 +4,7 @@ import booktine.Booktine.controller.dto.RecommendedBook;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,12 +23,24 @@ public class RecommendationService {
 
     public RecommendationService() {
         this.restTemplate = new RestTemplate();
-        // JSON 응답의 Content-Type이 text/javascript 등으로 오는 경우를 대비한 메시지 컨버터 추가
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(
-                Arrays.asList(MediaType.APPLICATION_JSON, new MediaType("text", "javascript"), MediaType.TEXT_PLAIN)
-        );
-        this.restTemplate.getMessageConverters().add(0, converter);
+
+        // JSON 컨버터 추가 (필요한 경우)
+        MappingJackson2HttpMessageConverter jsonConverter = new MappingJackson2HttpMessageConverter();
+        jsonConverter.setSupportedMediaTypes(Arrays.asList(
+                MediaType.APPLICATION_JSON,
+                new MediaType("text", "javascript"),
+                MediaType.TEXT_PLAIN
+        ));
+        this.restTemplate.getMessageConverters().add(0, jsonConverter);
+
+        // XML 컨버터 추가
+        MappingJackson2XmlHttpMessageConverter xmlConverter = new MappingJackson2XmlHttpMessageConverter();
+        xmlConverter.setSupportedMediaTypes(Arrays.asList(
+                MediaType.APPLICATION_XML,
+                new MediaType("text", "xml")
+        ));
+        this.restTemplate.getMessageConverters().add(0, xmlConverter);
+
     }
 
     public RecommendedBook getRandomBookByGenre(String genre) {
@@ -41,7 +54,8 @@ public class RecommendationService {
                 + "&MaxResults=10"
                 + "&start=1"
                 + "&SearchTarget=Book"
-                + "&output=json"
+                + "&output=xml"
+                + "&Cover=Big"
                 + "&Version=20131101";
 
         try {

@@ -28,8 +28,7 @@ public class PostService {
         if (post.getAuthor() == null) {
             Author author = new Author();
             author.setEmail(user.getEmail());
-            // Author 클래스에 이름을 위한 필드가 있다면, 아래와 같이 설정 (예: fullName)
-            author.setName(user.getFirstName() + " " + user.getLastName());
+            author.setName(user.getNickname());
             post.setAuthor(author);
         } else {
             // 이미 author가 있으면 email이 들어 있는지 확인

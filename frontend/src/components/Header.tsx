@@ -11,12 +11,12 @@ const Header: React.FC = () => {
 
   // 로그인 상태
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
+  const [nickname, setNickname] = useState('');
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername && storedUsername !== "undefined") {
-      setUsername(storedUsername);
+    const storedNickname = localStorage.getItem('nickname');
+    if (storedNickname && storedNickname !== "undefined") {
+      setNickname(storedNickname);
       setIsLoggedIn(true);
     }
   }, []);
@@ -156,7 +156,7 @@ const Header: React.FC = () => {
             >
             </div>
 
-            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{username}</div>
+            <div style={{ fontWeight: 'bold', fontSize: '18px' }}>{nickname}</div>
 
             <button
               style={{
@@ -292,11 +292,10 @@ const Header: React.FC = () => {
         <AuthModal
           isSignUp={isSignUp}
           onClose={handleCloseModal}
-          onLoginSuccess={(firstName: string, lastName: string) => {
-            const fullName = `${firstName}${lastName}`;
+          onLoginSuccess={(nick: string) => {
             setIsLoggedIn(true);
-            setUsername(fullName);
-            localStorage.setItem('username', fullName);
+            setNickname(nick);
+            localStorage.setItem('nickname', nick);
           }}
         />
       )}
@@ -370,9 +369,9 @@ const Header: React.FC = () => {
                 onClick={() => {
                   setShowLogoutModal(false);
                   setIsLoggedIn(false);
-                  setUsername('');
+                  setNickname('');
                   setProfileImage('');
-                  localStorage.removeItem('username'); // 로컬스토리지에서 로그인 정보 제거
+                  localStorage.removeItem('nickname'); // 로컬스토리지에서 로그인 정보 제거
                   localStorage.removeItem('profileImage');
                   localStorage.removeItem('email');
                   navigate('/'); // 메인 페이지로 이동

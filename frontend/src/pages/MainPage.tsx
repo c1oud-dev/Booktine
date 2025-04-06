@@ -18,8 +18,8 @@ const MainPage: React.FC = () => {
   };
 
   useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername && storedUsername !== "undefined") {
+    const storedNickname = localStorage.getItem('nickname');
+    if (storedNickname && storedNickname !== "undefined") {
       setIsLoggedIn(true);
     } else {
       setIsLoggedIn(false);
@@ -96,13 +96,13 @@ const MainPage: React.FC = () => {
         <AuthModal
           isSignUp={isSignUp}
           onClose={handleCloseModal}
-          onLoginSuccess={(firstName, lastName) => {
-            const fullName = `${firstName}${lastName}`;
-            localStorage.setItem('username', fullName);
+          onLoginSuccess={(nickname) => {
+            localStorage.setItem('nickname', nickname);
             window.location.reload();
           }}
         />
       )}
+
     </div>
   );
 };

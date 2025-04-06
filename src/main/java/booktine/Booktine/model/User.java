@@ -12,10 +12,7 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    private String firstName;
-
-    @Column(nullable = false)
-    private String lastName;
+    private String nickname;
 
     @Column(nullable = false)
     private String password;
@@ -30,9 +27,8 @@ public class User {
     public User() {
     }
 
-    public User(String firstName, String lastName, String email, String password) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User(String nickname, String email, String password) {
+        this.nickname = nickname;
         this.email = email;
         this.password = password;
     }
@@ -45,15 +41,12 @@ public class User {
         this.email = email;
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public String getNickname() {
+        return nickname;
     }
 
-    public String getLastName() {
-        return lastName;
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public String getAboutMe() {
@@ -70,10 +63,6 @@ public class User {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
     }
 
     public String getPassword() {

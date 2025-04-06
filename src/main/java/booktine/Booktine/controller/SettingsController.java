@@ -48,8 +48,7 @@ public class SettingsController {
         // DTO or JSON
         Map<String, Object> response = new HashMap<>();
         response.put("email", user.getEmail());
-        response.put("firstName", user.getFirstName());
-        response.put("lastName", user.getLastName());
+        response.put("nickname", user.getNickname());
         response.put("password", user.getPassword()); // 만약 프론트에서 pre-populate 하길 원하면 반환 (주의: 해시값 노출)
         response.put("avatarUrl", user.getAvatarUrl());
         response.put("aboutMe", user.getAboutMe());
@@ -101,11 +100,8 @@ public class SettingsController {
         }
 
         // 업데이트 가능한 필드 반영
-        if (payload.containsKey("firstName")) {
-            user.setFirstName((String) payload.get("firstName"));
-        }
-        if (payload.containsKey("lastName")) {
-            user.setLastName((String) payload.get("lastName"));
+        if (payload.containsKey("nickname")) {
+            user.setNickname((String) payload.get("nickname"));
         }
         if (payload.containsKey("aboutMe")) {
             user.setAboutMe((String) payload.get("aboutMe"));

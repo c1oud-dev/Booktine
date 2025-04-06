@@ -852,7 +852,7 @@ const HomePage: React.FC = () => {
               width: '500px',
               height: '300px',
               margin: '0 auto',
-              padding: '20px',
+              padding: '30px 5px 30px 20px',
               display: 'flex',         // 왼쪽(텍스트) + 오른쪽(이미지) 가로 배치
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -887,7 +887,7 @@ const HomePage: React.FC = () => {
             {/* 오른쪽: 책 표지 */}
             <div
               style={{
-                width: '160px',
+                width: '180px',
                 height: '290px',
                 backgroundColor: '#ccc',
                 //borderRadius: '8px',
@@ -964,7 +964,7 @@ const HomePage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '10px',
-                fontSize: '20px',
+                fontSize: '15px',
                 textAlign: 'center',
                 marginBottom: '20px',
                 border: '1px solid #ccc',
@@ -1136,8 +1136,8 @@ const HomePage: React.FC = () => {
                   </h3>
                   <div
                     style={{
-                      width: '120px',
-                      height: '160px',
+                      width: '180px',
+                      height: '260px',
                       backgroundColor: '#ccc',
                       borderRadius: '8px',
                       overflow: 'hidden',
@@ -1148,14 +1148,14 @@ const HomePage: React.FC = () => {
                       <img
                         src={modalRecommendedBook.coverUrl}
                         alt="Book Cover"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{ width: '180px', height: '260px', objectFit: 'cover' }} 
                       />
                     ) : null}
                   </div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '18px' }}>
+                  <h4 style={{ margin: '0 0 20px 0', fontSize: '17px', fontWeight: 'bold' }}>
                     {modalRecommendedBook?.title || '추천할 책이 없습니다.'}
                   </h4>
-                  <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#555' }}>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '14px', color: '#555' }}>
                     {modalRecommendedBook?.author || ''}
                   </p>
                   <p

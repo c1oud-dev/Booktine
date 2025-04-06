@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 const SettingsPage: React.FC = () => {
   // 예시: 사용자 정보 state
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [displayNickname, setDisplayNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [aboutMe, setAboutMe] = useState('');
@@ -11,9 +11,43 @@ const SettingsPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [postCount, setPostCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
-  const [displayFirstName, setDisplayFirstName] = useState('');
-  const [displayLastName, setDisplayLastName] = useState('');
   const [displayAboutMe, setDisplayAboutMe] = useState('');
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [deletionPassword, setDeletionPassword] = useState('');
+  const [deletionError, setDeletionError] = useState('');
+  const [deletionComplete, setDeletionComplete] = useState(false);
+
+  // 회원 탈퇴 확인 처리 함수
+const confirmDeleteAccount = async () => {
+  if (deletionPassword.trim() === '') {
+    setDeletionError("비밀번호를 입력해주세요.");
+    return;
+  }
+  const email = localStorage.getItem('email');
+  if (!email) {
+    setDeletionError("로그인이 필요합니다.");
+    return;
+  }
+  try {
+    const res = await fetch(`http://localhost:8083/api/auth/delete-account?email=${email}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: deletionPassword })
+    });
+    if (!res.ok) {
+      setDeletionError("비밀번호가 옳지 않습니다. 암호를 다시 확인해주세요.");
+      return;
+    }
+    // 성공 시
+    setDeletionComplete(true);
+    localStorage.removeItem('email');
+    localStorage.removeItem('nickname');
+    localStorage.removeItem('profileImage');
+  } catch (error) {
+    console.error(error);
+    setDeletionError("회원 탈퇴에 실패했습니다.");
+  }
+};
 
   // 업로드 버튼 클릭 시 (실제 업로드 로직은 생략)
   const handleUploadNewProfile = () => {
@@ -92,8 +126,7 @@ const SettingsPage: React.FC = () => {
 
     // 저장할 데이터 payload 구성 (필요한 필드 추가)
     const payload = {
-      firstName,
-      lastName,
+      nickname,
       aboutMe,
       // 다른 수정할 필드가 있으면 추가
       passwordConfirmation: password, // 비밀번호 확인 필드
@@ -117,12 +150,11 @@ const SettingsPage: React.FC = () => {
         return res.json();
       })
       .then((updatedUser) => {
-        // 3) localStorage 갱신 → Header에서 username을 새로고침 후 반영
-        localStorage.setItem('username', updatedUser.firstName + updatedUser.lastName);
+        // 3) localStorage 갱신 → Header에서 nickname을 새로고침 후 반영
+        localStorage.setItem('nickname', updatedUser.nickname);
 
         // display 상태 업데이트(페이지 새로고침 전 화면에 반영 가능)
-        setDisplayFirstName(updatedUser.firstName);
-        setDisplayLastName(updatedUser.lastName);
+        setDisplayNickname(updatedUser.nickname);
         setDisplayAboutMe(updatedUser.aboutMe);
 
         // 4) 페이지 새로고침
@@ -134,12 +166,9 @@ const SettingsPage: React.FC = () => {
       });
   };
 
-
-
   const handleCancel = () => {
     alert('Cancel clicked. 변경사항 취소 로직을 구현하세요.');
   };
-
 
 
   useEffect(() => {
@@ -155,10 +184,8 @@ const SettingsPage: React.FC = () => {
       })
       .then((data) => {
         console.log('Fetched user settings:', data);
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-        setDisplayFirstName(data.firstName || '');
-        setDisplayLastName(data.lastName || '');
+        setNickname(data.nickname || '');
+        setDisplayNickname(data.nickname || '');
         setEmail(data.email || '');
         setPassword('');
         setAboutMe(data.aboutMe || '');
@@ -166,6 +193,7 @@ const SettingsPage: React.FC = () => {
         setProfileImage(data.avatarUrl || '/default_avatar.png');
         setPostCount(data.postCount || 0);
         setCompletedCount(data.completedCount || 0);
+
       })
       .catch((err) => console.error('Error fetching user settings:', err));
   }, []);
@@ -251,7 +279,7 @@ const SettingsPage: React.FC = () => {
 
             {/* 이름 */}
             <div style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', marginBottom: '10px' }}>
-              {displayFirstName + displayLastName}
+              {displayNickname}
             </div>
 
             {/* 소개 문구 */}
@@ -353,43 +381,15 @@ const SettingsPage: React.FC = () => {
 
             {/* 폼 영역 */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
-              {/* First Name */}
-              <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    FIRST NAME
-                  </label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                    }}
-                  />
-                </div>
-
-                {/* Last Name */}
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>
-                    LAST NAME
-                  </label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      marginBottom: '20px'
-                    }}
-                  />
-                </div>
+              {/* Nickname*/}
+              <div style={{ width: '100%', marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>Nickname</label>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
+                />
               </div>
 
               {/* Email */}
@@ -437,7 +437,7 @@ const SettingsPage: React.FC = () => {
 
               {/* ABOUT ME */}
               <div style={{ width: '100%' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px' }}>
+                <label style={{ fontWeight: 'bold', marginBottom: '4px', display: 'block' }}>
                   ABOUT ME
                 </label>
                 <hr style={{ border: '0.5px solid #ccc', margin: '20px 0' }} />
@@ -454,12 +454,137 @@ const SettingsPage: React.FC = () => {
                     resize: 'none',
                   }}
                 />
+                <div style={{ textAlign: 'right', marginTop: '8px' }}>
+                  <span
+                    style={{ cursor: 'pointer', color: '#0000EE', fontSize: '14px', textDecoration: 'underline', }}
+                    onClick={() => {
+                      setShowDeleteAccountModal(true);
+                      setDeletionError('');
+                      setDeletionPassword('');
+                      setDeletionComplete(false);
+                    }}
+                  >
+                    회원 탈퇴
+                  </span>
+                </div>
+              </div>
+
+              
+            </div>
+
+          </div>
+          
+          {showDeleteAccountModal && (
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 9999,
+              }}>
+              <div style={{
+                  backgroundColor: '#fff',
+                  borderRadius: '8px',
+                  padding: '30px',
+                  width: '350px',
+                  textAlign: 'center',
+                }}>
+                { !deletionComplete ? (
+                  <>
+                    <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+                      회원 탈퇴를 하시겠습니까?
+                    </p>
+                    <input
+                      type="password"
+                      placeholder="비밀번호를 입력해주세요"
+                      value={deletionPassword}
+                      onChange={(e) => setDeletionPassword(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px',
+                        border: '1px solid #ccc',
+                        borderRadius: '4px',
+                        marginBottom: '10px',
+                      }}
+                    />
+                    { deletionError && (
+                      <div style={{ color: 'red', fontSize: '13px', marginBottom: '20px' }}>
+                        {deletionError}
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                      <button
+                        style={{
+                          width: '140px',
+                          backgroundColor: '#fff',
+                          color: '#333',
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                          padding: '8px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          setShowDeleteAccountModal(false);
+                          setDeletionPassword('');
+                          setDeletionError('');
+                        }}
+                      >
+                        취소
+                      </button>
+                      <button
+                        style={{
+                          width: '140px',
+                          backgroundColor: '#000',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          padding: '8px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={confirmDeleteAccount}
+                      >
+                        확인
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+                      회원 탈퇴가 완료되었습니다.
+                    </p>
+                    <button
+                      style={{
+                        width: '120px',
+                        backgroundColor: '#000',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => {
+                        setShowDeleteAccountModal(false);
+                        window.location.href = '/'; // 로그인 전의 mainpage로 이동
+                      }}
+                    >
+                      확인
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-          </div>
+          )}
+
+
         </div>
       </div>
     </div>
+    
   );
 };
 

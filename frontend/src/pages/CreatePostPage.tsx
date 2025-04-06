@@ -248,8 +248,8 @@ const CreatePostPage: React.FC = () => {
       return;
     }
   
-    const username = localStorage.getItem('username');
-    if (!username) {
+    const nickname = localStorage.getItem('nickname');
+    if (!nickname) {
       alert('로그인이 필요합니다.');
       return;
     }
@@ -259,7 +259,7 @@ const CreatePostPage: React.FC = () => {
       title,
       startDate,
       readingStatus: overrideReadingStatus !== undefined ? overrideReadingStatus : readingStatus,
-      author: { name: username, avatar: defaultAvatar, email: email },
+      author: { name: nickname, avatar: defaultAvatar, email: email },
       inputAuthor,
       genre,
       publisher,

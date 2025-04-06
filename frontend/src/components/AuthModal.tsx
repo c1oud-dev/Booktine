@@ -4,20 +4,24 @@ import { useNavigate } from 'react-router-dom';
 interface AuthModalProps {
   isSignUp: boolean; // 처음 열릴 때 Sign Up 탭인지, Log In 탭인지
   onClose: () => void;
-  onLoginSuccess?: (firstName: string, lastName: string) => void; // 로그인 성공 시 호출되는 콜백
+  onLoginSuccess?: (nickname: string) => void; // 로그인 성공 시 호출되는 콜백 (nickname 전달)
 }
+
 
 const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess }) => {
   const navigate = useNavigate();
 
   // 현재 탭 상태
   const [activeTab, setActiveTab] = useState(isSignUp ? 'signup' : 'login');
-
+  
   const [emailValidationMessage, setEmailValidationMessage] = useState('');
   const [emailValidationColor, setEmailValidationColor] = useState('');
   const [passwordValidationMessage, setPasswordValidationMessage] = useState('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
   const [passwordValidationColor, setPasswordValidationColor] = useState('red');
-
+  const [nickname, setNickname] = useState('');
+  const [nicknameCheckedStatus, setNicknameCheckedStatus] = useState(''); 
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState('');
+  const [isNicknameChecked, setIsNicknameChecked] = useState(false);
   // 로그인 에러 메시지와 로그인 유지 체크 상태 추가
   const [loginErrorMessage, setLoginErrorMessage] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -25,7 +29,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   // 추가: 이메일 중복 확인 여부와 비밀번호 유효성 여부 상태
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
-
+  
   // Forgot Password / Reset Password 모달 관련 상태 추가
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -35,8 +39,29 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   const [newPasswordValidationMessage, setNewPasswordValidationMessage] = useState('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
   const [newPasswordValidationColor, setNewPasswordValidationColor] = useState('red');
 
+  // 입력값 상태
+  const [signUpEmail, setSignUpEmail] = useState('');
+  const [signUpPassword, setSignUpPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+
+  // 회원가입 성공 관련 상태
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // 버튼 활성화 여부
+  const isSignUpDisabled =
+    !nickname.trim() ||
+    !signUpEmail.trim() ||
+    !signUpPassword.trim() ||
+    !isEmailChecked ||
+    !isPasswordValid ||
+    !isNicknameChecked;
 
 
+  const isLoginDisabled =
+    !loginEmail.trim() ||
+    !loginPassword.trim();
 
   // ▼ 로그인 API 요청 핸들러 추가
   const handleLogin = async () => {
@@ -56,10 +81,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       const result = await response.json();
   
       localStorage.setItem('email', result.email);
-      localStorage.setItem('username', `${result.firstName}${result.lastName}`);
+      localStorage.setItem('nickname', result.nickname);
   
       if (onLoginSuccess) {
-        onLoginSuccess(result.firstName || '', result.lastName || '');
+        onLoginSuccess(result.nickname || '');
       }
       onClose();
       navigate('/home');
@@ -69,32 +94,45 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
     }
   };
   
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 입력 시 필터링 없이 그대로 저장
+    setNickname(e.target.value);
+    // 입력할 때마다 중복 체크 상태 초기화
+    setNicknameCheckedStatus('');
+    setNicknameCheckMessage('');
+  };
 
-  // 입력값 상태
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [signUpEmail, setSignUpEmail] = useState('');
-  const [signUpPassword, setSignUpPassword] = useState('');
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const validateNickname = (value: string) => {
+    const allowedRegex = /^[a-zA-Z가-힣]+$/;
+    if (!allowedRegex.test(value)) {
+      return false;
+    }
+    const isAllKorean = /^[가-힣]+$/.test(value);
+    const isAllEnglish = /^[a-zA-Z]+$/.test(value);
+    if (isAllKorean && value.length <= 8) {
+      return true;
+    }
+    if (isAllEnglish && value.length <= 14) {
+      return true;
+    }
+    // 혼용된 경우나 길이 초과인 경우
+    return false;
+  };
 
-  // 회원가입 성공 관련 상태
-  const [signUpSuccess, setSignUpSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-
-  // 버튼 활성화 여부
-  const isSignUpDisabled =
-    !firstName.trim() ||
-    !lastName.trim() ||
-    !signUpEmail.trim() ||
-    !signUpPassword.trim() ||
-    !isEmailChecked ||
-    !isPasswordValid;
-
-
-  const isLoginDisabled =
-    !loginEmail.trim() ||
-    !loginPassword.trim();
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSignUpEmail(value);
+    // 이메일 형식 정규식 (기본적인 형식 검사)
+    const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/;
+    if (!emailRegex.test(value)) {
+      setEmailValidationMessage("유효한 이메일 형식이 아닙니다.");
+      setEmailValidationColor("red");
+    } else {
+      setEmailValidationMessage("");
+    }
+    // 중복 확인 상태 초기화
+    // setIsEmailChecked(false);  // 만약 중복확인 상태를 사용 중이라면 포함
+  };
 
   // 회원가입 API 요청 핸들러
   const handleSignUp = async () => {
@@ -108,8 +146,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName: firstName,
-          lastName: lastName,
+          nickname: nickname,
           email: signUpEmail,
           password: signUpPassword,
         }),
@@ -217,67 +254,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 Sign up
               </h2>
 
-              {/* First name / Last name */}
-              <div style={{ display: 'flex', gap: '5px', marginBottom: '20px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '4px' }}>
-                    First name
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                    }}
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '4px' }}>
-                    Last name
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                    }}
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div style={{ marginBottom: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '4px' }}>Email address</label>
+              {/* Nickname 입력 필드 (공백, 특수문자 불가 – 한글/영문만 허용) */}
+              {/*한글만 입력된 경우 최대 8자, 영문 또는 혼용은 최대 14자까지 허용 */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '4px' }}>
+                  Nickname
+                </label>
                 <div style={{ display: 'flex' }}>
                   <input
-                    type="email"
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      marginBottom: '10px',
-                    }}
-                    value={signUpEmail}
-                    onChange={(e) => {
-                      setSignUpEmail(e.target.value);
-                      setEmailValidationMessage('');
-                      setIsEmailChecked(false); // 이메일 변경 시 중복 확인 상태 리셋
-                    }}
+                    type="text"
+                    placeholder="닉네임을 입력해주세요"
+                    style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    value={nickname}
+                    onChange={handleNicknameChange}
                   />
                   <button
                     style={{
                       marginLeft: '8px',
-                      height: '50px',         // 고정 높이 지정
-                      lineHeight: '40px',      // 텍스트가 중앙에 오도록 설정
+                      height: '50px',
+                      lineHeight: '40px',
                       padding: '0 12px',
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -287,19 +282,114 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                       color: '#fff',
                     }}
                     onClick={async () => {
+                      // 먼저 조건 검사
+                      if (!validateNickname(nickname)) {
+                        setNicknameCheckedStatus("invalid");
+                        setNicknameCheckMessage("조건이 불충분합니다.");
+                        setIsNicknameChecked(false);
+                        return;
+                      }
+                      try {
+                        const response = await fetch(`http://localhost:8083/api/auth/check-nickname?nickname=${nickname}`);
+                        if (response.ok) {
+                          setNicknameCheckedStatus("success");
+                          setNicknameCheckMessage("사용 가능한 닉네임입니다.");
+                          setIsNicknameChecked(true); // 조건 만족 시 상태 업데이트
+                        } else {
+                          setNicknameCheckedStatus("duplicate");
+                          setNicknameCheckMessage("중복된 닉네임입니다.");
+                          setIsNicknameChecked(false);
+                        }
+                      } catch (error) {
+                        console.error("Nickname check error:", error);
+                        setNicknameCheckedStatus("duplicate");
+                        setNicknameCheckMessage("중복 확인에 실패했습니다.");
+                        setIsNicknameChecked(false);
+                      }
+                    }}
+                  >
+                    중복 확인
+                  </button>
+                </div>
+                {/* 조건 메시지 영역 */}
+                <div style={{ marginTop: '4px' }}>
+                  {nicknameCheckedStatus === "success" ? (
+                    // 조건 만족 & 중복 확인 성공 시: 기본 조건 문구 대신 사용 가능 문구 출력 (파란색)
+                    <p style={{ margin: 0, fontSize: '12px', color: 'blue' }}>
+                      {nicknameCheckMessage}
+                    </p>
+                  ) : (
+                    <>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'red' }}>
+                        - 한글 8자, 영문 14자까지 입력 가능
+                      </p>
+                      <p style={{ margin: 0, fontSize: '12px', color: 'red' }}>
+                        - 공백, 특수문자 불가능
+                      </p>
+                      {(nicknameCheckedStatus === "duplicate" || nicknameCheckedStatus === "invalid") && (
+                        <p style={{ margin: 0, fontSize: '12px', color: 'red' }}>
+                          - {nicknameCheckMessage}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+
+
+              {/* Email */}
+              <div style={{ marginBottom: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '4px' }}>Email address</label>
+                <div style={{ display: 'flex' }}>
+                  <input
+                    type="email"
+                    placeholder='이메일을 입력해주세요.'
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      marginBottom: '4px',
+                    }}
+                    value={signUpEmail}
+                    onChange={handleEmailChange}
+                  />
+                  <button
+                    style={{
+                      marginLeft: '8px',
+                      height: '50px',
+                      lineHeight: '40px',
+                      padding: '0 12px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                      border: 'none',
+                      backgroundColor: '#000',
+                      color: '#fff',
+                    }}
+                    onClick={async () => {
+                      const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/;
+                      if (!emailRegex.test(signUpEmail)) {
+                        setEmailValidationMessage("유효한 이메일 형식이 아닙니다.");
+                        setEmailValidationColor("red");
+                        setIsEmailChecked(false);
+                        return;
+                      }
                       try {
                         const response = await fetch(`http://localhost:8083/api/auth/check-email?email=${signUpEmail}`);
                         if (response.ok) {
-                          setEmailValidationMessage('사용 가능한 이메일입니다.');
-                          setEmailValidationColor('blue');
-                          setIsEmailChecked(true);
+                          setEmailValidationMessage("사용 가능한 이메일입니다.");
+                          setEmailValidationColor("blue");
+                          setIsEmailChecked(true); // 상태 업데이트 추가
                         } else {
-                          setEmailValidationMessage('중복된 이메일입니다.');
-                          setEmailValidationColor('red');
+                          setEmailValidationMessage("중복된 이메일입니다.");
+                          setEmailValidationColor("red");
                           setIsEmailChecked(false);
                         }
                       } catch (error) {
                         console.error('Email check error:', error);
+                        setIsEmailChecked(false);
                       }
                     }}
                   >
@@ -319,6 +409,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 <label style={{ display: 'block', marginBottom: '4px' }}>Password</label>
                 <input
                   type="password"
+                  placeholder='비밀번호를 입력해주세요.'
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -389,6 +480,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 </label>
                 <input
                   type="email"
+                  placeholder='이메일을 입력해주세요.'
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -411,6 +503,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 </label>
                 <input
                   type="password"
+                  placeholder='비밀번호를 입력해주세요.'
                   style={{
                     width: '100%',
                     padding: '12px',
