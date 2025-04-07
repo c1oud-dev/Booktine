@@ -725,10 +725,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   padding: '12px',
                   cursor: 'pointer',
                 }}
-                onClick={() => {
-                  // 비밀번호 재설정 API 호출 등 추가 로직 필요 시 여기에 구현
-                  alert("비밀번호가 재설정되었습니다.");
-                  setShowResetPasswordModal(false);
+                onClick={async () => {
+                  try {
+                    const response = await fetch('http://localhost:8083/api/auth/reset-password', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        email: forgotEmail,
+                        newPassword: newPassword,
+                      }),
+                    });
+                    if (!response.ok) {
+                      alert("비밀번호 재설정에 실패했습니다.");
+                      return;
+                    }
+                    const result = await response.text();
+                    alert(result);
+                    setShowResetPasswordModal(false);
+                  } catch (error) {
+                    console.error("Reset Password Error:", error);
+                    alert("비밀번호 재설정 중 오류가 발생했습니다.");
+                  }
                 }}
               >
                 확인

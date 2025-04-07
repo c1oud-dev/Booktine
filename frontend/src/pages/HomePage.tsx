@@ -86,6 +86,18 @@ const HomePage: React.FC = () => {
   
 
   useEffect(() => {
+    const currentEmail = localStorage.getItem('email');
+    const goalEmail = localStorage.getItem('goalEmail');
+  
+    // 현재 로그인한 이메일과 목표 데이터를 저장했던 이메일이 다르다면 기존 목표 데이터를 제거
+    if (!goalEmail || goalEmail !== currentEmail) {
+      localStorage.removeItem('yearlyGoal');
+      localStorage.removeItem('yearlyAchieved');
+      localStorage.removeItem('monthlyGoal');
+      // 현재 계정의 이메일을 목표 데이터 관리용으로 저장
+      localStorage.setItem('goalEmail', currentEmail || '');
+    }
+  
     const storedGoal = localStorage.getItem('yearlyGoal');
     const storedAchieved = localStorage.getItem('yearlyAchieved');
     if (storedGoal) {
@@ -94,13 +106,13 @@ const HomePage: React.FC = () => {
     if (storedAchieved) {
       setYearlyAchieved(parseInt(storedAchieved, 10));
     }
-
-    // 추가: localStorage에서 월간 목표 불러오기
+  
     const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
     if (storedMonthlyGoal) {
       setMonthlyGoal(parseInt(storedMonthlyGoal, 10));
     }
   }, []);
+  
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
@@ -167,18 +179,19 @@ const HomePage: React.FC = () => {
       return;
     }
   
-    // (2) localStorage 저장 (ProgressPage 등에서 동일 참조 가능)
-    localStorage.setItem('yearlyGoal', String(newGoal));
+    // (2) 현재 연도 구하기
+    const currentYear = new Date().getFullYear();
   
-    // (3) HomePage의 yearlyGoal 상태 갱신
+    // (3) localStorage에 현재 연도를 포함한 key로 저장
+    localStorage.setItem(`yearlyGoal_${currentYear}`, String(newGoal));
+  
+    // (4) HomePage의 yearlyGoal 상태 갱신
     setYearlyGoal(newGoal);
   
-    // (4) 모달 닫기
+    // (5) 모달 닫기
     setShowGoalModal(false);
-  
-    // (5) 필요 시, yearlyAchieved 초기화 등 추가 처리 가능
-    // localStorage.setItem('yearlyAchieved', '0');
   }
+  
 
   /* 기본 추천 도서 불러오기 */
   useEffect(() => { 
@@ -521,63 +534,85 @@ const HomePage: React.FC = () => {
                     </div>
                   ) : (
                     /* 목표 설정됨 UI */
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    {/* 목표/달성/남은 책 정보 */}
-                    <div
-                      style={{
-                        backgroundColor: '#F8F3EE',
-                        borderRadius: '8px',
-                        padding: '10px',
-                        width: '250px',
-                      }}
-                    >
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <div
-                        style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center',
-                          borderBottom: '1px solid #C5BBB1', 
-                          
-                          margin: '0 -10px',
-                          padding: '5px 20px',
+                        style={{
+                          background: 'linear-gradient(135deg, #F8F3EE, #FFFFFF)',
+                          borderRadius: '8px',
+                          padding: '15px',
+                          width: '260px',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '10px',
                         }}
                       >
-                        <span>목표</span>
-                        <span>{yearlyGoal}권</span>
-                      </div>
-                      <div
-                        style={{ 
-                          display: 'flex', 
-                          justifyContent: 'space-between', 
-                          alignItems: 'center',
-                          borderBottom: '1px solid #C5BBB1',
+                        {/* 목표/달성/남은 책 정보 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderBottom: '1px solid #C5BBB1',
+                              padding: '5px 0',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ marginRight: '8px', fontSize: '16px' }}>📚</span>
+                              <span style={{ fontWeight: 'bold' }}>목표</span>
+                            </div>
+                            <span>{yearlyGoal}권</span>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              borderBottom: '1px solid #C5BBB1',
+                              padding: '8px 0',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ marginRight: '8px', fontSize: '16px' }}>✅</span>
+                              <span style={{ fontWeight: 'bold' }}>달성</span>
+                            </div>
+                            <span>{yearlyAchieved}권</span>
+                          </div>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              padding: '8px 0',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ marginRight: '8px', fontSize: '16px' }}>⏳</span>
+                              <span style={{ fontWeight: 'bold' }}>남은 책</span>
+                            </div>
+                            <span>{yearlyGoal - yearlyAchieved}권</span>
+                          </div>
+                        </div>
 
-                          margin: '0 -10px',
-                          padding: '8px 20px',
-                        }}
-                      >
-                        <span>달성</span>
-                        <span>{yearlyAchieved}권</span>
-                      </div>
-                      <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        margin: '0 -10px',
-                        padding: '8px 20px 5px',
-                        }}>
-                        <span>남은 책</span>
-                        <span>{yearlyGoal - yearlyAchieved}권</span>
+                        {/* 응원 문구를 카드 내부 하단에 배치 */}
+                        <div
+                          style={{
+                            //borderTop: '1px solid #C5BBB1',
+                            paddingTop: '5px',
+                            marginTop: '1px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#FF5C00' }}>
+                            {getCheerMessage(ratio)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* 응원 문구 */}
-                    <p style={{ fontWeight: 'bold', fontSize: '14px', margin: 0 }}>
-                      "{getCheerMessage(ratio)}"
-                    </p>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
             </div>
 
               
