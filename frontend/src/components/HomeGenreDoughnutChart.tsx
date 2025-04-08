@@ -111,7 +111,7 @@ const HomeGenreDoughnutChart: React.FC<Props> = ({ genreData }) => {
               <div style={{ marginTop: '4px', fontWeight: 'bold' }}>{maxGenre.label}</div>
             </>
           ) : (
-            <>가장 많이 읽은 장르는?</>
+            <>가장 많이 읽은 <br/> 장르는?</>
           )}
         </div>
       </div>

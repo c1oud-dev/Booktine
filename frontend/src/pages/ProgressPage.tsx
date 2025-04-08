@@ -55,6 +55,7 @@ const ProgressPage: React.FC = () => {
 
   // 선택 연도 (연도 선택 드롭다운용)
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const registrationYear = Number(localStorage.getItem('registrationYear')) || currentYear;
 
   const yearlyRatio = yearlyGoal > 0 ? (yearlyAchieved / yearlyGoal) : 0;
   const yearlyAngle = yearlyRatio * 360;
@@ -123,13 +124,13 @@ const ProgressPage: React.FC = () => {
 
   // 월별 목표 불러오기 (선택된 년도와 월 기준)
   useEffect(() => {
-    const storedMonthlyGoal = localStorage.getItem(`monthlyGoal_${selectedYear}_${selectedMonth}`);
+    const storedMonthlyGoal = localStorage.getItem(`monthlyGoal_${selectedGoalYear}_${selectedMonth}`);
     if (storedMonthlyGoal) {
       setMonthlyGoal(Number(storedMonthlyGoal));
     } else {
       setMonthlyGoal(0);
     }
-  }, [selectedYear, selectedMonth]);
+  }, [selectedGoalYear, selectedMonth]);
 
 
 
@@ -140,10 +141,12 @@ const ProgressPage: React.FC = () => {
     const finishedYearlyPosts = posts.filter((post) => {
       if (post.readingStatus !== '완독' || !post.endDate) return false;
       const d = new Date(post.endDate);
-      return d.getFullYear() === currentYear;
+      // 선택한 연도와 일치하고, 완료 날짜가 현재 날짜 이전인 경우에만 포함
+      return d.getFullYear() === selectedGoalYear && d.getTime() <= Date.now();
     });
     setYearlyAchieved(finishedYearlyPosts.length);
-  }, [posts, currentYear]);
+  }, [posts, selectedGoalYear]);
+  
 
   // ──────────────────────────────────────────────
   // (D) 이번달 달성 수 계산 (현재 연도, 현재 월 기준)
@@ -152,44 +155,53 @@ const ProgressPage: React.FC = () => {
     const monthFinished = posts.filter((post) => {
       if (post.readingStatus !== '완독' || !post.endDate) return false;
       const d = new Date(post.endDate);
-      return (d.getFullYear() === selectedYear && d.getMonth() + 1 === selectedMonth);
+      return (d.getFullYear() === selectedGoalYear && d.getMonth() + 1 === selectedMonth);
     });
     setMonthlyAchieved(monthFinished.length);
-  }, [posts, selectedYear, selectedMonth]);
+  }, [posts, selectedGoalYear, selectedMonth]);
+  
 
   // ──────────────────────────────────────────────
   // (E) 로컬에서 연간 독서량 계산 (최근 6년)
   useEffect(() => {
     const tempData: { month: string; count: number }[] = [];
-    for (let y = selectedYear - 5; y <= selectedYear; y++) {
+    let startYear: number, endYear: number;
+    // registrationYear는 사용자의 가입 연도이며, 이미 ProgressPage 상단에서 선언되어 있습니다.
+    if (registrationYear === currentYear) {
+      // 가입 연도와 현재 연도가 같다면, currentYear부터 currentYear+5까지 계산
+      startYear = currentYear;
+      endYear = currentYear + 5;
+    } else {
+      // 그렇지 않다면, 가입 연도부터 현재 연도까지 계산
+      startYear = registrationYear;
+      endYear = currentYear;
+    }
+    
+    for (let y = startYear; y <= endYear; y++) {
       const count = finishedPosts.filter((p) => {
         if (!p.endDate) return false;
         const d = new Date(p.endDate);
+        // 만약 targetYear가 현재 연도라면 오늘 이후 날짜는 배제할 수도 있음 (필요하다면 추가 조건)
         return d.getFullYear() === y;
       }).length;
       tempData.push({ month: `${y}년`, count });
     }
     setLineChartData(tempData);
-  }, [finishedPosts, selectedYear]);
+  }, [finishedPosts, registrationYear, currentYear]);
+  
 
   // ──────────────────────────────────────────────
   // (F) 로컬에서 월별 독서량 계산 (최근 6개월)
   // ──────────────────────────────────────────────
   useEffect(() => {
-    const today = new Date();
     const tempData: { month: string; goal: number; achieved: number }[] = [];
-    // 최근 6개월 데이터를 오름차순(과거→현재)으로 생성
-    for (let i = 5; i >= 0; i--) {
-      const target = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const y = target.getFullYear();
-      const m = target.getMonth() + 1;
+    for (let m = 1; m <= 12; m++) {
       const achievedCount = finishedPosts.filter((p) => {
         if (!p.endDate) return false;
         const d = new Date(p.endDate);
-        return d.getFullYear() === y && d.getMonth() + 1 === m;
+        return d.getFullYear() === selectedGoalYear && d.getMonth() + 1 === m;
       }).length;
-      // 각 달의 목표값은 로컬 스토리지에서 읽어옴
-      const goalKey = `monthlyGoal_${y}_${m}`;
+      const goalKey = `monthlyGoal_${selectedGoalYear}_${m}`;
       const storedGoal = localStorage.getItem(goalKey);
       const goal = storedGoal ? Number(storedGoal) : 0;
       tempData.push({
@@ -199,10 +211,7 @@ const ProgressPage: React.FC = () => {
       });
     }
     setBarChartData(tempData);
-  }, [finishedPosts, monthlyGoalVersion]);
-  
-  
-  
+  }, [finishedPosts, monthlyGoalVersion, selectedGoalYear]);
   
 
   // ──────────────────────────────────────────────
@@ -229,21 +238,30 @@ const ProgressPage: React.FC = () => {
   // 연간 목표 설정 시 저장하는 핸들러
   const handleYearlyGoalSubmit = () => {
     const newGoal = parseInt(tempGoalValue, 10) || 0;
+    if (newGoal <= -1) {
+      alert('1 이상의 숫자를 입력하세요.');
+      return;
+    }
     setYearlyGoal(newGoal);
     localStorage.setItem(`yearlyGoal_${selectedGoalYear}`, String(newGoal));
+    // 선택한 연도가 현재 연도인 경우 HomePage에서 사용하는 'yearlyGoal' 키도 업데이트
+    if (selectedGoalYear === currentYear) {
+      localStorage.setItem("yearlyGoal", String(newGoal));
+    }
     setShowYearlyGoalModal(false);
     setTempGoalValue('');
   };
+  
 
   // 월간 목표 모달 'OK' 핸들러
   const handleMonthlyGoalSubmit = () => {
-    const newGoal = parseInt(tempMonthlyGoalValue, 10) || 0;
-    localStorage.setItem(`monthlyGoal_${selectedYear}_${selectedMonth}`, String(newGoal));
-    setMonthlyGoal(newGoal);
-    setShowMonthlyGoalModal(false);
-    setTempMonthlyGoalValue('');
-    setMonthlyGoalVersion(prev => prev + 1); // 차트 리렌더링을 위한 버전 업데이트
-  };
+        const newGoal = parseInt(tempMonthlyGoalValue, 10) || 0;
+        localStorage.setItem(`monthlyGoal_${selectedGoalYear}_${selectedMonth}`, String(newGoal));
+        setMonthlyGoal(newGoal);
+        setShowMonthlyGoalModal(false);
+        setTempMonthlyGoalValue('');
+        setMonthlyGoalVersion(prev => prev + 1); // 차트 리렌더링을 위한 버전 업데이트
+      };
 
   return (
     <div
@@ -306,7 +324,7 @@ const ProgressPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>{selectedGoalYear}년 목표</h3>
-              <span style={{ fontSize: '13px', color: '#555' }}>Annual Goal</span>
+              <span style={{ fontSize: '13px', color: '#555', marginTop: '6px' }}>Annual Goal</span>
             </div>
             <select
               value={selectedGoalYear}
@@ -435,10 +453,10 @@ const ProgressPage: React.FC = () => {
         >
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
-                {selectedMonth.toString().padStart(2, '0')}월 목표
-              </h3>
-              <span style={{ fontSize: '13px', color: '#555' }}>Monthly Goal</span>
+            <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+              {selectedMonth.toString().padStart(2, '0')}월 목표
+            </h3>
+              <span style={{ fontSize: '13px', color: '#555', marginTop: '6px' }}>{selectedGoalYear}년 Monthly Goal</span>
             </div>
             <select
               value={selectedMonth}
@@ -601,28 +619,50 @@ const ProgressPage: React.FC = () => {
                 marginBottom: '10px',
               }}
             >
-              <label htmlFor="year-select" style={{ marginRight: '8px' }}>연도 선택:</label>
-              <select
-                id="year-select"
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                style={{ padding: '5px 10px' }}
-              >
-                {Array.from({ length: 11 }, (_, i) => currentYear - i).map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
             </div>
-          <AnnualLineChart chartData={lineChartData} />
+            <AnnualLineChart
+              chartData={lineChartData}
+              registrationYear={registrationYear}
+              fromLabel={`가입 연도: ${registrationYear}년 ~ 최근`}
+            />
         </div>
       </div>
 
         {/* Monthly Reading Amount */}
         <div style={{ marginBottom: '30px',  }}>
           <h4 style={{ fontSize: '18px', margin: '0 0 10px 0', fontWeight: 'bold' }}>월별 독서량</h4>
-          <MonthlyBarChart chartData={barChartData} monthlyGoal={monthlyGoal} />
+          {
+            (() => {
+              const currentYearLocal = new Date().getFullYear();
+              let zoomMin: number, zoomMax: number;
+              if (selectedGoalYear === currentYearLocal) {
+                const curMonthIndex = new Date().getMonth(); // 0-based index
+                // 슬라이딩 윈도우: 현재 달이 창의 중앙에 가깝게 위치하도록 (예: 현재 달이 4월이면 창은 1월~6월, 5월이면 2월~7월)
+                zoomMin = curMonthIndex - 3;
+                zoomMax = zoomMin + 5;
+                if (zoomMin < 0) {
+                  zoomMin = 0;
+                  zoomMax = 5;
+                }
+                if (zoomMax > 11) {
+                  zoomMax = 11;
+                  zoomMin = 11 - 5;
+                }
+              } else {
+                zoomMin = 0;
+                zoomMax = 5;
+              }
+              return (
+                <MonthlyBarChart
+                  chartData={barChartData}
+                  monthlyGoal={monthlyGoal}
+                  defaultMin={zoomMin}
+                  defaultMax={zoomMax}
+                  selectedYear={selectedGoalYear}  // 추가: 현재 선택한 연도 전달
+                />
+              );
+            })()
+          }
         </div>
 
         {/* Genre Reading Ratio */}
@@ -751,10 +791,11 @@ const ProgressPage: React.FC = () => {
               style={{
                 width: '100%',
                 padding: '10px',
-                fontSize: '14px',
+                fontSize: '15px',
                 marginBottom: '20px',
                 border: '1px solid #ccc',
                 borderRadius: '4px',
+                textAlign: 'center',
               }}
             />
 

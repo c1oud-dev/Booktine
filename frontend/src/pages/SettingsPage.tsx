@@ -218,9 +218,9 @@ const confirmDeleteAccount = async () => {
             marginBottom: '20px',
           }}
         >
-          <h2 style={{ fontWeight: 'bold', fontSize: '40px', margin: 0 }}>Settings</h2>
+          <h2 style={{ fontWeight: 'bold', fontSize: '40px', margin: 0, color: '#434343' }}>Settings</h2>
         </div>
-        <hr style={{ border: '1px solid #000', marginBottom: '40px' }} />
+        <hr style={{ border: '1px solid #434343', marginBottom: '40px' }} />
 
         <div
           style={{

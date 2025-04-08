@@ -38,10 +38,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   const [newPassword, setNewPassword] = useState('');
   const [newPasswordValidationMessage, setNewPasswordValidationMessage] = useState('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
   const [newPasswordValidationColor, setNewPasswordValidationColor] = useState('red');
+  const [isResetPasswordVisible, setIsResetPasswordVisible] = useState(false);
+  const [isLoginPasswordVisible, setIsLoginPasswordVisible] = useState(false);
+
 
   // 입력값 상태
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
+  const [isSignUpPasswordVisible, setIsSignUpPasswordVisible] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
@@ -103,21 +107,17 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   };
 
   const validateNickname = (value: string) => {
-    const allowedRegex = /^[a-zA-Z가-힣]+$/;
+    const allowedRegex = /^[a-zA-Z가-힣0-9]+$/;
     if (!allowedRegex.test(value)) {
       return false;
     }
-    const isAllKorean = /^[가-힣]+$/.test(value);
-    const isAllEnglish = /^[a-zA-Z]+$/.test(value);
-    if (isAllKorean && value.length <= 8) {
-      return true;
+    if (/^[가-힣]+$/.test(value)) {
+      return value.length <= 8;
+    } else {
+      return value.length <= 14;
     }
-    if (isAllEnglish && value.length <= 14) {
-      return true;
-    }
-    // 혼용된 경우나 길이 초과인 경우
-    return false;
   };
+  
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -261,13 +261,41 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   Nickname
                 </label>
                 <div style={{ display: 'flex' }}>
-                  <input
-                    type="text"
-                    placeholder="닉네임을 입력해주세요"
-                    style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
-                    value={nickname}
-                    onChange={handleNicknameChange}
-                  />
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <input
+                      type="text"
+                      placeholder="닉네임을 입력해주세요"
+                      style={{
+                        width: '100%',
+                        padding: '12px 40px 12px 12px',  // 오른쪽 패딩을 40px로 지정해 아이콘 공간 확보
+                        border: `1px solid ${
+                          nicknameCheckedStatus === "success"
+                            ? "green"
+                            : (nicknameCheckedStatus === "duplicate" || nicknameCheckedStatus === "invalid")
+                            ? "red"
+                            : "#ccc"
+                        }`,
+                        borderRadius: '4px'
+                      }}
+                      value={nickname}
+                      onChange={handleNicknameChange}
+                    />
+                    {nicknameCheckedStatus && (
+                      <img
+                        src={nicknameCheckedStatus === "success" ? "check_icon.png" : "caution_icon.png"}
+                        alt="validation icon"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '20px',
+                          height: '20px',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+                  </div>
                   <button
                     style={{
                       marginLeft: '8px',
@@ -315,7 +343,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 <div style={{ marginTop: '4px' }}>
                   {nicknameCheckedStatus === "success" ? (
                     // 조건 만족 & 중복 확인 성공 시: 기본 조건 문구 대신 사용 가능 문구 출력 (파란색)
-                    <p style={{ margin: 0, fontSize: '12px', color: 'blue' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'green' }}>
                       {nicknameCheckMessage}
                     </p>
                   ) : (
@@ -342,19 +370,42 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
               <div style={{ marginBottom: '10px' }}>
                 <label style={{ display: 'block', marginBottom: '4px' }}>Email address</label>
                 <div style={{ display: 'flex' }}>
-                  <input
-                    type="email"
-                    placeholder='이메일을 입력해주세요.'
-                    style={{
-                      flex: 1,
-                      padding: '12px',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      marginBottom: '4px',
-                    }}
-                    value={signUpEmail}
-                    onChange={handleEmailChange}
-                  />
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <input
+                      type="email"
+                      placeholder="이메일을 입력해주세요."
+                      style={{
+                        width: '100%',
+                        padding: '12px 40px 12px 12px',  // 오른쪽 패딩 조정
+                        border: `1px solid ${
+                          isEmailChecked
+                            ? "green"
+                            : (emailValidationMessage && emailValidationColor === "red")
+                            ? "red"
+                            : "#ccc"
+                        }`,
+                        borderRadius: '4px',
+                        marginBottom: '4px',
+                      }}
+                      value={signUpEmail}
+                      onChange={handleEmailChange}
+                    />
+                    {(isEmailChecked || (emailValidationMessage && emailValidationColor === "red")) && (
+                      <img
+                        src={isEmailChecked ? "check_icon.png" : "caution_icon.png"}
+                        alt="validation icon"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '20px',
+                          height: '20px',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+                  </div>
                   <button
                     style={{
                       marginLeft: '8px',
@@ -380,7 +431,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                         const response = await fetch(`http://localhost:8083/api/auth/check-email?email=${signUpEmail}`);
                         if (response.ok) {
                           setEmailValidationMessage("사용 가능한 이메일입니다.");
-                          setEmailValidationColor("blue");
+                          setEmailValidationColor("green");
                           setIsEmailChecked(true); // 상태 업데이트 추가
                         } else {
                           setEmailValidationMessage("중복된 이메일입니다.");
@@ -407,36 +458,53 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
               {/* Password */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '4px' }}>Password</label>
-                <input
-                  type="password"
-                  placeholder='비밀번호를 입력해주세요.'
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    marginBottom: '8px',
-                  }}
-                  value={signUpPassword}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setSignUpPassword(value);
-                    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
-                    if (passwordRegex.test(value)) {
-                      setPasswordValidationMessage('사용 가능한 비밀번호입니다.');
-                      setPasswordValidationColor('blue');
-                      setIsPasswordValid(true);
-                    } else {
-                      setPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
-                      setPasswordValidationColor('red');
-                      setIsPasswordValid(false);
-                    }
-                  }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={isSignUpPasswordVisible ? "text" : "password"}
+                    placeholder="비밀번호를 입력해주세요."
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 12px',
+                      border: `1px solid ${signUpPassword ? (isPasswordValid ? "green" : "red") : "#ccc"}`,
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                    }}
+                    value={signUpPassword}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSignUpPassword(value);
+                      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
+                      if (passwordRegex.test(value)) {
+                        setPasswordValidationMessage('사용 가능한 비밀번호입니다.');
+                        setPasswordValidationColor('green');
+                        setIsPasswordValid(true);
+                      } else {
+                        setPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+                        setPasswordValidationColor('red');
+                        setIsPasswordValid(false);
+                      }
+                    }}
+                  />
+                  <img
+                    src={isSignUpPasswordVisible ? "show_icon.png" : "hide_icon.png"}
+                    alt="toggle password"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '45%',
+                      transform: 'translateY(-50%)',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setIsSignUpPasswordVisible(!isSignUpPasswordVisible)}
+                  />
+                </div>
                 <div style={{ color: passwordValidationColor, fontSize: '12px', marginBottom: '20px' }}>
                   {passwordValidationMessage}
                 </div>
               </div>
+
 
 
               {/* Sign up 버튼 */}
@@ -498,32 +566,46 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
               {/* Password */}
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '4px' }}>
-                  Password
-                </label>
-                <input
-                  type="password"
-                  placeholder='비밀번호를 입력해주세요.'
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    marginBottom: '8px',
-                  }}
-                  value={loginPassword}
-                  onChange={(e) => {
-                    setLoginPassword(e.target.value);
-                    setLoginErrorMessage(''); // 비밀번호 입력 시 에러 메시지 초기화
-                  }}
-                />
-                {/* 로그인 실패 에러 메시지 */}
+                <label style={{ display: 'block', marginBottom: '4px' }}>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={isLoginPasswordVisible ? "text" : "password"}
+                    placeholder="비밀번호를 입력해주세요."
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 12px',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      marginBottom: '8px',
+                    }}
+                    value={loginPassword}
+                    onChange={(e) => {
+                      setLoginPassword(e.target.value);
+                      setLoginErrorMessage('');
+                    }}
+                  />
+                  <img
+                    src={isLoginPasswordVisible ? "show_icon.png" : "hide_icon.png"}
+                    alt="toggle password"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '45%',
+                      transform: 'translateY(-50%)',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setIsLoginPasswordVisible(!isLoginPasswordVisible)}
+                  />
+                </div>
                 {loginErrorMessage && (
                   <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>
                     {loginErrorMessage}
                   </div>
                 )}
               </div>
+
 
               {/* 로그인 유지 체크박스와 비밀번호 찾기 링크 */}
               <div
@@ -630,6 +712,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   borderRadius: '20px',
                   padding: '12px',
                   cursor: 'pointer',
+                  marginTop: '10px'
                 }}
                 onClick={async () => {
                   try {
@@ -694,27 +777,49 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
               <h2 style={{ textAlign: 'center', marginBottom: '25px', fontSize: '20px', fontWeight: 'bold' }}>비밀번호 재설정</h2>
               <div style={{ marginBottom: '10px' }}>
                 <label style={{ display: 'block', marginBottom: '4px' }}>새 비밀번호</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setNewPassword(value);
-                    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
-                    if (passwordRegex.test(value)) {
-                      setNewPasswordValidationMessage('사용 가능한 비밀번호입니다.');
-                      setNewPasswordValidationColor('blue');
-                    } else {
-                      setNewPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
-                      setNewPasswordValidationColor('red');
-                    }
-                  }}
-                  style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={isResetPasswordVisible ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewPassword(value);
+                      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,16}$/;
+                      if (passwordRegex.test(value)) {
+                        setNewPasswordValidationMessage('사용 가능한 비밀번호입니다.');
+                        setNewPasswordValidationColor('green');
+                      } else {
+                        setNewPasswordValidationMessage('영문 대소문자/숫자/특수문자를 혼용하여 8~16자 입력해주세요.');
+                        setNewPasswordValidationColor('red');
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '12px 40px 12px 12px',
+                      border: `1px solid ${newPassword ? (newPasswordValidationColor === 'green' ? "green" : "red") : "#ccc"}`,
+                      borderRadius: '4px'
+                    }}
+                  />
+                  <img
+                    src={isResetPasswordVisible ? "show_icon.png" : "hide_icon.png"}
+                    alt="toggle password"
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '20px',
+                      height: '20px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setIsResetPasswordVisible(!isResetPasswordVisible)}
+                  />
+                </div>
                 <div style={{ color: newPasswordValidationColor, fontSize: '12px', marginTop: '4px' }}>
                   {newPasswordValidationMessage}
                 </div>
               </div>
+
               <button
                 style={{
                   width: '100%',
@@ -724,6 +829,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   borderRadius: '20px',
                   padding: '12px',
                   cursor: 'pointer',
+                  marginTop: '10px'
                 }}
                 onClick={async () => {
                   try {

@@ -10,7 +10,6 @@ interface ProgressData {
   genreData: { label: string; value: number }[];     // 장르별 비율
 }
 
-// 게시글 타입 (백엔드 API 응답 구조에 맞게 필요 시 수정)
 interface Post {
   id: number;
   title: string;
@@ -18,54 +17,51 @@ interface Post {
   startDate?: string;
   endDate?: string;
   genre?: string;
+  lastModified?: string;
 }
 
 interface RecommendedBook {
   title: string;
   author: string;
   summary: string;
-  coverUrl?: string;  // 표지 이미지 경로 (없으면 회색 배경 처리)
+  coverUrl?: string;
 }
 
 const HomePage: React.FC = () => {
-
-  // (1) 연간 목표/달성 수 상태
+  // 목표 관련 상태
   const [yearlyGoal, setYearlyGoal] = useState(0);
   const [yearlyAchieved, setYearlyAchieved] = useState(0);
   const [monthlyGoal, setMonthlyGoal] = useState(0);
   const [statTabIndex, setStatTabIndex] = useState(0);
   const [progressData, setProgressData] = useState<ProgressData | null>(null);
 
-  
-  // 모달 열림/닫힘
+  // 모달 열림/닫힘 상태 및 임시 목표 값
   const [showGoalModal, setShowGoalModal] = useState(false);
-  // 모달에서 입력받을 임시 목표값
   const [tempGoalValue, setTempGoalValue] = useState('');
 
-  // 독서 기록을 위한 게시글 관련 state 추가
+  // 독서 기록 관련 상태
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentReading, setCurrentReading] = useState<Post[]>([]);
   const [finishedReading, setFinishedReading] = useState<Post[]>([]);
+  // 탭 상태: 현재 읽는 책과 최근 완독한 책을 선택할 수 있도록 함.
+  const [recordTab, setRecordTab] = useState<'current' | 'finished'>('current');
 
-  const navigate = useNavigate(); // BookNote 페이지로 이동하기 위한 훅
+  const navigate = useNavigate(); // BookNote 페이지로 이동
+  const currentYearLocal = new Date().getFullYear();
+  const registrationYear = Number(localStorage.getItem("registrationYear")) || currentYearLocal;
 
-  // 추천 도서 관련 state
+
+  // 추천 도서 관련 상태
   const [recommendationStep, setRecommendationStep] = useState<'select' | 'result'>('select');
   const [defaultRecommendedBook, setDefaultRecommendedBook] = useState<RecommendedBook | null>(null); 
   const [modalRecommendedBook, setModalRecommendedBook] = useState<RecommendedBook | null>(null);
-
-  // 추천 모달 열림/닫힘
   const [showRecommendModal, setShowRecommendModal] = useState(false);
-
-  // 사용자가 모달에서 선택한 장르
   const [selectedGenre, setSelectedGenre] = useState('');
 
   const ratio = yearlyGoal > 0 ? (yearlyAchieved / yearlyGoal) : 0;
   const angle = ratio * 360;
-
   const [homeYearlyChartData, setHomeYearlyChartData] = useState<{ month: string; count: number }[]>([]);
-
-
+  const [selectedGoalYear, setSelectedGoalYear] = useState(currentYearLocal);
   const getCheerMessage = (ratio: number): string => {
     const percent = Math.round(ratio * 100);
     if (percent === 0) {
@@ -83,21 +79,19 @@ const HomePage: React.FC = () => {
     }
     return "";
   };
-  
 
   useEffect(() => {
     const currentEmail = localStorage.getItem('email');
     const goalEmail = localStorage.getItem('goalEmail');
-  
+
     // 현재 로그인한 이메일과 목표 데이터를 저장했던 이메일이 다르다면 기존 목표 데이터를 제거
     if (!goalEmail || goalEmail !== currentEmail) {
       localStorage.removeItem('yearlyGoal');
       localStorage.removeItem('yearlyAchieved');
       localStorage.removeItem('monthlyGoal');
-      // 현재 계정의 이메일을 목표 데이터 관리용으로 저장
       localStorage.setItem('goalEmail', currentEmail || '');
     }
-  
+
     const storedGoal = localStorage.getItem('yearlyGoal');
     const storedAchieved = localStorage.getItem('yearlyAchieved');
     if (storedGoal) {
@@ -106,17 +100,15 @@ const HomePage: React.FC = () => {
     if (storedAchieved) {
       setYearlyAchieved(parseInt(storedAchieved, 10));
     }
-  
+
     const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
     if (storedMonthlyGoal) {
       setMonthlyGoal(parseInt(storedMonthlyGoal, 10));
     }
   }, []);
-  
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-  
     fetch(`http://localhost:8083/progress?year=${currentYear}`)
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
@@ -128,8 +120,6 @@ const HomePage: React.FC = () => {
       .catch(console.error);
   }, []);
 
-
-  // 게시글 fetch (BookNote 페이지의 게시글 API와 동일한 엔드포인트 사용)
   useEffect(() => {
     fetch('http://localhost:8083/posts')
       .then((res) => {
@@ -142,58 +132,79 @@ const HomePage: React.FC = () => {
       .catch((error) => console.error('Error fetching posts:', error));
   }, []);
 
-  // 최근 6년 연간 독서량 데이터 (완독 상태의 게시글 기준)
   useEffect(() => {
-    const finished = posts.filter(p => p.readingStatus === '완독' && p.endDate);
-    const currentYear = new Date().getFullYear();
-    const tempData = [];
-    for (let y = currentYear - 5; y <= currentYear; y++) {
-      const count = finished.filter(p => new Date(p.endDate!).getFullYear() === y).length;
+    // registrationYear와 currentYearLocal를 이용한 범위 결정:
+    // 가입 연도와 현재 연도가 같다면 [currentYearLocal, currentYearLocal+5]
+    // 그렇지 않다면 [registrationYear, currentYearLocal]
+    let startYear: number, endYear: number;
+    if (registrationYear === currentYearLocal) {
+      startYear = currentYearLocal;
+      endYear = currentYearLocal + 5;
+    } else {
+      startYear = registrationYear;
+      endYear = currentYearLocal;
+    }
+    const tempData: { month: string; count: number }[] = [];
+    // full range의 각 연도별로 완독된 게시물 수 계산 (단, endDate가 null이 아니고 연도만 비교)
+    for (let y = startYear; y <= endYear; y++) {
+      const count = posts.filter(p => {
+        if (p.readingStatus !== '완독' || !p.endDate) return false;
+        const d = new Date(p.endDate);
+        return d.getFullYear() === y;
+      }).length;
       tempData.push({ month: `${y}년`, count });
     }
     setHomeYearlyChartData(tempData);
-  }, [posts]);
+  }, [posts, registrationYear, currentYearLocal]);
+  
 
-
-  // posts 변경 시, 독서 상태별 분류 (최대 3개씩)
   useEffect(() => {
     const current = posts.filter((p) => p.readingStatus === '독서중');
-    const finished = posts
-      .filter(
-        (p) =>
-          p.readingStatus === '완독' &&
-          p.endDate &&
-          new Date(p.endDate).getFullYear() === new Date().getFullYear()
-      )
-      .sort((a, b) => new Date(b.endDate!).getTime() - new Date(a.endDate!).getTime());
-    setCurrentReading(current.slice(0, 2));
-    setFinishedReading(finished.slice(0, 2));
-    setYearlyAchieved(finished.length); // 여기서 완독 게시물 수를 업데이트
-  }, [posts]);
+    const finished = posts.filter(
+      (p) =>
+        p.readingStatus === '완독' &&
+        p.endDate &&
+        new Date(p.endDate).getFullYear() === selectedGoalYear
+    );
+    const sortedCurrent = [...current].sort((a, b) => {
+      const dateA = a.lastModified ? new Date(a.lastModified).getTime() : 0;
+      const dateB = b.lastModified ? new Date(b.lastModified).getTime() : 0;
+      return dateB - dateA;
+    });
+    const sortedFinished = [...finished].sort((a, b) => {
+      const dateA = a.lastModified ? new Date(a.lastModified).getTime() : (a.endDate ? new Date(a.endDate).getTime() : 0);
+      const dateB = b.lastModified ? new Date(b.lastModified).getTime() : (b.endDate ? new Date(b.endDate).getTime() : 0);
+      return dateB - dateA;
+    });
+    setCurrentReading(sortedCurrent.slice(0, 5));
+    setFinishedReading(sortedFinished.slice(0, 5));
+    setYearlyAchieved(sortedFinished.length);
+  }, [posts, selectedGoalYear]);
+
 
   function handleGoalSubmit() {
-    // (1) 숫자 파싱
     const newGoal = parseInt(tempGoalValue, 10) || 0;
     if (newGoal <= 0) {
       alert('1 이상의 숫자를 입력하세요.');
       return;
     }
-  
-    // (2) 현재 연도 구하기
+    
     const currentYear = new Date().getFullYear();
-  
-    // (3) localStorage에 현재 연도를 포함한 key로 저장
+    localStorage.setItem("yearlyGoal", String(newGoal));
     localStorage.setItem(`yearlyGoal_${currentYear}`, String(newGoal));
   
-    // (4) HomePage의 yearlyGoal 상태 갱신
     setYearlyGoal(newGoal);
-  
-    // (5) 모달 닫기
     setShowGoalModal(false);
   }
-  
 
-  /* 기본 추천 도서 불러오기 */
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setStatTabIndex(prevIndex => (prevIndex + 1) % 3);
+    }, 5000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  // 기본 추천 도서 불러오기
   useEffect(() => { 
     fetch('http://localhost:8083/recommend') 
     .then((res) => { 
@@ -206,9 +217,7 @@ const HomePage: React.FC = () => {
     }) 
     .catch((err) => console.error(err)); 
   }, []);
-  
 
-  /* 추천받기 로직 (OK 버튼 핸들러 */
   function handleRecommendOk() {
     if (!selectedGenre) {
       alert('장르를 선택해주세요.');
@@ -229,14 +238,8 @@ const HomePage: React.FC = () => {
         alert('추천 도서를 불러오는 중 오류가 발생했습니다.');
       });
   }
-  
-  
-  
-  
 
-  //통계 Card의 장르별 독서 비율
   const computedGenreData = useMemo(() => {
-    // 모든 게시글 중 genre가 존재하는 항목 선택 (완독, 독서중 모두 포함)
     const postsWithGenre = posts.filter(p => p.genre && p.genre.trim() !== '');
     const total = postsWithGenre.length;
     const genreCount: Record<string, number> = {};
@@ -251,9 +254,7 @@ const HomePage: React.FC = () => {
     return genreData;
   }, [posts]);
 
-
   return (
-    // 전체 페이지 래퍼
     <div
       style={{
         position: 'relative',
@@ -275,15 +276,12 @@ const HomePage: React.FC = () => {
           zIndex: -1,
         }}
       />
-      {/* 가운데 정렬 및 콘텐츠 영역 래퍼 */}
       <div style={{ 
         maxWidth: '1200px',
         width: '100%', 
         margin: '0 auto',
         paddingBottom: '80px'
-        }}>
-
-        {/* 2x2 카드 레이아웃 */}
+      }}>
         <div
           style={{
             display: 'grid',
@@ -294,19 +292,9 @@ const HomePage: React.FC = () => {
             marginRight: '20px'
           }}
         >
-
-          {/* (1) 목표 관리 제목 + 카드 컨테이너 */}
+          {/* 목표 관리 카드 */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {/* 카드 위에 배치된 제목 */}
-            <h3 style={{ 
-              margin: 0,
-              fontWeight: 'bold', 
-              fontSize: '25px'
-            }}>
-              목표 관리
-            </h3>
-
-            {/* 바깥쪽(회색 반투명) */}
+            <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '25px' }}>목표 관리</h3>
             <div
               style={{
                 backgroundColor: 'rgba(128,128,128,0.2)',
@@ -315,19 +303,17 @@ const HomePage: React.FC = () => {
                 boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
               }}
             >
-              {/* 안쪽(흰색) - 고정 크기 */}
               <div
                 style={{
                   backgroundColor: '#fff',
                   borderRadius: '10px',
-                  width: '500px',   // 원하는 고정 폭
-                  height: '300px',  // 원하는 고정 높이
-                  margin: '0 auto', // 바깥 컨테이너 안에서 가운데 정렬
+                  width: '500px',
+                  height: '300px',
+                  margin: '0 auto',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
               >
-                {/* 상단 타이틀 영역 */}
                 <div
                   style={{
                     padding: '10px 20px',
@@ -338,8 +324,6 @@ const HomePage: React.FC = () => {
                 >
                   올해 목표
                 </div>
-
-                {/* 본문 영역: 좌우 2컬럼 배치 */}
                 <div
                   style={{
                     flex: 1,
@@ -350,11 +334,10 @@ const HomePage: React.FC = () => {
                     gap: '10px',
                   }}
                 >
-                  {/* (A) 왼쪽: 도넛 그래프 영역 */}
                   <div
                     style={{
                       display: 'flex',
-                      flexDirection: 'column', // 도넛 아래에 레전드를 배치하기 위해 column
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRight: '1px solid #eee',
@@ -362,459 +345,425 @@ const HomePage: React.FC = () => {
                       height: '100%',
                     }}
                   >
-
-                    {/* (A) 목표 미설정 vs 설정됨 분기 */}
                     {yearlyGoal === 0 ? (
-                      // 0% 도넛
-                      <div
-                      style={{
-                        width: '90px',
-                        height: '90px',
-                        border: '8px solid #E0E0E0',
-                        borderRadius: '50%',
-                        position: 'relative',
-                      }}
-                    >
-                      {/* (A) 위쪽: 도넛 (왼) + 안내/버튼 (오른) 가로 배치 */}
                       <div
                         style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          fontSize: '18px',
-                          fontWeight: 'bold',
-                        }}
-                      >
-                        0%
-                      </div>
-                    </div>
-                  ) : (
-                    // 달성률 도넛
-                    <div style={{ position: 'relative', width: '100px', height: '100px' }}>
-                      {/* (1) 남은 부분 (얇은 링) - 아래 레이어 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100px',
-                          height: '100px',
+                          width: '90px',
+                          height: '90px',
+                          border: '8px solid #E0E0E0',
                           borderRadius: '50%',
-                          background: `conic-gradient(
-                            #F0F0F0 ${angle}deg 360deg, /* angle~360deg는 연한 회색 */
-                            transparent 0deg ${angle}deg /* 0~angle은 투명 */
-                          )`,
-                          zIndex: 1,
+                          position: 'relative',
                         }}
                       >
-                        {/* 안쪽 흰색 원 (크게) → 두께가 얇아짐 */}
                         <div
                           style={{
                             position: 'absolute',
                             top: '50%',
                             left: '50%',
                             transform: 'translate(-50%, -50%)',
-                            width: '80px',
-                            height: '80px',
-                            backgroundColor: '#fff',
-                            borderRadius: '50%',
-                          }}
-                        />
-                      </div>
-
-                      {/* (2) 달성 부분 (두꺼운 링) - 위 레이어 */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100px',
-                          height: '100px',
-                          borderRadius: '50%',
-                          background: `conic-gradient(
-                            #FF5C00 0deg ${angle}deg,
-                            transparent ${angle}deg 360deg
-                          )`,
-                          zIndex: 2,
-                        }}
-                      >
-                        {/* 안쪽 흰색 원 (작게) → 두께가 두꺼워짐 */}
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            width: '80px',   // 아래 레이어와 똑같이 80px
-                            height: '80px',
-                            backgroundColor: '#fff',
-                            borderRadius: '50%',
-                          }}
-                        />
-                      </div>
-
-                      {/* (3) 중앙 텍스트 (퍼센트) */}
-                      <div
-                        style={{
-                          position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        zIndex: 3,
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        }}
-                      >
-                        {Math.round(ratio * 100)}%
-                      </div>
-                    </div>
-                )}
-
-                  {/* 레전드 (달성/목표) - 도넛 차트 바로 아래 */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '30px', // 달성/목표 사이의 간격
-                      marginTop: '45px', //차트와의 간격
-                    }}
-                  >
-                    {/* 달성 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <div
-                        style={{
-                          width: '12px',
-                          height: '12px',
-                          borderRadius: '50%',
-                          backgroundColor: '#FF5C00',
-                        }}
-                      />
-                      <span style={{ fontSize: '14px' }}>달성</span>
-                    </div>
-                    {/* 목표 */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <div
-                        style={{
-                          width: '12px',
-                          height: '12px',
-                          borderRadius: '50%',
-                          backgroundColor: '#A0A0A0',
-                        }}
-                      />
-                      <span style={{ fontSize: '14px' }}>목표</span>
-                    </div>
-                  </div>
-                </div>
-                  
-                {/* (B) 오른쪽: 목표 설정 or 달성 정보 */}
-                <div style={{ paddingLeft: '10px' }}>
-                  {yearlyGoal === 0 ? (
-                    /* 목표 미설정 UI */
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <p style={{ fontSize: '14px', lineHeight: '2', color: '#333' }}>
-                        아직 목표가 설정되지 않았어요! <br />
-                        아래의 목표 설정 버튼을 클릭하여 
-                        올해 목표를 설정하고 달성해보세요!
-                      </p>
-                      <button
-                        style={{
-                          backgroundColor: '#000',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '20px',
-                          padding: '8px 20px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          alignSelf: 'center',
-                        }}
-                        onClick={() => setShowGoalModal(true)}
-                      >
-                        목표 설정
-                      </button>
-                    </div>
-                  ) : (
-                    /* 목표 설정됨 UI */
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <div
-                        style={{
-                          background: 'linear-gradient(135deg, #F8F3EE, #FFFFFF)',
-                          borderRadius: '8px',
-                          padding: '15px',
-                          width: '260px',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '10px',
-                        }}
-                      >
-                        {/* 목표/달성/남은 책 정보 */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              borderBottom: '1px solid #C5BBB1',
-                              padding: '5px 0',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <span style={{ marginRight: '8px', fontSize: '16px' }}>📚</span>
-                              <span style={{ fontWeight: 'bold' }}>목표</span>
-                            </div>
-                            <span>{yearlyGoal}권</span>
-                          </div>
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              borderBottom: '1px solid #C5BBB1',
-                              padding: '8px 0',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <span style={{ marginRight: '8px', fontSize: '16px' }}>✅</span>
-                              <span style={{ fontWeight: 'bold' }}>달성</span>
-                            </div>
-                            <span>{yearlyAchieved}권</span>
-                          </div>
-                          <div
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              padding: '8px 0',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <span style={{ marginRight: '8px', fontSize: '16px' }}>⏳</span>
-                              <span style={{ fontWeight: 'bold' }}>남은 책</span>
-                            </div>
-                            <span>{yearlyGoal - yearlyAchieved}권</span>
-                          </div>
-                        </div>
-
-                        {/* 응원 문구를 카드 내부 하단에 배치 */}
-                        <div
-                          style={{
-                            //borderTop: '1px solid #C5BBB1',
-                            paddingTop: '5px',
-                            marginTop: '1px',
-                            textAlign: 'center',
+                            fontSize: '18px',
+                            fontWeight: 'bold',
                           }}
                         >
-                          <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#FF5C00' }}>
-                            {getCheerMessage(ratio)}
-                          </span>
+                          0%
                         </div>
                       </div>
+                    ) : (
+                      <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            background: `conic-gradient(
+                              #F0F0F0 ${angle}deg 360deg,
+                              transparent 0deg ${angle}deg
+                            )`,
+                            zIndex: 1,
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '80px',
+                              height: '80px',
+                              backgroundColor: '#fff',
+                              borderRadius: '50%',
+                            }}
+                          />
+                        </div>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            background: `conic-gradient(
+                              #FF5C00 0deg ${angle}deg,
+                              transparent ${angle}deg 360deg
+                            )`,
+                            zIndex: 2,
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: '80px',
+                              height: '80px',
+                              backgroundColor: '#fff',
+                              borderRadius: '50%',
+                            }}
+                          />
+                        </div>
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            zIndex: 3,
+                            fontSize: '18px',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {Math.round(ratio * 100)}%
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: '30px',
+                        marginTop: '45px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div
+                          style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: '#FF5C00',
+                          }}
+                        />
+                        <span style={{ fontSize: '14px' }}>달성</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div
+                          style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: '#A0A0A0',
+                          }}
+                        />
+                        <span style={{ fontSize: '14px' }}>목표</span>
+                      </div>
                     </div>
-
-                  )}
+                  </div>
+                  <div style={{ paddingLeft: '10px' }}>
+                    {yearlyGoal === 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <p style={{ fontSize: '14px', lineHeight: '2', color: '#333' }}>
+                          아직 목표가 설정되지 않았어요! <br />
+                          아래의 목표 설정 버튼을 클릭하여 올해 목표를 설정하고 달성해보세요!
+                        </p>
+                        <button
+                          style={{
+                            backgroundColor: '#000',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '20px',
+                            padding: '8px 20px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            alignSelf: 'center',
+                          }}
+                          onClick={() => setShowGoalModal(true)}
+                        >
+                          목표 설정
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div
+                          style={{
+                            background: 'linear-gradient(135deg, #F8F3EE, #FFFFFF)',
+                            borderRadius: '8px',
+                            padding: '15px',
+                            width: '260px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderBottom: '1px solid #C5BBB1',
+                                padding: '5px 0',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ marginRight: '8px', fontSize: '16px' }}>📚</span>
+                                <span style={{ fontWeight: 'bold' }}>목표</span>
+                              </div>
+                              <span>{yearlyGoal}권</span>
+                            </div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderBottom: '1px solid #C5BBB1',
+                                padding: '8px 0',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ marginRight: '8px', fontSize: '16px' }}>✅</span>
+                                <span style={{ fontWeight: 'bold' }}>달성</span>
+                              </div>
+                              <span>{yearlyAchieved}권</span>
+                            </div>
+                            <div
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                padding: '8px 0',
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ marginRight: '8px', fontSize: '16px' }}>⏳</span>
+                                <span style={{ fontWeight: 'bold' }}>남은 책</span>
+                              </div>
+                              <span>{yearlyGoal - yearlyAchieved}권</span>
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              paddingTop: '5px',
+                              marginTop: '1px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#FF5C00' }}>
+                              {getCheerMessage(ratio)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
+              </div>
             </div>
-
-              
           </div>
-        </div>
-      </div>
 
-
-      {/* (2) 통계 제목 + 카드 컨테이너 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* 카드 위에 배치된 제목 */}
-        <h3 style={{ 
-          margin: 0,
-          fontWeight: 'bold', 
-          fontSize: '25px'
-        }}>
-          통계
-        </h3>
-
-        {/* 바깥쪽(회색 반투명) */}
-        <div
-          style={{
-            backgroundColor: 'rgba(128,128,128,0.2)',
-            borderRadius: '10px',
-            padding: '20px',
-            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-          }}
-        >
-          {/* 안쪽(흰색) */}
-          <div
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-              width: '500px',
-              height: '300px',
-              margin: '0 auto',
-              padding: '20px',
-              position: 'relative',
-            }}
-          >
-            {/* 오른쪽 상단 점 3개 (탭 전환) */}
-            <div 
+          {/* 통계 카드 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '25px' }}>통계</h3>
+            <div
               style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                display: 'flex',
-                gap: '8px',
+                backgroundColor: 'rgba(128,128,128,0.2)',
+                borderRadius: '10px',
+                padding: '20px',
+                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
               }}
             >
               <div
-                onClick={() => setStatTabIndex(0)}
                 style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: statTabIndex === 0 ? '#000' : '#ccc',
-                  cursor: 'pointer',
+                  backgroundColor: '#fff',
+                  borderRadius: '10px',
+                  width: '500px',
+                  height: '300px',
+                  margin: '0 auto',
+                  padding: '20px',
+                  position: 'relative',
                 }}
-              />
-              <div
-                onClick={() => setStatTabIndex(1)}
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: statTabIndex === 1 ? '#000' : '#ccc',
-                  cursor: 'pointer',
-                }}
-              />
-              <div
-                onClick={() => setStatTabIndex(2)}
-                style={{
-                  width: '10px',
-                  height: '10px',
-                  borderRadius: '50%',
-                  backgroundColor: statTabIndex === 2 ? '#000' : '#ccc',
-                  cursor: 'pointer',
-                }}
-              />
-            </div>
-
-            {/* 실제 통계 차트/그래프 표시 (ProgressPage와 연동) */}
-            {progressData ? (
-              <>
-                {/* 첫 번째 점: 연간 독서량 */}
-                {statTabIndex === 0 && (
-                  <AnnualLineChart chartData={homeYearlyChartData} />
-                )}
-
-                {/* 두 번째 점: 월간 독서량 */}
-                {statTabIndex === 1 && (() => {
-                  const currentMonth = new Date().getMonth() + 1;
-                  return (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        overflow: 'hidden'
-                      }}
-                    >
-                      <MonthlyBarChart
-                        chartData={
-                          progressData.recent6Months.map(item => ({
-                            month: item.month,
-                            // item.month가 "현재월월"과 일치하면 monthlyGoal을, 아니면 0
-                            goal: item.month === `${currentMonth}월` ? monthlyGoal : 0,
-                            achieved: item.count
-                          }))
-                        }
-                        monthlyGoal={monthlyGoal}
-                      />
-                    </div>
-                  );
-                })()}
-
-
-                {/* 세 번째 점: 장르별 독서 비율 */}
-                {statTabIndex === 2 && (
-                  <HomeGenreDoughnutChart
-                    genreData={computedGenreData}
-                  />
-                )}
-              </>
-            ) : (
-              <p>통계 데이터를 불러오는 중...</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-
-      {/* (3) 독서 기록 카드 + 카드 컨테이너 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* 카드 위에 배치된 제목 */}
-        <h3 style={{ 
-          margin: 0,
-          fontWeight: 'bold', 
-          fontSize: '25px'
-        }}>독서 기록</h3>
-
-        {/* 바깥쪽(회색 반투명) */}
-        <div
-          style={{
-            backgroundColor: 'rgba(128,128,128,0.2)',
-            borderRadius: '10px',
-            padding: '20px',
-            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-          }}
-        >
-          {/* 안쪽(흰색) */}
-          <div
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-              width: '500px',
-              height: '300px',
-              margin: '0 auto',
-              padding: '20px',
-            }}
-          >
-            {currentReading.length === 0 && finishedReading.length === 0 ? (
-              // 초기 사용자: 게시글이 하나도 없을 경우
-              <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <p style={{ fontSize: '18px', color: '#555', marginBottom: '20px' }}>
-                  아직 독서 기록이 없습니다.
-                </p>
-                <button
-                  onClick={() => navigate('/booknote')}
+              >
+                <div 
                   style={{
-                    backgroundColor: '#333',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '10px 24px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    display: 'flex',
+                    gap: '8px',
                   }}
                 >
-                  독서 노트 작성하러 가기
-                </button>
+                  <div
+                    onClick={() => setStatTabIndex(0)}
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: statTabIndex === 0 ? '#000' : '#ccc',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div
+                    onClick={() => setStatTabIndex(1)}
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: statTabIndex === 1 ? '#000' : '#ccc',
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <div
+                    onClick={() => setStatTabIndex(2)}
+                    style={{
+                      width: '10px',
+                      height: '10px',
+                      borderRadius: '50%',
+                      backgroundColor: statTabIndex === 2 ? '#000' : '#ccc',
+                      cursor: 'pointer',
+                    }}
+                  />
+                </div>
+                {progressData ? (
+                  <div style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                      display: 'flex',
+                      transform: `translateX(-${statTabIndex * 100}%)`,
+                      transition: 'transform 0.5s ease'
+                    }}>
+                      <div style={{ flex: '0 0 100%' }}>
+                        <AnnualLineChart chartData={homeYearlyChartData} registrationYear={registrationYear} fromLabel={`가입 연도: ${registrationYear}년 ~ 최근`} />
+                      </div>
+                      <div style={{ flex: '0 0 100%' }}>
+                        {(() => {
+                          const currentMonth = new Date().getMonth() + 1;
+                          return (
+                            <MonthlyBarChart
+                              chartData={progressData.recent6Months.map(item => ({
+                                month: item.month,
+                                goal: item.month === `${currentMonth}월` ? monthlyGoal : 0,
+                                achieved: item.count
+                              }))}
+                              monthlyGoal={monthlyGoal}
+                            />
+                          );
+                        })()}
+                      </div>
+                      <div style={{ flex: '0 0 100%' }}>
+                        <HomeGenreDoughnutChart genreData={computedGenreData} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p>통계 데이터를 불러오는 중...</p>
+                )}
               </div>
-            ) : (
-              // 게시글이 있을 경우: 현재 읽는 책과 최근 완독한 책 각각 최대 2개씩 표시
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                {/* 현재 읽고 있는 책 */}
-                <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
-                    현재 읽고 있는 책
-                  </h4>
-                  {currentReading.length === 0 ? (
-                    <p style={{ color: '#777' }}>현재 읽고 있는 책이 없습니다.</p>
+            </div>
+          </div>
+
+          {/* 독서 기록 카드 (탭 인터페이스 적용) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '25px' }}>독서 기록</h3>
+            <div
+              style={{
+                backgroundColor: 'rgba(128,128,128,0.2)',
+                borderRadius: '10px',
+                padding: '20px',
+                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: '#fff',
+                  borderRadius: '10px',
+                  width: '500px',
+                  height: '300px',
+                  margin: '0 auto',
+                  padding: '0px 20px',
+                }}
+              >
+                {/* 탭 헤더 */}
+                <div style={{ margin: '0 -20px', padding: 0 }}>
+                  <div style={{ display: 'flex', borderBottom: '1px solid #eee', marginBottom: '20px', padding: 0 }}>
+                    <button
+                      onClick={() => setRecordTab('current')}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        backgroundColor: recordTab === 'current' ? '#556B2F' : '#fff',
+                        color: recordTab === 'current' ? '#fff' : '#333',
+                        border: 'none',
+                        borderBottom: recordTab === 'current' ? '2px solid #556B2F' : 'none',
+                        cursor: 'pointer',
+                        borderTopLeftRadius: '8px', // 왼쪽 상단 둥글게
+                      }}
+                    >
+                      현재 읽고 있는 책
+                    </button>
+                    <button
+                      onClick={() => setRecordTab('finished')}
+                      style={{
+                        flex: 1,
+                        padding: '10px',
+                        backgroundColor: recordTab === 'finished' ? '#4B3621' : '#fff',
+                        color: recordTab === 'finished' ? '#fff' : '#333',
+                        border: 'none',
+                        borderBottom: recordTab === 'finished' ? '2px solid #4B3621' : 'none',
+                        cursor: 'pointer',
+                        borderTopRightRadius: '8px', // 오른쪽 상단 둥글게
+                      }}
+                    >
+                      최근 완독한 책
+                    </button>
+                  </div>
+                </div>
+
+                {recordTab === 'current' && (
+                  currentReading.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                      <p style={{ fontSize: '18px', color: '#555', marginBottom: '20px' }}>
+                        현재 읽고 있는 책이 없습니다.
+                      </p>
+                      <button
+                        onClick={() => navigate('/booknote')}
+                        style={{
+                          backgroundColor: '#333',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '20px',
+                          padding: '10px 24px',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                        }}
+                      >
+                        독서 노트 작성하러 가기
+                      </button>
+                    </div>
                   ) : (
                     currentReading.map((post) => (
                       <div
                         key={post.id}
+                        onClick={() => navigate(`/post/${post.id}`)}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '10px 0',
                           borderBottom: '1px solid #eee',
+                          cursor: 'pointer'
                         }}
                       >
                         <span style={{ fontSize: '15px' }}>{post.title}</span>
@@ -823,26 +772,28 @@ const HomePage: React.FC = () => {
                         </span>
                       </div>
                     ))
-                  )}
-                </div>
+                  )
+                )}
 
-                {/* 최근 완독한 책 */}
-                <div>
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '16px', fontWeight: 'bold' }}>
-                    최근 완독한 책
-                  </h4>
-                  {finishedReading.length === 0 ? (
-                    <p style={{ color: '#777' }}>최근 완독한 책이 없습니다.</p>
+                {recordTab === 'finished' && (
+                  finishedReading.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                      <p style={{ fontSize: '18px', color: '#555', marginBottom: '20px' }}>
+                        최근 완독한 책이 없습니다.
+                      </p>
+                    </div>
                   ) : (
                     finishedReading.map((post) => (
                       <div
                         key={post.id}
+                        onClick={() => navigate(`/post/${post.id}`)}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '10px 0',
                           borderBottom: '1px solid #eee',
+                          cursor: 'pointer'
                         }}
                       >
                         <span style={{ fontSize: '15px' }}>{post.title}</span>
@@ -851,101 +802,81 @@ const HomePage: React.FC = () => {
                         </span>
                       </div>
                     ))
-                  )}
-                </div>
+                  )
+                )}
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-
-
-      {/* (4) 추천 도서 카드 + 카드 컨테이너 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* 카드 위에 배치된 제목 */}
-        <h3 style={{ 
-          margin: 0,
-          fontWeight: 'bold', 
-          fontSize: '25px'
-        }}>추천 도서</h3>
-
-        {/* 바깥쪽(회색 반투명) */}
-        <div
-          style={{
-            backgroundColor: 'rgba(128,128,128,0.2)',
-            borderRadius: '10px',
-            padding: '20px',
-            boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
-          }}
-        >
-          {/* 안쪽(흰색) */}
-          <div
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-              width: '500px',
-              height: '300px',
-              margin: '0 auto',
-              padding: '30px 5px 30px 20px',
-              display: 'flex',         // 왼쪽(텍스트) + 오른쪽(이미지) 가로 배치
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            {/* 왼쪽: 책 정보 */}
-            <div style={{ flex: 1, marginRight: '20px' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 'bold' }}>
-                {defaultRecommendedBook?.title || '책 제목'}
-              </h4>
-              <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#555' }}>
-                {defaultRecommendedBook?.author || '저자'}
-              </p>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', lineHeight: '1.4' }}>
-                {defaultRecommendedBook?.summary || '이곳에 책의 정보가 표시됩니다.'}
-              </p>
-              <button
-                onClick={() => setShowRecommendModal(true)}
-                style={{
-                  backgroundColor: '#333',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '8px 20px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                }}
-              >
-                추천받기
-              </button>
             </div>
-            {/* 오른쪽: 책 표지 */}
+          </div>
+
+          {/* 추천 도서 카드 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontWeight: 'bold', fontSize: '25px' }}>추천 도서</h3>
             <div
               style={{
-                width: '180px',
-                height: '290px',
-                backgroundColor: '#ccc',
-                //borderRadius: '8px',
-                //overflow: 'hidden',
+                backgroundColor: 'rgba(128,128,128,0.2)',
+                borderRadius: '10px',
+                padding: '20px',
+                boxShadow: '0 4px 4px rgba(0,0,0,0.25)',
               }}
             >
-              {defaultRecommendedBook?.coverUrl ? (
-                <img
-                  src={defaultRecommendedBook.coverUrl}
-                  alt="Book Cover"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : null}
+              <div
+                style={{
+                  backgroundColor: '#fff',
+                  borderRadius: '10px',
+                  width: '500px',
+                  height: '300px',
+                  margin: '0 auto',
+                  padding: '30px 5px 30px 20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <div style={{ flex: 1, marginRight: '20px' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '18px', fontWeight: 'bold' }}>
+                    {defaultRecommendedBook?.title || '책 제목'}
+                  </h4>
+                  <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#555' }}>
+                    {defaultRecommendedBook?.author || '저자'}
+                  </p>
+                  <p style={{ margin: '0 0 20px 0', fontSize: '13px', lineHeight: '1.4' }}>
+                    {defaultRecommendedBook?.summary || '이곳에 책의 정보가 표시됩니다.'}
+                  </p>
+                  <button
+                    onClick={() => setShowRecommendModal(true)}
+                    style={{
+                      backgroundColor: '#333',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '20px',
+                      padding: '8px 20px',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                    }}
+                  >
+                    추천받기
+                  </button>
+                </div>
+                <div
+                  style={{
+                    width: '180px',
+                    height: '290px',
+                    backgroundColor: '#ccc',
+                  }}
+                >
+                  {defaultRecommendedBook?.coverUrl ? (
+                    <img
+                      src={defaultRecommendedBook.coverUrl}
+                      alt="Book Cover"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : null}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-
-      </div>
-
-    </div>
-
 
       {/* 목표 관리 Modal */}
       {showGoalModal && (
@@ -973,12 +904,11 @@ const HomePage: React.FC = () => {
               position: 'relative',
             }}
           >
-            {/* 닫기 X 버튼 */}
             <div
               style={{
                 position: 'absolute',
-                top: '10px',
-                right: '15px',
+                top: '1px',
+                right: '10px',
                 cursor: 'pointer',
                 fontSize: '20px',
               }}
@@ -986,11 +916,9 @@ const HomePage: React.FC = () => {
             >
               &times;
             </div>
-
             <p style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>
               올해 완독할 책의 수를 입력하세요.
             </p>
-
             <input
               type="number"
               value={tempGoalValue}
@@ -1006,8 +934,6 @@ const HomePage: React.FC = () => {
                 borderRadius: '4px',
               }}
             />
-
-            {/* 버튼들 */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
               <button
                 style={{
@@ -1034,7 +960,7 @@ const HomePage: React.FC = () => {
                   cursor: 'pointer',
                   fontSize: '14px',
                 }}
-                onClick={handleGoalSubmit} // 아래 함수 참고
+                onClick={handleGoalSubmit}
               >
                 OK
               </button>
@@ -1043,6 +969,7 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
+      {/* 추천 도서 Modal */}
       {showRecommendModal && (
         <div
           style={{
@@ -1068,7 +995,6 @@ const HomePage: React.FC = () => {
               position: 'relative',
             }}
           >
-            {/* 닫기 버튼 */}
             <div
               style={{
                 position: 'absolute',
@@ -1084,7 +1010,6 @@ const HomePage: React.FC = () => {
             >
               &times;
             </div>
-
             {recommendationStep === 'select' ? (
               <>
                 <h3 style={{ margin: '10px 0 20px 0', fontWeight: 'bold', fontSize: '20px' }}>
@@ -1183,7 +1108,7 @@ const HomePage: React.FC = () => {
                       <img
                         src={modalRecommendedBook.coverUrl}
                         alt="Book Cover"
-                        style={{ width: '180px', height: '260px', objectFit: 'cover' }} 
+                        style={{ width: '180px', height: '260px', objectFit: 'cover' }}
                       />
                     ) : null}
                   </div>
@@ -1246,15 +1171,9 @@ const HomePage: React.FC = () => {
                 </div>
               </>
             )}
-
           </div>
         </div>
       )}
-
-
-
-
-
     </div>
   );
 };

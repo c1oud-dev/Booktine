@@ -133,7 +133,7 @@ const BookNote: React.FC = () => {
             marginBottom: '20px',
           }}
         >
-          <h2 style={{ fontWeight: 'bold', fontSize: '40px', margin: 0 }}>Book Note</h2>
+          <h2 style={{ fontWeight: 'bold', fontSize: '40px', margin: 0, color: '#434343' }}>Book Note</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <input
               type="search"
@@ -165,7 +165,7 @@ const BookNote: React.FC = () => {
           </div>
         </div>
 
-        <hr style={{ border: '1px solid #000', marginBottom: '20px' }} />
+        <hr style={{ border: '1px solid #434343', marginBottom: '20px' }} />
         {/* 전체 글 문구 + 게시글 개수 */}
         <div style={{ marginBottom: '20px' }}>
           <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#000' }}>전체 글</span>
