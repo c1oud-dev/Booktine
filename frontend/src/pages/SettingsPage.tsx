@@ -16,6 +16,8 @@ const SettingsPage: React.FC = () => {
   const [deletionPassword, setDeletionPassword] = useState('');
   const [deletionError, setDeletionError] = useState('');
   const [deletionComplete, setDeletionComplete] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
 
   // 회원 탈퇴 확인 처리 함수
 const confirmDeleteAccount = async () => {
@@ -476,73 +478,113 @@ const confirmDeleteAccount = async () => {
           
           {showDeleteAccountModal && (
             <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 9999,
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999,
+            }}>
+            <div style={{
+                position: 'relative', // X 버튼을 위한 상대 포지션 적용
+                backgroundColor: deletionComplete ? '#D8E8E2' : '#F4DADA',
+                border: `2px solid ${deletionComplete ? '#BFD8CF' : '#E2BFBF'}`,
+                borderRadius: '8px',
+                padding: '30px',
+                width: '380px',
+                textAlign: 'center',
               }}>
-              <div style={{
-                  backgroundColor: '#fff',
-                  borderRadius: '8px',
-                  padding: '30px',
-                  width: '350px',
-                  textAlign: 'center',
-                }}>
-                { !deletionComplete ? (
+              {/* X 버튼 (우측 상단) */}
+              <button
+                onClick={() => {
+                  setShowDeleteAccountModal(false);
+                  setDeletionPassword('');
+                  setDeletionError('');
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                }}
+              >
+                X
+              </button>
+                {!deletionComplete ? (
                   <>
-                    <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
-                      회원 탈퇴를 하시겠습니까?
-                    </p>
-                    <input
-                      type="password"
-                      placeholder="비밀번호를 입력해주세요"
-                      value={deletionPassword}
-                      onChange={(e) => setDeletionPassword(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px',
-                        border: '1px solid #ccc',
-                        borderRadius: '4px',
-                        marginBottom: '10px',
-                      }}
-                    />
-                    { deletionError && (
+                    {/* ───────────── 타이틀 + caution 아이콘 ───────────── */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '20px',
+                      fontWeight: 'bold',
+                      marginBottom: '14px',
+                    }}>
+                      <img src="/caution_icon.png" alt="caution" style={{ width: 24, height: 24 }} />
+                      회원탈퇴를 진행하시겠습니까?
+                    </div>
+
+                    {/* 추가된 설명 문구 */}
+                    <div style={{
+                      fontSize: '13px',
+                      color: '#555',
+                      marginBottom: '20px',
+                      lineHeight: '1.5',
+                      textAlign: 'left',
+                      marginLeft: '20px'
+                    }}>
+                      안전한 탈퇴를 위해 비밀번호를 다시 입력해주세요.<br />
+                      탈퇴 후엔 모든 데이터가 즉시 삭제됩니다.<br />
+                      삭제된 정보는 복구할 수 없습니다. 정말 탈퇴하시겠습니까?
+                    </div>
+
+                    <div style={{ position: 'relative', marginBottom: '10px' }}>
+                      <input
+                        type={isPasswordVisible ? 'text' : 'password'}
+                        placeholder="비밀번호를 입력해주세요"
+                        value={deletionPassword}
+                        onChange={(e) => setDeletionPassword(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 40px 10px 10px',  // 오른쪽에 아이콘 공간 확보
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                        }}
+                      />
+                      <img
+                        src={isPasswordVisible ? '/show_icon.png' : '/hide_icon.png'}
+                        alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '20px',
+                          height: '20px',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                      />
+                    </div>
+                    {deletionError && (
                       <div style={{ color: 'red', fontSize: '13px', marginBottom: '20px' }}>
                         {deletionError}
                       </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button
                         style={{
-                          width: '140px',
-                          backgroundColor: '#fff',
-                          color: '#333',
-                          border: '1px solid #ccc',
-                          borderRadius: '4px',
-                          padding: '8px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => {
-                          setShowDeleteAccountModal(false);
-                          setDeletionPassword('');
-                          setDeletionError('');
-                        }}
-                      >
-                        취소
-                      </button>
-                      <button
-                        style={{
-                          width: '140px',
-                          backgroundColor: '#000',
+                          width: '80px',
+                          backgroundColor: '#5B5F4A',
                           color: '#fff',
                           border: 'none',
-                          borderRadius: '4px',
+                          borderRadius: '8px',
                           padding: '8px',
                           cursor: 'pointer',
                         }}
@@ -554,13 +596,28 @@ const confirmDeleteAccount = async () => {
                   </>
                 ) : (
                   <>
-                    <p style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '20px' }}>
+                    {/* ───────────── 완료 타이틀 + check 아이콘 ───────────── */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        marginBottom: '20px',
+                      }}>
+                      <img src="/check.icon.png" alt="success" style={{ width: 24, height: 24 }} />
                       회원 탈퇴가 완료되었습니다.
+                    </div>
+
+                    <p style={{ marginBottom: '30px', fontSize: '15px', lineHeight: 1.5 }}>
+                      그동안 이용해주셔서 감사합니다.<br />
+                      언제든 다시 돌아오신다면, 더욱 발전된 모습으로 맞이하겠습니다.
                     </p>
+
                     <button
                       style={{
-                        width: '120px',
-                        backgroundColor: '#000',
+                        width: '140px',
+                        backgroundColor: '#5B5F4A',
                         color: '#fff',
                         border: 'none',
                         borderRadius: '4px',
@@ -569,7 +626,7 @@ const confirmDeleteAccount = async () => {
                       }}
                       onClick={() => {
                         setShowDeleteAccountModal(false);
-                        window.location.href = '/'; // 로그인 전의 mainpage로 이동
+                        window.location.href = '/';
                       }}
                     >
                       확인
