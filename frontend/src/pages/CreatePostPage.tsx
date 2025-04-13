@@ -59,6 +59,20 @@ const CreatePostPage: React.FC = () => {
   const [_uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [backgroundImage, setBackgroundImage] = useState('');
 
+  // 추가: 임시저장 데이터와 모달 표시를 위한 state 선언
+  const [showDraftModal, setShowDraftModal] = useState(false);
+  const [draftData, setDraftData] = useState<any>(null);
+
+  // 컴포넌트 마운트 시 localStorage에 저장된 임시 글이 있으면 로드할 준비
+  useEffect(() => {
+    const draft = localStorage.getItem('createPostDraft');
+    if (draft) {
+      setDraftData(JSON.parse(draft));
+      setShowDraftModal(true);
+    }
+  }, []);
+
+
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
     if (!postId) return; // 새 글쓰기면 postId 없음
@@ -361,6 +375,37 @@ const CreatePostPage: React.FC = () => {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 2000);
   };
+
+  
+
+  useEffect(() => {
+    const saveDraft = () => {
+      const draft = {
+        title,
+        startDate,
+        inputAuthor,
+        genre,
+        publisher,
+        summary,
+        review,
+        endDate,
+        memos,
+        backgroundImage,
+        readingStatus,
+      };
+      localStorage.setItem('createPostDraft', JSON.stringify(draft));
+    };
+  
+    window.addEventListener('beforeunload', saveDraft);
+    return () => {
+      // 컴포넌트 언마운트 시에도 임시 저장
+      saveDraft();
+      window.removeEventListener('beforeunload', saveDraft);
+    };
+  }, [title, startDate, inputAuthor, genre, publisher, summary, review, endDate, memos, backgroundImage, readingStatus]);
+  
+  
+  
   
 
   return (
@@ -974,6 +1019,87 @@ const CreatePostPage: React.FC = () => {
           저장하기
         </button>
       </div>
+
+      {showDraftModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: '300px',
+              backgroundColor: '#fff',
+              borderRadius: '8px',
+              padding: '20px',
+              textAlign: 'center',
+            }}
+          >
+            <p style={{ marginBottom: '20px', fontSize: '16px' }}>
+              저장하지 않은 임시 글이 있습니다. <br/>
+              불러오시겠습니까?
+            </p>
+            <button
+              onClick={() => {
+                // 저장된 데이터로 각 상태를 업데이트합니다.
+                setTitle(draftData.title || '');
+                setStartDate(draftData.startDate || '');
+                setInputAuthor(draftData.inputAuthor || '');
+                setGenre(draftData.genre || '');
+                setPublisher(draftData.publisher || '');
+                setSummary(draftData.summary || '');
+                setReview(draftData.review || '');
+                setEndDate(draftData.endDate || '');
+                setMemos(
+                  draftData.memos ||
+                    [{ id: String(Date.now()), pageNumber: '', memo: '', isMemoSaved: false }]
+                );
+                setBackgroundImage(draftData.backgroundImage || '');
+                setReadingStatus(draftData.readingStatus || '독서중');
+                setShowDraftModal(false);
+                localStorage.removeItem('createPostDraft');
+              }}
+              style={{
+                marginRight: '10px',
+                padding: '8px 16px',
+                backgroundColor: '#000',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              불러오기
+            </button>
+            <button
+              onClick={() => {
+                setShowDraftModal(false);
+                localStorage.removeItem('createPostDraft');
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#ccc',
+                color: '#000',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

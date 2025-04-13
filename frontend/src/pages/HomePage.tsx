@@ -83,29 +83,39 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     const currentEmail = localStorage.getItem('email');
     const goalEmail = localStorage.getItem('goalEmail');
-
-    // 현재 로그인한 이메일과 목표 데이터를 저장했던 이메일이 다르다면 기존 목표 데이터를 제거
+    const currentYear = new Date().getFullYear();
+  
+    // 현재 로그인한 이메일과 저장된 목표 이메일이 다르다면 기존 목표 데이터를 모두 제거(일반 및 연도/월별 키)
     if (!goalEmail || goalEmail !== currentEmail) {
       localStorage.removeItem('yearlyGoal');
       localStorage.removeItem('yearlyAchieved');
       localStorage.removeItem('monthlyGoal');
+      localStorage.removeItem(`yearlyGoal_${currentYear}`);
+      for (let m = 1; m <= 12; m++) {
+        localStorage.removeItem(`monthlyGoal_${currentYear}_${m}`);
+      }
       localStorage.setItem('goalEmail', currentEmail || '');
     }
-
-    const storedGoal = localStorage.getItem('yearlyGoal');
-    const storedAchieved = localStorage.getItem('yearlyAchieved');
-    if (storedGoal) {
-      setYearlyGoal(parseInt(storedGoal, 10));
+  
+    // 저장된 목표가 연도별 키에 있으면 우선 사용
+    const storedYearlyGoal =
+      localStorage.getItem(`yearlyGoal_${currentYear}`) ||
+      localStorage.getItem('yearlyGoal');
+    if (storedYearlyGoal) {
+      setYearlyGoal(parseInt(storedYearlyGoal, 10));
     }
+  
+    const storedAchieved = localStorage.getItem('yearlyAchieved');
     if (storedAchieved) {
       setYearlyAchieved(parseInt(storedAchieved, 10));
     }
-
+  
     const storedMonthlyGoal = localStorage.getItem('monthlyGoal');
     if (storedMonthlyGoal) {
       setMonthlyGoal(parseInt(storedMonthlyGoal, 10));
     }
   }, []);
+  
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();

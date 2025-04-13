@@ -18,6 +18,12 @@ const SettingsPage: React.FC = () => {
   const [deletionComplete, setDeletionComplete] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
+  const [originalData, setOriginalData] = useState({
+    nickname: '',
+    aboutMe: '',
+    profileImage: '/default_avatar.png'
+  });
+
 
   // 회원 탈퇴 확인 처리 함수
 const confirmDeleteAccount = async () => {
@@ -45,6 +51,15 @@ const confirmDeleteAccount = async () => {
     localStorage.removeItem('email');
     localStorage.removeItem('nickname');
     localStorage.removeItem('profileImage');
+    localStorage.removeItem('goalEmail');            // 추가: 목표 관련 구분 키 삭제
+    localStorage.removeItem('yearlyGoal');             // 추가: 기본 연간 목표 삭제
+    localStorage.removeItem('yearlyAchieved');         // 추가: 달성 수 삭제
+    localStorage.removeItem('monthlyGoal');            // 추가: 기본 월간 목표 삭제
+    const currentYear = new Date().getFullYear();
+    localStorage.removeItem(`yearlyGoal_${currentYear}`); // 추가: 연도별 연간 목표 삭제
+    for (let m = 1; m <= 12; m++) {                       // 추가: 월별 목표 삭제
+      localStorage.removeItem(`monthlyGoal_${currentYear}_${m}`);
+    }
   } catch (error) {
     console.error(error);
     setDeletionError("회원 탈퇴에 실패했습니다.");
@@ -168,8 +183,47 @@ const confirmDeleteAccount = async () => {
       });
   };
 
+  useEffect(() => {
+    const storedEmail = localStorage.getItem('email');
+    if (!storedEmail) {
+      console.error('No email found in localStorage');
+      return;
+    }
+    fetch(`http://localhost:8083/api/settings/${storedEmail}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch user settings');
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Fetched user settings:', data);
+        setNickname(data.nickname || '');
+        setDisplayNickname(data.nickname || '');
+        setEmail(data.email || '');
+        setPassword('');
+        setAboutMe(data.aboutMe || '');
+        setDisplayAboutMe(data.aboutMe || '');
+        setProfileImage(data.avatarUrl || '/default_avatar.png');
+        setPostCount(data.postCount || 0);
+        setCompletedCount(data.completedCount || 0);
+        
+        // 원본 데이터 저장
+        setOriginalData({
+          nickname: data.nickname || '',
+          aboutMe: data.aboutMe || '',
+          profileImage: data.avatarUrl || '/default_avatar.png'
+        });
+      })
+      .catch((err) => console.error('Error fetching user settings:', err));
+  }, []);
+
   const handleCancel = () => {
-    alert('Cancel clicked. 변경사항 취소 로직을 구현하세요.');
+     // 원본 데이터로 폼 상태 복원
+    setNickname(originalData.nickname);
+    setDisplayNickname(originalData.nickname);
+    setAboutMe(originalData.aboutMe);
+    setDisplayAboutMe(originalData.aboutMe);
+    setProfileImage(originalData.profileImage);
+    setPassword('');
   };
 
 
@@ -416,26 +470,42 @@ const confirmDeleteAccount = async () => {
               </div>
 
               {/* Password */}
-              <div style={{ width: '100%' }}>
+              <div style={{ width: '100%', position: 'relative' }}>
                 <label style={{ display: 'block', fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>
                   Password
                 </label>
                 <input
-                  type="password"
+                  type={isPasswordVisible ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   style={{
                     width: '100%',
                     padding: '10px',
+                    paddingRight: '40px', // 아이콘 공간 확보
                     border: '1px solid #ccc',
                     borderRadius: '4px',
                     marginBottom: '20px'
+                  }}
+                />
+                <img
+                  src={isPasswordVisible ? '/show_icon.png' : '/hide_icon.png'}
+                  alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
+                  onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '45%',
+                    transform: 'translateY(-50%)',
+                    width: '20px',
+                    height: '20px',
+                    cursor: 'pointer',
                   }}
                 />
                 <div style={{ color: 'red', fontSize: '12px', marginTop: '-15px', marginBottom: '20px' }}>
                   암호를 입력한 후에 SAVE 버튼을 눌러주세요.
                 </div>
               </div>
+
 
               {/* ABOUT ME */}
               <div style={{ width: '100%' }}>
@@ -536,7 +606,7 @@ const confirmDeleteAccount = async () => {
                       marginBottom: '20px',
                       lineHeight: '1.5',
                       textAlign: 'left',
-                      marginLeft: '20px'
+                      marginLeft: '35px'
                     }}>
                       안전한 탈퇴를 위해 비밀번호를 다시 입력해주세요.<br />
                       탈퇴 후엔 모든 데이터가 즉시 삭제됩니다.<br />
@@ -580,13 +650,14 @@ const confirmDeleteAccount = async () => {
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button
                         style={{
-                          width: '80px',
+                          width: '70px',
                           backgroundColor: '#5B5F4A',
                           color: '#fff',
                           border: 'none',
                           borderRadius: '8px',
-                          padding: '8px',
+                          padding: '5px',
                           cursor: 'pointer',
+                          fontSize: '15px'
                         }}
                         onClick={confirmDeleteAccount}
                       >
@@ -605,13 +676,14 @@ const confirmDeleteAccount = async () => {
                         fontWeight: 'bold',
                         marginBottom: '20px',
                       }}>
-                      <img src="/check.icon.png" alt="success" style={{ width: 24, height: 24 }} />
+                      <img src="/check_icon.png" alt="success" style={{ width: 24, height: 24 }} />
                       회원 탈퇴가 완료되었습니다.
                     </div>
 
-                    <p style={{ marginBottom: '30px', fontSize: '15px', lineHeight: 1.5 }}>
+                    <p style={{ marginBottom: '30px', fontSize: '15px', lineHeight: 1.5}}>
                       그동안 이용해주셔서 감사합니다.<br />
-                      언제든 다시 돌아오신다면, 더욱 발전된 모습으로 맞이하겠습니다.
+                      언제든 다시 돌아오신다면, <br />
+                      더욱 발전된 모습으로 맞이하겠습니다.
                     </p>
 
                     <button

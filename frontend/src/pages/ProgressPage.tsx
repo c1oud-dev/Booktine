@@ -89,6 +89,22 @@ const ProgressPage: React.FC = () => {
       .catch((err) => console.error(err));
   }, []);
 
+  useEffect(() => {
+    const currentEmail = localStorage.getItem('email');
+    const goalEmail = localStorage.getItem('goalEmail');
+    const currentYear = new Date().getFullYear();
+  
+    // 현재 로그인한 이메일과 저장된 목표 이메일이 다르다면, 연도/월별 목표 데이터를 제거
+    if (!goalEmail || goalEmail !== currentEmail) {
+      localStorage.removeItem(`yearlyGoal_${currentYear}`);
+      for (let m = 1; m <= 12; m++) {
+        localStorage.removeItem(`monthlyGoal_${currentYear}_${m}`);
+      }
+      localStorage.setItem('goalEmail', currentEmail || '');
+    }
+  }, []);
+  
+
   // ──────────────────────────────────────────────
   // (B) /progress API 호출 → 통계 데이터 저장 (setProgressData 사용)
   // ──────────────────────────────────────────────

@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+interface Author {
+  name: string;
+  email: string;
+  avatar: string;
+}
+
 interface Post {
   id: number;
   title: string;
   content: string;
   readingStatus?: '독서중' | '완독';
-  author?: string;
+  author?: Author;  // author를 문자열에서 객체로 변경
   inputAuthor?: string;
   memos?: { id: number; memo: string }[];
   lastModified?: string; // 작성 날짜
 }
+
 
 const BookNote: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -45,19 +52,27 @@ const BookNote: React.FC = () => {
           return res.json();
         })
         .then((data: Post[]) => {
-          // (1) lastModified 기준으로 최근 게시물 우선 정렬
-          data.sort((a, b) => {
+          // 현재 로그인한 사용자의 이메일을 가져옵니다.
+          const currentEmail = localStorage.getItem('email');
+          // author가 객체로 있고, 이메일이 있을 경우 필터링합니다.
+          const myPosts = data.filter((post) => {
+            return post.author !== undefined && post.author.email === currentEmail;
+          });
+    
+          // recent order: lastModified 기준 정렬
+          myPosts.sort((a, b) => {
             if (!a.lastModified || !b.lastModified) return 0;
-            const timeDiff = new Date(b.lastModified.replace(" ", "T")).getTime() - new Date(a.lastModified.replace(" ", "T")).getTime();
+            const timeDiff =
+              new Date(b.lastModified.replace(" ", "T")).getTime() -
+              new Date(a.lastModified.replace(" ", "T")).getTime();
             return timeDiff !== 0 ? timeDiff : b.id - a.id;
           });
-  
-          // (2) 정렬된 배열을 state에 저장
-          setPosts(data);
+    
+          setPosts(myPosts);
         })
         .catch((error) => console.error('Error fetching posts:', error));
     };
-
+    
     fetchPosts();
 
     // "postsUpdated" 이벤트 발생 시 다시 fetch
