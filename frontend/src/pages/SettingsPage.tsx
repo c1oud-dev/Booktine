@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
 const SettingsPage: React.FC = () => {
   // 예시: 사용자 정보 state
@@ -37,7 +38,7 @@ const confirmDeleteAccount = async () => {
     return;
   }
   try {
-    const res = await fetch(`http://localhost:8083/api/auth/delete-account?email=${email}`, {
+    const res = await fetch(`${BASE_URL}/api/auth/delete-account?email=${email}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: deletionPassword })
@@ -80,7 +81,7 @@ const confirmDeleteAccount = async () => {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:8083/api/settings/${email}`, {
+      const res = await fetch(`${BASE_URL}/api/settings/${email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         // 오직 avatarUrl만 업데이트하도록 수정 (passwordConfirmation 미포함)
@@ -108,14 +109,14 @@ const confirmDeleteAccount = async () => {
       formData.append('profileImage', file);
 
       try {
-        const res = await fetch('http://localhost:8083/api/upload-profile', {
+        const res = await fetch('${BASE_URL}/api/upload-profile', {
           method: 'POST',
           body: formData,
         });
         if (!res.ok) throw new Error('프로필 사진 업로드 실패');
 
         const data = await res.json();
-        // data.imageUrl = "http://localhost:8083/images/1680241770123_myphoto.png" (예시)
+        // data.imageUrl = "${BASE_URL}/images/1680241770123_myphoto.png" (예시)
         const uploadedUrl = data.imageUrl;
 
         // 1) SettingsPage 프로필 이미지 갱신
@@ -150,7 +151,7 @@ const confirmDeleteAccount = async () => {
     };
 
     // API 요청 (PUT 방식으로 업데이트)
-    fetch(`http://localhost:8083/api/settings/${email}`, {
+    fetch(`${BASE_URL}/api/settings/${email}`, {
       method: 'PUT', // 백엔드에서 업데이트 방식에 맞게 수정 (PUT 혹은 POST)
       headers: {
         'Content-Type': 'application/json',
@@ -189,7 +190,7 @@ const confirmDeleteAccount = async () => {
       console.error('No email found in localStorage');
       return;
     }
-    fetch(`http://localhost:8083/api/settings/${storedEmail}`)
+    fetch(`${BASE_URL}/api/settings/${storedEmail}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch user settings');
         return res.json();
@@ -233,7 +234,7 @@ const confirmDeleteAccount = async () => {
       console.error('No email found in localStorage');
       return;
     }
-    fetch(`http://localhost:8083/api/settings/${storedEmail}`)
+    fetch(`${BASE_URL}/api/settings/${storedEmail}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch user settings');
         return res.json();

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'; // BookNote 페이지로 이동�
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import HomeGenreDoughnutChart from '../components/HomeGenreDoughnutChart';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
 interface ProgressData {
   yearlyData: { month: string; count: number }[];     // 연간 독서량
@@ -119,7 +120,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    fetch(`http://localhost:8083/progress?year=${currentYear}`)
+    fetch(`${BASE_URL}/progress?year=${currentYear}`)
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();
@@ -131,7 +132,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:8083/posts')
+    fetch('${BASE_URL}/posts')
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
@@ -216,7 +217,7 @@ const HomePage: React.FC = () => {
 
   // 기본 추천 도서 불러오기
   useEffect(() => { 
-    fetch('http://localhost:8083/recommend') 
+    fetch('${BASE_URL}/recommend') 
     .then((res) => { 
       if (!res.ok) 
         throw new Error('Failed to fetch default recommendation'); 
@@ -234,7 +235,7 @@ const HomePage: React.FC = () => {
       return;
     }
   
-    fetch(`http://localhost:8083/recommend?genre=${selectedGenre}`)
+    fetch(`${BASE_URL}/recommend?genre=${selectedGenre}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch recommendation');
         return res.json();

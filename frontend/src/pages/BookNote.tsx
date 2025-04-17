@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
 interface Author {
   name: string;
@@ -46,7 +47,7 @@ const BookNote: React.FC = () => {
 
   useEffect(() => {
     const fetchPosts = () => {
-      fetch('http://localhost:8083/posts')
+      fetch('${BASE_URL}/posts')
         .then((res) => {
           if (!res.ok) throw new Error('게시글 불러오기 실패');
           return res.json();
@@ -112,7 +113,7 @@ const BookNote: React.FC = () => {
   const handleDeleteConfirm = () => {
     if (!deleteTargetId) return;
 
-    fetch(`http://localhost:8083/posts/${deleteTargetId}`, { method: 'DELETE' })
+    fetch(`${BASE_URL}/posts/${deleteTargetId}`, { method: 'DELETE' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 삭제 실패');
         // 삭제 성공 시, posts를 다시 불러오거나 posts state에서 제거

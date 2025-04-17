@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import GenreDoughnutChart from '../components/GenreDoughnutChart';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
 interface Post {
   id: number;
@@ -80,7 +81,7 @@ const ProgressPage: React.FC = () => {
   // (A) /posts API 호출 → 게시글 배열 저장
   // ──────────────────────────────────────────────
   useEffect(() => {
-    fetch('http://localhost:8083/posts')
+    fetch('${BASE_URL}/posts')
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
@@ -110,7 +111,7 @@ const ProgressPage: React.FC = () => {
   // ──────────────────────────────────────────────
   useEffect(() => {
     console.log("Fetching progress data for current year:", currentYear);
-    fetch(`http://localhost:8083/progress?year=${currentYear}`)
+    fetch(`${BASE_URL}/progress?year=${currentYear}`)
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
 interface Memo {
   id: string;
@@ -76,7 +77,7 @@ const CreatePostPage: React.FC = () => {
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
     if (!postId) return; // 새 글쓰기면 postId 없음
-    fetch(`http://localhost:8083/posts/${postId}`)
+    fetch(`${BASE_URL}/posts/${postId}`)
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
@@ -287,7 +288,7 @@ const CreatePostPage: React.FC = () => {
     if (_uploadedImage) {
       const formData = new FormData();
       formData.append('image', _uploadedImage);
-      fetch('http://localhost:8083/api/upload-post-background', {
+      fetch('${BASE_URL}/api/upload-post-background', {
         method: 'POST',
         body: formData,
       })
@@ -302,8 +303,8 @@ const CreatePostPage: React.FC = () => {
           const effectivePostId = postId || savedPostId;
           const requestMethod = effectivePostId ? 'PUT' : 'POST';
           const requestUrl = effectivePostId
-            ? `http://localhost:8083/posts/${effectivePostId}`
-            : 'http://localhost:8083/posts';
+            ? `${BASE_URL}/posts/${effectivePostId}`
+            : '${BASE_URL}/posts';
 
           fetch(requestUrl, {
             method: requestMethod,
@@ -341,8 +342,8 @@ const CreatePostPage: React.FC = () => {
       const effectivePostId = postId || savedPostId;
       const requestMethod = effectivePostId ? 'PUT' : 'POST';
       const requestUrl = effectivePostId
-        ? `http://localhost:8083/posts/${effectivePostId}`
-        : 'http://localhost:8083/posts';
+        ? `${BASE_URL}/posts/${effectivePostId}`
+        : '${BASE_URL}/posts';
 
     fetch(requestUrl, {
       method: requestMethod,
