@@ -109,14 +109,13 @@ const confirmDeleteAccount = async () => {
       formData.append('profileImage', file);
 
       try {
-        const res = await fetch('${BASE_URL}/api/upload-profile', {
+        const res = await fetch(`${BASE_URL}/api/upload-profile`, {
           method: 'POST',
           body: formData,
         });
         if (!res.ok) throw new Error('프로필 사진 업로드 실패');
 
         const data = await res.json();
-        // data.imageUrl = "${BASE_URL}/images/1680241770123_myphoto.png" (예시)
         const uploadedUrl = data.imageUrl;
 
         // 1) SettingsPage 프로필 이미지 갱신

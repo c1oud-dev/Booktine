@@ -72,7 +72,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   // ▼ 로그인 API 요청 핸들러 추가
   const handleLogin = async () => {
     try {
-      const response = await fetch('${BASE_URL}/api/auth/login', {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -144,7 +144,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
       return;
     }
     try {
-      const response = await fetch('${BASE_URL}/api/auth/signup', {
+      const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -718,7 +718,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 }}
                 onClick={async () => {
                   try {
-                    const response = await fetch('${BASE_URL}/api/auth/forgot-password', {
+                    const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ email: forgotEmail }),
@@ -835,7 +835,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 }}
                 onClick={async () => {
                   try {
-                    const response = await fetch('${BASE_URL}/api/auth/reset-password', {
+                    const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({

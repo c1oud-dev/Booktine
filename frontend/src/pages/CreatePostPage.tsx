@@ -288,7 +288,7 @@ const CreatePostPage: React.FC = () => {
     if (_uploadedImage) {
       const formData = new FormData();
       formData.append('image', _uploadedImage);
-      fetch('${BASE_URL}/api/upload-post-background', {
+      fetch(`${BASE_URL}/api/upload-post-background`, {
         method: 'POST',
         body: formData,
       })
@@ -304,7 +304,7 @@ const CreatePostPage: React.FC = () => {
           const requestMethod = effectivePostId ? 'PUT' : 'POST';
           const requestUrl = effectivePostId
             ? `${BASE_URL}/posts/${effectivePostId}`
-            : '${BASE_URL}/posts';
+            : `${BASE_URL}/posts`;
 
           fetch(requestUrl, {
             method: requestMethod,
@@ -343,7 +343,7 @@ const CreatePostPage: React.FC = () => {
       const requestMethod = effectivePostId ? 'PUT' : 'POST';
       const requestUrl = effectivePostId
         ? `${BASE_URL}/posts/${effectivePostId}`
-        : '${BASE_URL}/posts';
+        : `${BASE_URL}/posts`;
 
     fetch(requestUrl, {
       method: requestMethod,
