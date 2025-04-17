@@ -51,6 +51,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         // 허용할 Origin
         config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("https://c1oud-dev.github.io");
         // 모든 메서드(GET, POST, PUT, DELETE...) 허용
         config.addAllowedMethod("*");
         // 모든 헤더 허용
