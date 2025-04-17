@@ -31,7 +31,7 @@ const MainPage: React.FC = () => {
       style={{
         width: '100%',
         minHeight: '100vh',
-        backgroundImage: 'url(/Main.png)',
+        backgroundImage: `url(${process.env.PUBLIC_URL}/Main.png)`,
         backgroundPosition: 'center',
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',

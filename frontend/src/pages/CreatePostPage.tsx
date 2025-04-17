@@ -732,7 +732,7 @@ const CreatePostPage: React.FC = () => {
                     width: '30px',
                     height: '30px',
                     backgroundColor: 'red',
-                    backgroundImage: 'url("/bookmark_icon.png")',
+                    backgroundImage: `url(${process.env.PUBLIC_URL}/bookmark_icon.png)`,
                     backgroundSize: 'cover',
                   }}
                 />
