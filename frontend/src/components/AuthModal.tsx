@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
+
 
 interface AuthModalProps {
   isSignUp: boolean; // 처음 열릴 때 Sign Up 탭인지, Log In 탭인지
