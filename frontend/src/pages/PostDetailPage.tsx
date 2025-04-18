@@ -216,7 +216,11 @@ const PostDetailPage: React.FC = () => {
             }}
           >
             <img
-              src={localStorage.getItem('profileImage') || post?.author.avatar || '/default_avatar.png'}
+              src={
+                localStorage.getItem('profileImage')
+                || post?.author.avatar
+                || `${process.env.PUBLIC_URL}/default_avatar.png`
+              }
               alt="Profile"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />

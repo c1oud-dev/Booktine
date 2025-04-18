@@ -8,7 +8,7 @@ const SettingsPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [aboutMe, setAboutMe] = useState('');
-  const [profileImage, setProfileImage] = useState('/default_avatar.png');
+  const [profileImage, setProfileImage] = useState(`${process.env.PUBLIC_URL}/default_avatar.png`);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [postCount, setPostCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
@@ -89,8 +89,9 @@ const confirmDeleteAccount = async () => {
       });
       if (!res.ok) throw new Error('프로필 사진 삭제 실패');
   
-      setProfileImage('/default_avatar.png');
+      setProfileImage(`${process.env.PUBLIC_URL}/default_avatar.png`);
       localStorage.setItem('profileImage', '/default_avatar.png');
+      localStorage.setItem('profileImage', `${process.env.PUBLIC_URL}/default_avatar.png`);
       window.dispatchEvent(new Event('profileImageUpdated'));
       alert('프로필 사진이 삭제되었습니다.');
     } catch (error) {
@@ -628,7 +629,11 @@ const confirmDeleteAccount = async () => {
                         }}
                       />
                       <img
-                        src={isPasswordVisible ? "show_icon.png" : "hide_icon.png"}
+                        src={
+                          isPasswordVisible
+                            ? `${process.env.PUBLIC_URL}/show_icon.png`
+                            : `${process.env.PUBLIC_URL}/hide_icon.png`
+                        }
                         alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
                         style={{
                           position: 'absolute',

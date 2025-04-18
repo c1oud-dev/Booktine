@@ -146,7 +146,11 @@ const Header: React.FC = () => {
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                backgroundImage: `url(${profileImage || '/default_avatar.png'})`,
+                backgroundImage: `url(${
+                  profileImage
+                    ? profileImage
+                    : `${process.env.PUBLIC_URL}/default_avatar.png`
+                })`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 overflow: 'hidden',
