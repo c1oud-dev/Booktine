@@ -3,7 +3,6 @@ package booktine.Booktine.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -52,6 +51,7 @@ public class SecurityConfig {
         // 허용할 Origin
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://c1oud-dev.github.io");
+        config.addAllowedOriginPattern("https://*.github.io");
         // 모든 메서드(GET, POST, PUT, DELETE...) 허용
         config.addAllowedMethod("*");
         // 모든 헤더 허용
