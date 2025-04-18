@@ -488,7 +488,7 @@ const confirmDeleteAccount = async () => {
                   }}
                 />
                 <img
-                  src={isPasswordVisible ? '/show_icon.png' : '/hide_icon.png'}
+                  src={isPasswordVisible ? "show_icon.png" : "hide_icon.png"}
                   alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
                   onClick={() => setIsPasswordVisible(!isPasswordVisible)}
                   style={{
@@ -595,7 +595,8 @@ const confirmDeleteAccount = async () => {
                       fontWeight: 'bold',
                       marginBottom: '14px',
                     }}>
-                      <img src="/caution_icon.png" alt="caution" style={{ width: 24, height: 24 }} />
+                      <img src={`${process.env.PUBLIC_URL}/caution_icon.png`}
+                      alt="caution" style={{ width: 24, height: 24 }} />
                       회원탈퇴를 진행하시겠습니까?
                     </div>
 
@@ -627,7 +628,7 @@ const confirmDeleteAccount = async () => {
                         }}
                       />
                       <img
-                        src={isPasswordVisible ? '/show_icon.png' : '/hide_icon.png'}
+                        src={isPasswordVisible ? "show_icon.png" : "hide_icon.png"}
                         alt={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 표시'}
                         style={{
                           position: 'absolute',
@@ -676,7 +677,8 @@ const confirmDeleteAccount = async () => {
                         fontWeight: 'bold',
                         marginBottom: '20px',
                       }}>
-                      <img src="/check_icon.png" alt="success" style={{ width: 24, height: 24 }} />
+                      <img src={`${process.env.PUBLIC_URL}/check_icon.png`} 
+                      alt="success" style={{ width: 24, height: 24 }} />
                       회원 탈퇴가 완료되었습니다.
                     </div>
 

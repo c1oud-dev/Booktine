@@ -940,7 +940,7 @@ const CreatePostPage: React.FC = () => {
             }}
           >
             <img
-                src="/success_icon.png"
+                src={`${process.env.PUBLIC_URL}/success_icon.png`}
                 alt="success"
                 style={{
                   width: '100px',

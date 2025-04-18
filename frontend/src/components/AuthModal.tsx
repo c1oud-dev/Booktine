@@ -904,7 +904,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 &times;
               </div>
               <img
-                src="/success_icon.png"
+                src={`${process.env.PUBLIC_URL}/success_icon.png`}
                 alt="success"
                 style={{
                   width: '100px',

@@ -268,7 +268,7 @@ const PostDetailPage: React.FC = () => {
                 >
                   <span style={{ fontSize: '14px' }}>수정하기</span>
                   <img
-                    src="/modify_icon.png"
+                    src={`${process.env.PUBLIC_URL}/modify_icon.png`}
                     alt="modify"
                     style={{ width: '16px', height: '16px' }}
                   />
@@ -289,7 +289,7 @@ const PostDetailPage: React.FC = () => {
                 >
                   <span style={{ fontSize: '14px' }}>삭제하기</span>
                   <img
-                    src="/delete_icon.png"
+                    src={`${process.env.PUBLIC_URL}/delete_icon.png`}
                     alt="delete"
                     style={{ width: '16px', height: '16px' }}
                   />
