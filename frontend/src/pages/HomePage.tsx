@@ -282,7 +282,7 @@ const HomePage: React.FC = () => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: "url('/Home1.png') center center / cover no-repeat",
+          background: `url(${process.env.PUBLIC_URL}/Home1.png) center center / cover no-repeat`,
           opacity: 0.6,
           zIndex: -1,
         }}
