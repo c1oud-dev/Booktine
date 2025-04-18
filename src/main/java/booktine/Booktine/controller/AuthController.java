@@ -14,6 +14,10 @@ import java.util.Map;
  * 회원가입/로그인 등 인증 관련 API 엔드포인트
  */
 @RestController
+@CrossOrigin(
+    origins = {"https://c1oud-dev.github.io", "https://*.github.io", "http://localhost:3000"},
+    allowCredentials = "true"
+)
 @RequestMapping("/api/auth")
 public class AuthController {
 
