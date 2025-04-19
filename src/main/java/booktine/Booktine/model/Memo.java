@@ -1,10 +1,12 @@
 package booktine.Booktine.model;
 
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.Lob;
 
 @Embeddable
 public class Memo {
     private String pageNumber;
+    @Lob
     private String memo;
 
     public Memo() {}

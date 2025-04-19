@@ -355,25 +355,20 @@ const CreatePostPage: React.FC = () => {
       return res.json();
     })
     .then((data) => {
-      // 새 게시글 저장 시 반환된 id가 있으면 저장된 id를 보관합니다.
-      if (!effectivePostId && data.id) {
-        setSavedPostId(String(data.id));
-      }
+      // 새 게시글 저장 시…
       setIsSaved(true);
       window.dispatchEvent(new Event('postsUpdated'));
-      if (navigateAfterSave) {
-        navigate('/booknote');
-      }
+      // 토스트 및 리다이렉트 추가
+      setShowToast(true);
+      if (navigateAfterSave) navigate('/booknote');
     })
     .catch((error) => {
       console.error('Error saving post:', error);
+      alert('저장 중 오류가 발생했습니다.');
     })
-    .finally(() => {
-      setIsSaving(false);
-    });
+    .finally(() => setIsSaving(false));
   }
-      
-    setShowToast(true);
+
     setTimeout(() => setShowToast(false), 2000);
   };
 

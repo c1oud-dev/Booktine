@@ -27,6 +27,7 @@ public class Post {
 
     private String genre;      // 장르
     private String publisher;  // 출판사
+    @Lob
     private String summary;    // 한줄요약
 
     @Lob
