@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
@@ -35,6 +35,8 @@ const PostDetailPage: React.FC = () => {
   const navigate = useNavigate();
   
   const [post, setPost] = useState<PostDetail | null>(null);
+  const memoRefs = useRef<{ [key: number]: HTMLTextAreaElement | null }>({});
+  const reviewRef = useRef<HTMLTextAreaElement | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -141,6 +143,22 @@ const PostDetailPage: React.FC = () => {
     .catch((err) => console.error('Error deleting post:', err));
   };
 
+  useEffect(() => {
+    if (!post) return;
+    // Memo 박스
+    Object.values(memoRefs.current).forEach(el => {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    });
+    // Review 박스
+    if (reviewRef.current) {
+      const el = reviewRef.current;
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [post]);
+
   if (!post) return <div>Loading...</div>;
 
   return (
@@ -218,7 +236,11 @@ const PostDetailPage: React.FC = () => {
             <img
               src={
                 localStorage.getItem('profileImage')
-                || post?.author.avatar
+                || (
+                  post?.author.avatar?.startsWith('http')
+                    ? post.author.avatar
+                    : `${BASE_URL}${post?.author.avatar}`
+                )
                 || `${process.env.PUBLIC_URL}/default_avatar.png`
               }
               alt="Profile"
@@ -393,16 +415,18 @@ const PostDetailPage: React.FC = () => {
                 }}
               />
               <textarea
+                ref={el => (memoRefs.current[m.id] = el)}
                 value={m.memo}
                 readOnly
                 style={{
                   width: '100%',
-                  minHeight: '100px',
+                  height: 'auto',
                   border: 'none',
                   outline: 'none',
                   resize: 'none',
                   marginTop: '20px',
                   backgroundColor: '#fff',
+                  overflow: 'hidden',
                 }}
               />
               {m.pageNumber && m.pageNumber.trim() !== '' && (
@@ -443,11 +467,19 @@ const PostDetailPage: React.FC = () => {
       <div style={{ marginBottom: '50px' }}>
         <h2 style={{ fontSize: '22px', fontWeight: 'bold', marginBottom: '20px' }}>Review</h2>
         <div style={{ backgroundColor: '#fff', boxShadow: '4px 4px 4px rgba(0,0,0,0.25)', padding: '20px' }}>
-          <textarea
+        <textarea
+            ref={reviewRef}
             value={post?.review || ''}
             readOnly
             placeholder="리뷰를 작성한 게 없어요."
-            style={{ width: '100%', minHeight: '100px', border: 'none', outline: 'none', resize: 'none' }}
+            style={{
+              width: '100%',
+              height: 'auto',
+              border: 'none',
+              outline: 'none',
+              resize: 'none',
+              overflow: 'hidden',
+            }}
           />
         </div>
       </div>
