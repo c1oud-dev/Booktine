@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Booktine/static/css/main.aced5469.css",
-    "main.js": "/Booktine/static/js/main.5f78c700.js",
+    "main.js": "/Booktine/static/js/main.678e986f.js",
     "index.html": "/Booktine/index.html",
     "main.aced5469.css.map": "/Booktine/static/css/main.aced5469.css.map",
-    "main.5f78c700.js.map": "/Booktine/static/js/main.5f78c700.js.map"
+    "main.678e986f.js.map": "/Booktine/static/js/main.678e986f.js.map"
   },
   "entrypoints": [
     "static/css/main.aced5469.css",
-    "static/js/main.5f78c700.js"
+    "static/js/main.678e986f.js"
   ]
 }
