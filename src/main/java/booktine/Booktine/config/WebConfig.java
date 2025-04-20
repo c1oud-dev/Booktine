@@ -17,9 +17,13 @@ public class WebConfig implements WebMvcConfigurer {
     // CORS 전역 설정 추가
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOriginPatterns("https://*.github.io", "https://c1oud-dev.github.io", "http://localhost:3000")
-               .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        registry.addMapping("/**")              // ← 전체 경로로 확대
+                .allowedOriginPatterns(
+                        "https://*.github.io",
+                        "https://c1oud-dev.github.io",
+                        "http://localhost:3000"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
