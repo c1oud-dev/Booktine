@@ -90,6 +90,11 @@ const PostDetailPage: React.FC = () => {
     return `${yyyy}.${mm}.${dd} ${hours}:${minutes}`;
   };
 
+  const autoResize = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
   
   
 
@@ -236,12 +241,14 @@ const PostDetailPage: React.FC = () => {
             <img
               src={
                 localStorage.getItem('profileImage')
-                || (
-                  post?.author.avatar?.startsWith('http')
-                    ? post.author.avatar
-                    : `${BASE_URL}${post?.author.avatar}`
-                )
-                || `${process.env.PUBLIC_URL}/default_avatar.png`
+                  ? localStorage.getItem('profileImage')!
+                  : post?.author.avatar
+                      ? post.author.avatar.startsWith('http')
+                          ? post.author.avatar
+                          : post.author.avatar.startsWith('/')
+                              ? `${process.env.PUBLIC_URL}${post.author.avatar}`
+                              : `${BASE_URL}${post.author.avatar}`
+                      : `${process.env.PUBLIC_URL}/default_avatar.png`
               }
               alt="Profile"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -415,7 +422,10 @@ const PostDetailPage: React.FC = () => {
                 }}
               />
               <textarea
-                ref={el => (memoRefs.current[m.id] = el)}
+                ref={el => {
+                  memoRefs.current[m.id] = el;
+                  autoResize(el);
+                }}
                 value={m.memo}
                 readOnly
                 style={{

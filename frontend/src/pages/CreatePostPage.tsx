@@ -44,7 +44,7 @@ const CreatePostPage: React.FC = () => {
   const [customGenre, setCustomGenre] = useState('');
 
   const textAreaRefs = useRef<{ [key: string]: HTMLTextAreaElement | null }>({});
-
+  const reviewRef = useRef<HTMLTextAreaElement | null>(null);
   const [isDirectGenre, setIsDirectGenre] = useState(false);
 
   const [startDate, setStartDate] = useState('');
@@ -66,12 +66,22 @@ const CreatePostPage: React.FC = () => {
 
   // 컴포넌트 마운트 시 localStorage에 저장된 임시 글이 있으면 로드할 준비
   useEffect(() => {
-    const draft = localStorage.getItem('createPostDraft');
-    if (draft) {
-      setDraftData(JSON.parse(draft));
-      setShowDraftModal(true);
+    if (!postId) {
+      const draft = localStorage.getItem('createPostDraft');
+      if (draft) {
+        setDraftData(JSON.parse(draft));
+        setShowDraftModal(true);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (reviewRef.current) {
+      const el = reviewRef.current;
+      el.style.height = 'auto';
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [review]);
 
 
   // (1) 글 수정 모드: 기존 게시글 불러오기
@@ -803,15 +813,24 @@ const CreatePostPage: React.FC = () => {
             }}
           >
             <textarea
+              ref={reviewRef}
               value={review}
-              onChange={(e) => setReview(e.target.value)}
+              onChange={(e) => {
+                setReview(e.target.value);
+                // 타이핑할 때도 즉시 리사이즈
+                if (reviewRef.current) {
+                  reviewRef.current.style.height = 'auto';
+                  reviewRef.current.style.height = `${reviewRef.current.scrollHeight}px`;
+                }
+              }}
               placeholder="리뷰를 작성하세요."
               style={{
                 width: '100%',
-                minHeight: '100px',
+                height: 'auto',
                 border: 'none',
                 outline: 'none',
                 resize: 'none',
+                overflow: 'hidden',
               }}
             />
           </div>
