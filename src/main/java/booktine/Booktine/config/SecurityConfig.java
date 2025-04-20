@@ -14,35 +14,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  */
 @Configuration
 public class SecurityConfig {
-    /*@Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        // 1) /api 이하 모든 경로 허용
-                        .requestMatchers("/api/**").permitAll()
-                        // 2) /posts 이하 모든 경로 허용
-                        .requestMatchers("/posts/**").permitAll()
-                        // 3) /progress 이하 모든 경로 허용
-                        .requestMatchers("/progress/**").permitAll()
-                        // 4) /images 이하 모든 경로 허용
-                        .requestMatchers("/images/**").permitAll()
-                        // 5) 나머지는 인증 필요
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(Customizer.withDefaults())
-                .build();
-    }*/
-   /* @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()  // ← 모든 경로 허용
-                )
-                .build();
-    }*/
 
     /* 1) CORS 설정 Bean */
     @Bean
@@ -64,24 +35,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
         return source;
     }
-
-    /*// 5) CORS 설정 Bean 등록
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        // 허용할 출처(origin)
-        config.addAllowedOrigin("http://localhost:3000");
-        // 필요한 경우 '*' 대신 세부적인 메서드/헤더 지정 가능
-        config.addAllowedMethod("*");
-        config.addAllowedHeader("*");
-        // 인증정보(쿠키 등) 포함 여부
-        config.setAllowCredentials(true);
-
-        // 모든 경로에 대해 CORS 설정 적용
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }*/
 
     /* 2) SecurityFilterChain 최소화 */
     @Bean
