@@ -270,7 +270,7 @@ const CreatePostPage: React.FC = () => {
     }
     const defaultAvatar = '/default_avatar.png';
     const email = localStorage.getItem('email'); // 추가: 실제 사용자의 이메일
-    const postData = {
+    const postData: any = {
       title,
       startDate,
       readingStatus: overrideReadingStatus !== undefined ? overrideReadingStatus : readingStatus,
@@ -280,9 +280,14 @@ const CreatePostPage: React.FC = () => {
       publisher,
       summary,
       review,
-      endDate: overrideEndDate !== undefined ? overrideEndDate : endDate,
-      memos,
-      email: email,
+      endDate: overrideEndDate !== undefined
+        ? overrideEndDate
+        : (endDate || null),
+      // 불필요한 필드(isMemoSaved 등)를 제거하고 필요한 값만 매핑
+      memos: memos.map(m => ({
+        pageNumber: m.pageNumber,
+        memo: m.memo
+      })),
     };
 
     if (_uploadedImage) {
@@ -298,7 +303,10 @@ const CreatePostPage: React.FC = () => {
         })
         .then((data) => {
           // data.imageUrl가 업로드된 이미지 URL임
-          (postData as any).titleBackgroundImage = data.imageUrl;
+          const payload = {
+            ...postData,
+            titleBackgroundImage: data.imageUrl,
+          };
           // 진행: effectivePostId, requestMethod, requestUrl은 그대로 사용
           const effectivePostId = postId || savedPostId;
           const requestMethod = effectivePostId ? 'PUT' : 'POST';
@@ -309,7 +317,7 @@ const CreatePostPage: React.FC = () => {
           fetch(requestUrl, {
             method: requestMethod,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(postData),
+            body: JSON.stringify(payload),
           })
             .then((res) => {
               if (!res.ok) throw new Error('Save failed');
