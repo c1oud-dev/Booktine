@@ -3,6 +3,7 @@ package booktine.Booktine.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -51,7 +52,8 @@ public class SecurityConfig {
             // CSRF 비활성화
             .csrf(csrf -> csrf.disable())
             // /api/auth/** 은 누구나, 나머지 요청은 로그인(세션) 필요
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // Preflight 허용
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
