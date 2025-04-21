@@ -14,19 +14,4 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:uploads/");
     }
-    // CORS 전역 설정 추가
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")              // ← 전체 경로로 확대
-                .allowedOriginPatterns(
-                        "https://*.github.io",
-                        "https://c1oud-dev.github.io",
-                        "http://localhost:3000",
-                        "https://booktine-production.up.railway.app",  // ← 배포 도메인
-                        "https://*.railway.app"
-                )
-                .allowedMethods("*")
-                .allowedHeaders("*")
-                .allowCredentials(true);
-    }
 }

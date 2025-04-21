@@ -22,18 +22,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // 허용할 Origin
-        config.setAllowedOriginPatterns(List.of(
+        // 허용할 Origin (직접 나열)
+        config.setAllowedOrigins(List.of(
             "http://localhost:3000",
-            "https://c1oud-dev.github.io",
-            "https://*.github.io",
-            "https://booktine-production.up.railway.app",  // ← 배포된 프론트 도메인
-            "https://*.railway.app" // ← 필요 시 모든 railway.app 서브도메인
+            "https://c1oud-dev.github.io",                // ← 실제 GitHub Pages URL
+            "https://booktine-production.up.railway.app"  // ← 배포된 프론트 도메인
         ));
         // 모든 메서드(GET, POST, PUT, DELETE...) 허용
-        config.addAllowedMethod("*");
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         // 모든 헤더 허용
-        config.addAllowedHeader("*");
+        config.setAllowedHeaders(List.of("*"));
         // 인증정보(쿠키 등) 포함 여부
         config.setAllowCredentials(true);
 
