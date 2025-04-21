@@ -722,6 +722,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   try {
                     const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
                       method: 'POST',
+                      credentials: 'include',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ email: forgotEmail }),
                     });
@@ -839,6 +840,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                   try {
                     const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
                       method: 'POST',
+                      credentials: 'include',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
                         email: forgotEmail,
