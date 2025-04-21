@@ -12,7 +12,7 @@ const SettingsPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [aboutMe, setAboutMe] = useState('');
   const [profileImage, setProfileImage] = useState(`${process.env.PUBLIC_URL}/default_avatar.png`);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
   const [postCount, setPostCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [displayAboutMe, setDisplayAboutMe] = useState('');
@@ -53,6 +53,8 @@ const confirmDeleteAccount = async () => {
     }
     // 성공 시
     setDeletionComplete(true);
+    // 탈퇴 시 연관된 게시물 목록 초기화용 이벤트
+    window.dispatchEvent(new Event('postsUpdated'));
     localStorage.removeItem('email');
     localStorage.removeItem('nickname');
     localStorage.removeItem('profileImage');
@@ -65,6 +67,8 @@ const confirmDeleteAccount = async () => {
     for (let m = 1; m <= 12; m++) {                       // 추가: 월별 목표 삭제
       localStorage.removeItem(`monthlyGoal_${currentYear}_${m}`);
     }
+    // 탈퇴 후 메인(또는 로그인) 페이지로 이동
+    navigate('/');
   } catch (error) {
     console.error(error);
     setDeletionError("회원 탈퇴에 실패했습니다.");

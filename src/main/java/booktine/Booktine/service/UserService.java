@@ -6,6 +6,7 @@ import booktine.Booktine.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -81,6 +82,7 @@ public class UserService {
        return postRepository.countByAuthor_EmailAndReadingStatus(email, "완독");
    }
 
+    @Transactional // ← 트랜잭션 걸어서 둘 다 실패 없이 처리되도록
     public void deleteAccount(String email, String rawPassword) throws Exception {
         Optional<User> optionalUser = userRepository.findByEmail(email);
         if (optionalUser.isEmpty()) {
@@ -90,6 +92,7 @@ public class UserService {
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
             throw new Exception("비밀번호가 옳지 않습니다. 암호를 다시 확인해주세요.");
         }
+        postRepository.deleteByAuthorEmail(email);
         userRepository.delete(user);
     }
 
