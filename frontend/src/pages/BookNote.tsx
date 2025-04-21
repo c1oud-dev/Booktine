@@ -47,7 +47,11 @@ const BookNote: React.FC = () => {
 
   useEffect(() => {
     const fetchPosts = () => {
-      fetch(`${BASE_URL}/posts`)
+      // Spring Security 세션(또는 쿠키)에 저장된 사용자로 인증 요청
+      fetch(`${BASE_URL}/posts`, {
+          method: 'GET',
+          credentials: 'include'
+        })
         .then((res) => {
           if (!res.ok) throw new Error('게시글 불러오기 실패');
           return res.json();
