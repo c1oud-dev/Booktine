@@ -5,6 +5,7 @@ import booktine.Booktine.model.User;
 import booktine.Booktine.service.PostService;
 import booktine.Booktine.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,17 +25,6 @@ public class PostController {
     @Autowired
     private UserService userService;
 
-    // 1) 게시글 생성
-    /*@PostMapping
-    public Post createPost(@RequestBody Post post) {
-        // 예시: 실제 환경에서는 Spring Security 등에서 현재 사용자 정보를 가져와야 합니다.
-        User currentUser = new User();
-        currentUser.setEmail("test@example.com");
-        currentUser.setFirstName("Test");
-        currentUser.setLastName("User");
-
-        return postService.createPost(post, currentUser);
-    }*/
     @PostMapping
     public Post createPost(@RequestBody Post post) {
         // 클라이언트가 보내는 post 객체 내의 author.email이 있다면 사용합니다.
@@ -53,10 +43,11 @@ public class PostController {
         return postService.createPost(post, currentUser);
     }
 
-    // 2) 전체 게시글 조회
+    // 2) 내 게시글만 조회 (Spring Security 인증 정보에서 email 추출)
     @GetMapping
-    public List<Post> getAllPosts() {
-        return postService.getAllPosts();
+    public List<Post> getAllPosts(Authentication authentication) {
+        String email = authentication.getName();
+        return postService.getPostsByUser(email);
     }
 
     // 3) 특정 게시글 조회

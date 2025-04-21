@@ -39,6 +39,11 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    /** 로그인한 사용자 이메일로 게시글 조회 */
+    public List<Post> getPostsByUser(String email) {
+        return postRepository.findByAuthor_Email(email);
+    }
+
     // 2) 전체 게시글 조회
     public List<Post> getAllPosts() {
         return postRepository.findAll();
