@@ -193,7 +193,7 @@ const confirmDeleteAccount = async () => {
       console.error('No email found in localStorage');
       return;
     }
-    fetch(`${BASE_URL}/api/settings/${storedEmail}`)
+    fetch(`${BASE_URL}/api/settings/${storedEmail}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch user settings');
         return res.json();

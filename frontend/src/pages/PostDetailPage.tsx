@@ -99,7 +99,7 @@ const PostDetailPage: React.FC = () => {
   
 
   useEffect(() => {
-    fetch(`${BASE_URL}/posts/${id}`) // 절대 경로 사용
+    fetch(`${BASE_URL}/posts/${id}`, { credentials: 'include' }) // 절대 경로 사용
       .then((res) => {
         if (!res.ok) {
           throw new Error('게시글 불러오기 실패');
@@ -110,7 +110,7 @@ const PostDetailPage: React.FC = () => {
       .catch((err) => console.error('Error fetching post:', err));
 
     const handleProfileImageUpdate = () => {
-      fetch(`${BASE_URL}/posts/${id}`)
+      fetch(`${BASE_URL}/posts/${id}`, { credentials: 'include' })
         .then((res) => {
           if (!res.ok) {
             throw new Error('게시글 불러오기 실패');
@@ -137,7 +137,7 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleDelete = () => {
-    fetch(`${BASE_URL}/posts/${id}`, { method: 'DELETE' })
+    fetch(`${BASE_URL}/posts/${id}`, { method: 'DELETE', credentials: 'include' })
     .then((res) => {
       if (!res.ok) {
         throw new Error('게시글 삭제 실패');

@@ -111,7 +111,7 @@ const ProgressPage: React.FC = () => {
   // ──────────────────────────────────────────────
   useEffect(() => {
     console.log("Fetching progress data for current year:", currentYear);
-    fetch(`${BASE_URL}/progress?year=${currentYear}`)
+    fetch(`${BASE_URL}/progress?year=${currentYear}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();
