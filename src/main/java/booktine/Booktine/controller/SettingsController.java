@@ -2,6 +2,7 @@ package booktine.Booktine.controller;
 
 
 import booktine.Booktine.model.User;
+import booktine.Booktine.repository.PostRepository;
 import booktine.Booktine.service.PostService;
 import booktine.Booktine.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +29,9 @@ public class SettingsController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private PostRepository postRepository;
+
     public SettingsController(UserService userService) {
         this.userService = userService;
     }
@@ -41,9 +44,9 @@ public class SettingsController {
             return ResponseEntity.notFound().build();
         }
         User user = opt.get();
-        // 게시글 수, 완독 책 수
-        int postCount = postService.getPostCountByUser(email);
-        int completedCount = postService.getCompletedBookCountByUser(email);
+        // 게시글 수, 완독 책 수 (사용자별)
+        int postCount = postRepository.countByAuthor_Email(email);
+        int completedCount = postRepository.countByAuthor_EmailAndReadingStatus(email, "완독");
 
         // DTO or JSON
         Map<String, Object> response = new HashMap<>();

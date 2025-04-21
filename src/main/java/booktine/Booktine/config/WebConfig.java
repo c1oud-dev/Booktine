@@ -21,7 +21,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                         "https://*.github.io",
                         "https://c1oud-dev.github.io",
-                        "http://localhost:3000"
+                        "http://localhost:3000",
+                        "https://booktine-production.up.railway.app",  // ← 배포 도메인
+                        "https://*.railway.app"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
