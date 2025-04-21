@@ -680,6 +680,7 @@ const confirmDeleteAccount = async () => {
                       onClick={() => {
                         setShowDeleteAccountModal(false);
                         navigate('/');
+                        window.location.reload(); // 로컬스토리지 삭제된 상태로 앱 다시 렌더링
                       }}
                     >
                       확인
