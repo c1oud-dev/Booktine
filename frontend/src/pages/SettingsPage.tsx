@@ -230,35 +230,6 @@ const confirmDeleteAccount = async () => {
     setPassword('');
   };
 
-
-  useEffect(() => {
-    const storedEmail = localStorage.getItem('email');
-    if (!storedEmail) {
-      console.error('No email found in localStorage');
-      return;
-    }
-    fetch(`${BASE_URL}/api/settings/${storedEmail}`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch user settings');
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Fetched user settings:', data);
-        setNickname(data.nickname || '');
-        setDisplayNickname(data.nickname || '');
-        setEmail(data.email || '');
-        setPassword('');
-        setAboutMe(data.aboutMe || '');
-        setDisplayAboutMe(data.aboutMe || '');
-        setProfileImage(data.avatarUrl || '/default_avatar.png');
-        setPostCount(data.postCount || 0);
-        setCompletedCount(data.completedCount || 0);
-
-      })
-      .catch((err) => console.error('Error fetching user settings:', err));
-  }, []);
-
-
   return (
     <div style={{ backgroundColor: '#f5f5f5', }}>
       <div

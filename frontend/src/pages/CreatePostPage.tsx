@@ -309,6 +309,7 @@ const CreatePostPage: React.FC = () => {
       formData.append('image', _uploadedImage);
       fetch(`${BASE_URL}/api/upload-post-background`, {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       })
         .then((res) => {
@@ -330,6 +331,7 @@ const CreatePostPage: React.FC = () => {
 
           fetch(requestUrl, {
             method: requestMethod,
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
           })
@@ -369,6 +371,7 @@ const CreatePostPage: React.FC = () => {
 
     fetch(requestUrl, {
       method: requestMethod,
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(postData),
     })

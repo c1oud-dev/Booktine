@@ -132,7 +132,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/posts`)
+    fetch(`${BASE_URL}/posts`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
