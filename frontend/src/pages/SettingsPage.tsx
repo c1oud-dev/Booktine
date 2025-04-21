@@ -44,7 +44,8 @@ const confirmDeleteAccount = async () => {
     const res = await fetch(`${BASE_URL}/api/auth/delete-account?email=${email}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: deletionPassword })
+      body: JSON.stringify({ password: deletionPassword }),
+      credentials: 'include'
     });
     if (!res.ok) {
       setDeletionError("비밀번호가 옳지 않습니다. 암호를 다시 확인해주세요.");
@@ -89,6 +90,7 @@ const confirmDeleteAccount = async () => {
         headers: { 'Content-Type': 'application/json' },
         // 오직 avatarUrl만 업데이트하도록 수정 (passwordConfirmation 미포함)
         body: JSON.stringify({ avatarUrl: '/default_avatar.png' }),
+        credentials: 'include'
       });
       if (!res.ok) throw new Error('프로필 사진 삭제 실패');
   
@@ -116,6 +118,7 @@ const confirmDeleteAccount = async () => {
         const res = await fetch(`${BASE_URL}/api/upload-profile`, {
           method: 'POST',
           body: formData,
+          credentials: 'include'
         });
         if (!res.ok) throw new Error('프로필 사진 업로드 실패');
 
@@ -160,6 +163,7 @@ const confirmDeleteAccount = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
+      credentials: 'include'
     })
       .then((res) => {
         // 실패 시 문자열로 에러 메시지 받아서 예외 처리

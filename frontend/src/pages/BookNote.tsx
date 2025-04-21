@@ -117,7 +117,7 @@ const BookNote: React.FC = () => {
   const handleDeleteConfirm = () => {
     if (!deleteTargetId) return;
 
-    fetch(`${BASE_URL}/posts/${deleteTargetId}`, { method: 'DELETE' })
+    fetch(`${BASE_URL}/posts/${deleteTargetId}`, { method: 'DELETE', credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 삭제 실패');
         // 삭제 성공 시, posts를 다시 불러오거나 posts state에서 제거

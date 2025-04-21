@@ -23,11 +23,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // 허용할 Origin (직접 나열)
-        config.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "https://c1oud-dev.github.io",                // ← 실제 GitHub Pages URL
-            "https://booktine-production.up.railway.app"  // ← 배포된 프론트 도메인
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:3000",
+                "https://*.github.io",
+                "https://booktine-production.up.railway.app",
+                "https://*.railway.app"
         ));
+
         // 모든 메서드(GET, POST, PUT, DELETE...) 허용
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         // 모든 헤더 허용

@@ -91,7 +91,9 @@ const CreatePostPage: React.FC = () => {
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
     if (!postId) return; // 새 글쓰기면 postId 없음
-    fetch(`${BASE_URL}/posts/${postId}`)
+    fetch(`${BASE_URL}/posts/${postId}`, {
+      credentials: 'include'
+    })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
