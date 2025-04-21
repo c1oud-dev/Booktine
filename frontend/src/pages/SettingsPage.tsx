@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
 
+
 const SettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   // 예시: 사용자 정보 state
   const [nickname, setNickname] = useState('');
   const [displayNickname, setDisplayNickname] = useState('');
@@ -705,7 +708,7 @@ const confirmDeleteAccount = async () => {
                       }}
                       onClick={() => {
                         setShowDeleteAccountModal(false);
-                        window.location.href = '/';
+                        navigate('/');
                       }}
                     >
                       확인

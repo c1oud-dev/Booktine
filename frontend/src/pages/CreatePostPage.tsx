@@ -64,16 +64,20 @@ const CreatePostPage: React.FC = () => {
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [draftData, setDraftData] = useState<any>(null);
 
-  // 컴포넌트 마운트 시 localStorage에 저장된 임시 글이 있으면 로드할 준비
+  // 현재 로그인된 사용자 이메일 기반으로 draft key 생성
+  const userEmail = localStorage.getItem('email') || 'anonymous';
+  const DRAFT_KEY = `createPostDraft_${userEmail}`;
+
+  // 컴포넌트 마운트 시 (수정 모드가 아닐 때) 해당 유저의 draft만 로드
   useEffect(() => {
     if (!postId) {
-      const draft = localStorage.getItem('createPostDraft');
+      const draft = localStorage.getItem(DRAFT_KEY);
       if (draft) {
         setDraftData(JSON.parse(draft));
         setShowDraftModal(true);
       }
     }
-  }, []);
+  }, [postId, DRAFT_KEY]);
 
   useEffect(() => {
     if (reviewRef.current) {
@@ -390,8 +394,6 @@ const CreatePostPage: React.FC = () => {
     setTimeout(() => setShowToast(false), 2000);
   };
 
-  
-
   useEffect(() => {
     const saveDraft = () => {
       const draft = {
@@ -407,7 +409,7 @@ const CreatePostPage: React.FC = () => {
         backgroundImage,
         readingStatus,
       };
-      localStorage.setItem('createPostDraft', JSON.stringify(draft));
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     };
   
     window.addEventListener('beforeunload', saveDraft);
@@ -1089,7 +1091,7 @@ const CreatePostPage: React.FC = () => {
                 setBackgroundImage(draftData.backgroundImage || '');
                 setReadingStatus(draftData.readingStatus || '독서중');
                 setShowDraftModal(false);
-                localStorage.removeItem('createPostDraft');
+                localStorage.removeItem(DRAFT_KEY);
               }}
               style={{
                 marginRight: '10px',
@@ -1106,7 +1108,7 @@ const CreatePostPage: React.FC = () => {
             <button
               onClick={() => {
                 setShowDraftModal(false);
-                localStorage.removeItem('createPostDraft');
+                localStorage.removeItem(DRAFT_KEY);
               }}
               style={{
                 padding: '8px 16px',
