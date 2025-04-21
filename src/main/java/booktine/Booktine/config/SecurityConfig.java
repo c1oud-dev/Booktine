@@ -46,16 +46,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                // CORS 적용
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // CSRF 비활성화
-                .csrf(csrf -> csrf.disable())
-                // H2 Console 접근을 위해 frameOptions를 sameOrigin으로 설정
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-                // 모든 요청 허용 (임시)
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                )
-                .build();
+            // CORS 적용
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // CSRF 비활성화
+            .csrf(csrf -> csrf.disable())
+            // /api/auth/** 은 누구나, 나머지 요청은 로그인(세션) 필요
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .build();
     }
 }
