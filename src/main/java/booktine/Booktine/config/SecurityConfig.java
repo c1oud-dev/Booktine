@@ -9,6 +9,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 /**
  * "/api/auth/**" 경로를 공개하고, 나머지는 인증을 요구하도록 구성
  */
@@ -20,9 +22,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // 허용할 Origin
-        config.addAllowedOrigin("http://localhost:3000");
-        config.addAllowedOrigin("https://c1oud-dev.github.io");
-        config.addAllowedOriginPattern("https://*.github.io");
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:3000",
+            "https://cloud-dev.github.io",
+            "https://*.github.io"
+        ));
         // 모든 메서드(GET, POST, PUT, DELETE...) 허용
         config.addAllowedMethod("*");
         // 모든 헤더 허용

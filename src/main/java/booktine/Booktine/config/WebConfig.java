@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://c1oud-dev.github.io",
                         "http://localhost:3000"
                 )
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
