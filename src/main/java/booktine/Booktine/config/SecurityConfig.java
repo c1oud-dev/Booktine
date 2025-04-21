@@ -24,7 +24,7 @@ public class SecurityConfig {
         // 허용할 Origin
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:3000",
-            "https://cloud-dev.github.io",
+            "https://c1oud-dev.github.io",
             "https://*.github.io",
             "https://booktine-production.up.railway.app",  // ← 배포된 프론트 도메인
             "https://*.railway.app" // ← 필요 시 모든 railway.app 서브도메인
