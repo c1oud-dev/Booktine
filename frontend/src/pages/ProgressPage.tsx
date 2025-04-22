@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import GenreDoughnutChart from '../components/GenreDoughnutChart';
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8083';
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 interface Post {
   id: number;
