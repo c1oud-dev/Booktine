@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'; // BookNote 페이지로 이동�
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import HomeGenreDoughnutChart from '../components/HomeGenreDoughnutChart';
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const BASE_URL = process.env.REACT_APP_API_URL!;
 
 interface ProgressData {
   yearlyData: { month: string; count: number }[];     // 연간 독서량
