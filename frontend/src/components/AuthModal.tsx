@@ -322,7 +322,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                         return;
                       }
                       try {
-                        const response = await fetch(`${BASE_URL}/api/auth/check-nickname?nickname=${nickname}`);
+                        const response = await fetch(
+                          `${BASE_URL}/api/auth/check-nickname?nickname=${nickname}`,
+                          {
+                            credentials: 'include'
+                          }
+                        );
                         if (response.ok) {
                           setNicknameCheckedStatus("success");
                           setNicknameCheckMessage("사용 가능한 닉네임입니다.");
@@ -432,7 +437,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                         return;
                       }
                       try {
-                        const response = await fetch(`${BASE_URL}/api/auth/check-email?email=${signUpEmail}`);
+                        const response = await fetch(`${BASE_URL}/api/auth/check-email?email=${signUpEmail}`,
+                          {
+                            credentials: 'include'
+                          }
+                        );
                         if (response.ok) {
                           setEmailValidationMessage("사용 가능한 이메일입니다.");
                           setEmailValidationColor("green");
