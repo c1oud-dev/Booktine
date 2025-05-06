@@ -138,60 +138,55 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   };
 
   // 회원가입 API 요청 핸들러
+  // [수정]
   const handleSignUp = async () => {
-    // 이메일 중복 확인이 안 된 경우 경고 후 진행 중단
-    if (!isEmailChecked) {
-      alert("이메일 중복 확인을 해주세요.");
-      return;
-    }
     try {
       const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
-        credentials: 'include',  
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          nickname: nickname,
+          nickname,
           email: signUpEmail,
           password: signUpPassword,
         }),
       });
-
-      // 백엔드에서 “회원가입이 성공적으로 되었습니다!” 문자열을 받음
       const result = await response.text();
       setSuccessMessage(result);
       setSignUpSuccess(true);
 
-      // ────────────────────────────────────────────
-      // 여기서 자동 로그인 추가
+      // ─────────────────────────────
+      // 자동 로그인 호출
       const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
-        credentials: 'include',            // 쿠키 받으려면 반드시 include
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: signUpEmail,
-          password: signUpPassword
-        })
+          email:    signUpEmail,
+          password: signUpPassword,
+        }),
       });
-
       if (!loginRes.ok) {
         console.error('Auto-login failed:', loginRes.statusText);
         return;
       }
-
       const userData = await loginRes.json();
-      // localStorage 등에 세션정보(이메일·닉네임 등) 저장
-      localStorage.setItem('email', userData.email);
+      localStorage.setItem('email',    userData.email);
       localStorage.setItem('nickname', userData.nickname);
 
-      // 모달 닫고 HomePage로 이동
-      onClose();
-      navigate('/home');
-      // ────────────────────────────────────────────
-
+      // 탭을 로그인으로 전환하거나, 모달 닫고 홈으로 이동
+      setActiveTab('login');            // 로그인 탭 열기
+      setLoginEmail(signUpEmail);       // 입력란 자동 채움
+      setLoginPassword(signUpPassword);
+      // or, 바로 홈으로
+      // onClose();
+      // navigate('/home');
+      // ─────────────────────────────
     } catch (error) {
       console.error('SignUp Error:', error);
     }
   };
+
 
   return (
     <div
