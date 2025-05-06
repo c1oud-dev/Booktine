@@ -1,5 +1,8 @@
 package booktine.Booktine.config;
 
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +16,12 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 public class AppConfig implements WebMvcConfigurer {
+    private static final Logger log = LoggerFactory.getLogger(AppConfig.class);
+
+    @PostConstruct
+    public void onStartup() {
+        log.info("✅ AppConfig loaded: CORS + SecurityFilterChain are active");
+    }
     // 1) 정적 리소스 매핑 (기존 기능 그대로)
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
