@@ -156,15 +156,38 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
         }),
       });
 
-      if (!response.ok) {
-        // 요청 실패 처리 (필요에 따라 에러 메시지 처리)
-        return;
-      }
-
-      // 백엔드에서 "회원가입이 성공적으로 되었습니다!" 문자열을 받음
+      // 백엔드에서 “회원가입이 성공적으로 되었습니다!” 문자열을 받음
       const result = await response.text();
       setSuccessMessage(result);
       setSignUpSuccess(true);
+
+      // ────────────────────────────────────────────
+      // 여기서 자동 로그인 추가
+      const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        credentials: 'include',            // 쿠키 받으려면 반드시 include
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: signUpEmail,
+          password: signUpPassword
+        })
+      });
+
+      if (!loginRes.ok) {
+        console.error('Auto-login failed:', loginRes.statusText);
+        return;
+      }
+
+      const userData = await loginRes.json();
+      // localStorage 등에 세션정보(이메일·닉네임 등) 저장
+      localStorage.setItem('email', userData.email);
+      localStorage.setItem('nickname', userData.nickname);
+
+      // 모달 닫고 HomePage로 이동
+      onClose();
+      navigate('/home');
+      // ────────────────────────────────────────────
+
     } catch (error) {
       console.error('SignUp Error:', error);
     }
