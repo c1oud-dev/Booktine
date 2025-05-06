@@ -9,9 +9,19 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 public class AppConfig implements WebMvcConfigurer {
-    // --- 1) CORS + 리소스 매핑 -----------------------
+    // 1) 정적 리소스 매핑 (기존 기능 그대로)
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry
+                .addResourceHandler("/images/**")
+                .addResourceLocations("file:uploads/");
+    }
+
+    // 2) 전역 CORS 설정 (WebMvcConfigurer)
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
@@ -25,20 +35,15 @@ public class AppConfig implements WebMvcConfigurer {
                 .allowCredentials(true);
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry
-                .addResourceHandler("/images/**")
-                .addResourceLocations("file:uploads/");
-    }
-
-    // --- 2) SecurityFilterChain (람다 DSL 버전) -------
+    // 3) SecurityFilterChain — 여기서 .and() 나 deprecated cors() 를 모두 제거
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // WebMvcConfigurer#addCorsMappings 를 자동으로 사용
-                .cors(cors -> { })
+                // 이 줄 하나로 WebMvcConfigurer#addCorsMappings 호출
+                .cors(withDefaults())
+                // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
+                // 인가 규칙
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
