@@ -51,6 +51,7 @@ public class BooktineApplication implements WebMvcConfigurer {
 						.requestMatchers("/actuator/health").permitAll()
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/api/auth/**").permitAll()
+						.requestMatchers("/", "/index.html", "/static/**", "/favicon.ico").permitAll()
 						.anyRequest().authenticated()
 				);
 		return http.build();
