@@ -19,21 +19,18 @@ public class BooktineApplication implements WebMvcConfigurer {
 		SpringApplication.run(BooktineApplication.class, args);
 	}
 
-	// 1) 전역 CORS 설정
+	// ⚡️ 수정 후: 모든 오리진과 패턴 허용
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/**")
-				.allowedOriginPatterns(
-						"http://localhost:3000",
-						"https://*.github.io",
-						"https://booktine-production.up.railway.app"
-				)
-				.allowedMethods("*")
+				.allowedOriginPatterns("*")
+				.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 				.allowedHeaders("*")
-				.allowCredentials(true);
+				.allowCredentials(true)
+				.maxAge(3600);
 	}
 
-	// 2) 업로드 이미지 매핑
+	// 업로드 이미지 매핑 (변경 없음)
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		registry
@@ -41,17 +38,30 @@ public class BooktineApplication implements WebMvcConfigurer {
 				.addResourceLocations("file:uploads/");
 	}
 
-	// 3) Security + CORS 활성화
+	// ⚡️ SecurityFilterChain 수정 전/후
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
-				.cors(cors -> {})                  // WebMvcConfigurer#addCorsMappings 활용
+				.cors(cors -> {})
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
+						// 헬스체크 허용
 						.requestMatchers("/actuator/health").permitAll()
+						// preflight
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						// 인증 관련
 						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/", "/index.html", "/static/**", "/favicon.ico").permitAll()
+
+						// ⚡️ 정적 리소스 허용 패턴 추가
+						.requestMatchers(
+								"/",
+								"/index.html",
+								"/**/*.js",
+								"/**/*.css",
+								"/**/*.png",
+								"/favicon.ico"
+						).permitAll()
+
 						.anyRequest().authenticated()
 				);
 		return http.build();
