@@ -48,6 +48,7 @@ public class BooktineApplication implements WebMvcConfigurer {
 				.cors(cors -> {})                  // WebMvcConfigurer#addCorsMappings 활용
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/actuator/health").permitAll()
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/api/auth/**").permitAll()
 						.anyRequest().authenticated()

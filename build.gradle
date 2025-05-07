@@ -31,6 +31,8 @@ dependencies {
 	implementation 'org.springframework.security:spring-security-crypto'          // 추가: BCrypt 암호화
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2' // 추가: XML 모듈
 
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
