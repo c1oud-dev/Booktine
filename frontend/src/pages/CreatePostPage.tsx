@@ -309,7 +309,7 @@ const CreatePostPage: React.FC = () => {
     if (_uploadedImage) {
       const formData = new FormData();
       formData.append('image', _uploadedImage);
-      fetch(`${BASE_URL}/api/upload-post-background`, {
+      fetch(`${BASE_URL}/upload-post-background`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
