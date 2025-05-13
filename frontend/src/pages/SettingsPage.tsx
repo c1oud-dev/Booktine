@@ -41,7 +41,7 @@ const confirmDeleteAccount = async () => {
     return;
   }
   try {
-    const res = await fetch(`${BASE_URL}/auth/delete-account?email=${email}`, {
+    const res = await fetch(`${BASE_URL}/api/auth/delete-account?email=${email}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: deletionPassword }),
@@ -89,7 +89,7 @@ const confirmDeleteAccount = async () => {
       return;
     }
     try {
-      const res = await fetch(`${BASE_URL}/settings/${email}`, {
+      const res = await fetch(`${BASE_URL}/api/settings/${email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         // 오직 avatarUrl만 업데이트하도록 수정 (passwordConfirmation 미포함)
@@ -161,7 +161,7 @@ const confirmDeleteAccount = async () => {
     };
 
     // API 요청 (PUT 방식으로 업데이트)
-    fetch(`${BASE_URL}/settings/${email}`, {
+    fetch(`${BASE_URL}/api/settings/${email}`, {
       method: 'PUT', // 백엔드에서 업데이트 방식에 맞게 수정 (PUT 혹은 POST)
       headers: {
         'Content-Type': 'application/json',
@@ -201,7 +201,7 @@ const confirmDeleteAccount = async () => {
       console.error('No email found in localStorage');
       return;
     }
-    fetch(`${BASE_URL}/settings/${storedEmail}`, { credentials: 'include' })
+    fetch(`${BASE_URL}/api/settings/${storedEmail}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch user settings');
         return res.json();

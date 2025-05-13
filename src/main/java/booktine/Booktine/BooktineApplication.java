@@ -1,8 +1,11 @@
 package booktine.Booktine;
 
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -91,5 +94,22 @@ public class BooktineApplication implements WebMvcConfigurer {
 						.anyRequest().authenticated()
 				);
 		return http.build();
+	}
+
+	@Bean
+	public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
+		CorsConfiguration config = new CorsConfiguration();
+		config.setAllowedOrigins(List.of("https://booktine.vercel.app", "http://localhost:3000"));
+		config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+		config.setAllowedHeaders(List.of("*"));
+		config.setAllowCredentials(true);
+		config.setMaxAge(3600L);
+
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", config);
+
+		FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+		bean.setOrder(Ordered.HIGHEST_PRECEDENCE);  // 최우선으로 실행
+		return bean;
 	}
 }

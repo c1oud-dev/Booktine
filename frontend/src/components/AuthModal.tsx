@@ -72,7 +72,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   // ▼ 로그인 API 요청 핸들러 추가
   const handleLogin = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/login`, {
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -141,7 +141,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
   // [수정]
   const handleSignUp = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/auth/signup`, {
+      const response = await fetch(`${BASE_URL}/api/auth/signup`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -157,7 +157,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
 
       // ─────────────────────────────
       // 자동 로그인 호출
-      const loginRes = await fetch(`${BASE_URL}/auth/login`, {
+      const loginRes = await fetch(`${BASE_URL}/api/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -341,7 +341,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                       }
                       try {
                         const response = await fetch(
-                          `${BASE_URL}/auth/check-nickname?nickname=${nickname}`,
+                          `${BASE_URL}/api/auth/check-nickname?nickname=${nickname}`,
                           {
                             credentials: 'include'
                           }
@@ -455,7 +455,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                         return;
                       }
                       try {
-                        const response = await fetch(`${BASE_URL}/auth/check-email?email=${signUpEmail}`,
+                        const response = await fetch(`${BASE_URL}/api/auth/check-email?email=${signUpEmail}`,
                           {
                             credentials: 'include'
                           }
@@ -747,7 +747,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 }}
                 onClick={async () => {
                   try {
-                    const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
+                    const response = await fetch(`${BASE_URL}/api/auth/forgot-password`, {
                       method: 'POST',
                       credentials: 'include',
                       headers: { 'Content-Type': 'application/json' },
@@ -865,7 +865,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isSignUp, onClose, onLoginSuccess
                 }}
                 onClick={async () => {
                   try {
-                    const response = await fetch(`${BASE_URL}/auth/reset-password`, {
+                    const response = await fetch(`${BASE_URL}/api/auth/reset-password`, {
                       method: 'POST',
                       credentials: 'include',
                       headers: { 'Content-Type': 'application/json' },

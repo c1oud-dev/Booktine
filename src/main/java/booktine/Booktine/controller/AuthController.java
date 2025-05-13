@@ -15,8 +15,11 @@ import java.util.Map;
  */
 @RestController
 @CrossOrigin(
-    origins = {"https://c1oud-dev.github.io", "https://*.github.io", "http://localhost:3000"},
-    allowCredentials = "true"
+        origins = {
+                "https://booktine.vercel.app",   // Vercel 프로덕션
+                "http://localhost:3000"          // 로컬 개발
+        },
+        allowCredentials = "true"
 )
 @RequestMapping("/api/auth")
 public class AuthController {
