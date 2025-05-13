@@ -53,6 +53,7 @@ public class BooktineApplication implements WebMvcConfigurer {
     public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(List.of(
+				"https://booktine-production.up.railway.app",
 				"https://booktine.vercel.app",
 				"http://localhost:3000"   // 로컬 개발용
 		));
