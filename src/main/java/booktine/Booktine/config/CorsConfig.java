@@ -18,8 +18,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         // ✅ 허용할 도메인만 정확히 나열 (와일드카드* + allowCredentials(true) 조합 금지)
         config.setAllowedOrigins(List.of(
-                "https://booktine.vercel.app",
-                "https://booktine-production.up.railway.app",
+                "https://booktine-frontend.onrender.com",
                 "http://localhost:3000"
         ));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
@@ -41,8 +40,7 @@ public class CorsConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "https://booktine.vercel.app",
-                "https://booktine-production.up.railway.app",
+                "https://booktine-frontend.onrender.com",
                 "http://localhost:3000"
         ));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
