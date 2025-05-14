@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/progress")
+@RequestMapping("/api/progress")
 public class ProgressController {
     private final ProgressService progressService;
 

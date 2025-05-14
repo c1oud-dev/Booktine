@@ -120,7 +120,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    fetch(`${BASE_URL}/progress?year=${currentYear}`, { credentials: 'include' })
+    fetch(`${BASE_URL}/api/progress?year=${currentYear}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();
@@ -132,7 +132,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/posts`, { credentials: 'include' })
+    fetch(`${BASE_URL}/api/posts`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
@@ -217,7 +217,7 @@ const HomePage: React.FC = () => {
 
   // 기본 추천 도서 불러오기
   useEffect(() => { 
-    fetch(`${BASE_URL}/recommend`, { credentials: 'include' })
+    fetch(`${BASE_URL}/api/recommend`, { credentials: 'include' })
     .then((res) => { 
       if (!res.ok) 
         throw new Error('Failed to fetch default recommendation'); 
@@ -235,7 +235,7 @@ const HomePage: React.FC = () => {
       return;
     }
   
-    fetch(`${BASE_URL}/recommend?genre=${selectedGenre}`, { credentials: 'include' })
+    fetch(`${BASE_URL}/api/recommend?genre=${selectedGenre}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch recommendation');
         return res.json();

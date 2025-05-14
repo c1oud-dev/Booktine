@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 엔드포인터 처리
  */
 @RestController
-@RequestMapping("/recommend")
+@RequestMapping("/api/recommend")
 public class RecommendationController {
     private final RecommendationService recommendationService;
 
