@@ -38,10 +38,16 @@ public class BooktineApplication implements WebMvcConfigurer {
 				.authorizeHttpRequests(auth -> auth
 						// 헬스체크 허용
 						.requestMatchers("/actuator/health").permitAll()
+
+						.requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+						.requestMatchers(HttpMethod.GET,  "/api/auth/check-email").permitAll()
+						.requestMatchers(HttpMethod.GET,  "/api/auth/check-nickname").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+						.requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+
 						// preflight
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						// 인증 관련
-						.requestMatchers("/api/auth/**").permitAll()
 
 						// ⚡️ 정적 리소스 허용 패턴 추가
 						.requestMatchers(
