@@ -33,32 +33,14 @@ public class BooktineApplication implements WebMvcConfigurer {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
+				// ✅ CorsConfig의 정책을 Security 필터 체인에 연결
 				.cors(Customizer.withDefaults())
+				// ✅ CSRF 끄고
 				.csrf(csrf -> csrf.disable())
+				// ✅ 프리플라이트 요청 허용
 				.authorizeHttpRequests(auth -> auth
-						// 헬스체크 허용
-						.requestMatchers("/actuator/health").permitAll()
-
-						.requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-						.requestMatchers(HttpMethod.GET,  "/api/auth/check-email").permitAll()
-						.requestMatchers(HttpMethod.GET,  "/api/auth/check-nickname").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
-						.requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
-
-						// preflight
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-						// ⚡️ 정적 리소스 허용 패턴 추가
-						.requestMatchers(
-								"/",
-								"/index.html",
-								"/**/*.js",
-								"/**/*.css",
-								"/**/*.png",
-								"/favicon.ico"
-						).permitAll()
-
+						// … 기타 인증 없이 열릴 경로(auth, static 등) …
 						.anyRequest().authenticated()
 				);
 		return http.build();
