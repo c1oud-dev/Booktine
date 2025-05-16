@@ -48,7 +48,7 @@ const BookNote: React.FC = () => {
   useEffect(() => {
     const fetchPosts = () => {
       // Spring Security 세션(또는 쿠키)에 저장된 사용자로 인증 요청
-      fetch(`${BASE_URL}/api/posts`, {
+      fetch(`/api/posts`, {
           method: 'GET',
           credentials: 'include'
         })
@@ -117,7 +117,7 @@ const BookNote: React.FC = () => {
   const handleDeleteConfirm = () => {
     if (!deleteTargetId) return;
 
-    fetch(`${BASE_URL}/api/posts/${deleteTargetId}`, { method: 'DELETE', credentials: 'include' })
+    fetch(`/api/posts/${deleteTargetId}`, { method: 'DELETE', credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 삭제 실패');
         // 삭제 성공 시, posts를 다시 불러오거나 posts state에서 제거
@@ -249,6 +249,7 @@ const BookNote: React.FC = () => {
                     ? post.memos[0].memo.slice(0, snippetLength) + '...'
                     : post.memos[0].memo
                   : post.content || '';
+                  
 
               return (
                 <div

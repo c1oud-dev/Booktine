@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-const BASE_URL = process.env.REACT_APP_API_URL!;
 
 interface Memo {
   id: string;
@@ -11,6 +10,7 @@ interface Memo {
 }
 
 const CreatePostPage: React.FC = () => {
+  const BASE_URL = process.env.REACT_APP_API_URL!;
   const navigate = useNavigate();
   const { id: postId } = useParams(); // URL 파라미터로부터 id (수정 모드 여부)
 
@@ -91,7 +91,7 @@ const CreatePostPage: React.FC = () => {
   // (1) 글 수정 모드: 기존 게시글 불러오기
   useEffect(() => {
     if (!postId) return; // 새 글쓰기면 postId 없음
-    fetch(`${BASE_URL}/api/posts/${postId}`, {
+    fetch(`/api/posts/${postId}`, {
       credentials: 'include'
     })
       .then((res) => {
@@ -308,8 +308,8 @@ const CreatePostPage: React.FC = () => {
 
     if (_uploadedImage) {
       const formData = new FormData();
-      formData.append('image', _uploadedImage);
-      fetch(`${BASE_URL}/upload-post-background`, {
+      formData.append('file', _uploadedImage);
+      fetch(`/api/upload-post-background`, {
         method: 'POST',
         credentials: 'include',
         body: formData,
@@ -328,8 +328,8 @@ const CreatePostPage: React.FC = () => {
           const effectivePostId = postId || savedPostId;
           const requestMethod = effectivePostId ? 'PUT' : 'POST';
           const requestUrl = effectivePostId
-            ? `${BASE_URL}/posts/${effectivePostId}`
-            : `${BASE_URL}/posts`;
+            ? `/api/posts/${effectivePostId}`
+            : `/api/posts`;
 
           fetch(requestUrl, {
             method: requestMethod,
@@ -347,6 +347,7 @@ const CreatePostPage: React.FC = () => {
               }
               setIsSaved(true);
               window.dispatchEvent(new Event('postsUpdated'));
+              setShowToast(true);
               if (navigateAfterSave) {
                 navigate('/booknote');
             }
@@ -368,8 +369,8 @@ const CreatePostPage: React.FC = () => {
       const effectivePostId = postId || savedPostId;
       const requestMethod = effectivePostId ? 'PUT' : 'POST';
       const requestUrl = effectivePostId
-        ? `${BASE_URL}/posts/${effectivePostId}`
-        : `${BASE_URL}/posts`;
+        ? `/api/posts/${effectivePostId}`
+        : `/api/posts`;
 
     fetch(requestUrl, {
       method: requestMethod,
@@ -383,6 +384,9 @@ const CreatePostPage: React.FC = () => {
     })
     .then((data) => {
       // 새 게시글 저장 시…
+      if (!effectivePostId && data.id) {
+        setSavedPostId(String(data.id));
+      }
       setIsSaved(true);
       window.dispatchEvent(new Event('postsUpdated'));
       // 토스트 및 리다이렉트 추가

@@ -34,7 +34,7 @@ public class UploadController {
     @PostMapping("/upload-profile")
     public ResponseEntity<Map<String, String>> uploadProfile(
             @RequestParam("email") String email,
-            @RequestParam("profileImage") MultipartFile file
+            @RequestParam("file") MultipartFile file
     ) {
         try {
             // 1) 원본 파일명 가져오기 및 sanitize
@@ -59,7 +59,7 @@ public class UploadController {
             Files.copy(file.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
 
             // 5) 브라우저 접근 URL 구성
-            String imageUrl = "http://localhost:8083/images/" + fileName;
+            String imageUrl = "/uploads/" + fileName;
 
             // 6) DB에서 사용자 조회 후 avatarUrl 업데이트
             Optional<User> optionalUser = userService.findByEmail(email);
@@ -85,7 +85,7 @@ public class UploadController {
 
     @PostMapping(value = "/upload-post-background", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Map<String, String>> uploadPostBackground(
-            @RequestParam("image") MultipartFile file
+            @RequestParam("file") MultipartFile file
     ) {
         try {
             // 1) 원본 파일명 가져오기 및 sanitize
@@ -110,7 +110,7 @@ public class UploadController {
             Files.copy(file.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
 
             // 5) 브라우저에서 접근할 수 있는 URL 구성 (WebConfig에서 /images/** 매핑)
-            String imageUrl = "http://localhost:8083/images/" + fileName;
+            String imageUrl = "/uploads/" + fileName;
 
             // 6) 결과 반환
             Map<String, String> response = new HashMap<>();

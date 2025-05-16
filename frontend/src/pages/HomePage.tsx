@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'; // BookNote 페이지로 이동�
 import AnnualLineChart from '../components/AnnualLineChart';
 import MonthlyBarChart from '../components/MonthlyBarChart';
 import HomeGenreDoughnutChart from '../components/HomeGenreDoughnutChart';
-const BASE_URL = process.env.REACT_APP_API_URL!;
 
 interface ProgressData {
   yearlyData: { month: string; count: number }[];     // 연간 독서량
@@ -120,7 +119,7 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    fetch(`${BASE_URL}/api/progress?year=${currentYear}`, { credentials: 'include' })
+    fetch(`/api/progress?year=${currentYear}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Progress 데이터 불러오기 실패');
         return res.json();
@@ -132,7 +131,7 @@ const HomePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetch(`${BASE_URL}/api/posts`, { credentials: 'include' })
+    fetch(`/api/posts`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('게시글 불러오기 실패');
         return res.json();
@@ -217,7 +216,7 @@ const HomePage: React.FC = () => {
 
   // 기본 추천 도서 불러오기
   useEffect(() => { 
-    fetch(`${BASE_URL}/api/recommend`, { credentials: 'include' })
+    fetch(`/api/recommend`, { credentials: 'include' })
     .then((res) => { 
       if (!res.ok) 
         throw new Error('Failed to fetch default recommendation'); 
@@ -235,7 +234,7 @@ const HomePage: React.FC = () => {
       return;
     }
   
-    fetch(`${BASE_URL}/api/recommend?genre=${selectedGenre}`, { credentials: 'include' })
+    fetch(`/api/recommend?genre=${selectedGenre}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch recommendation');
         return res.json();

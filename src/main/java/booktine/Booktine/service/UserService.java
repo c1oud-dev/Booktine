@@ -4,6 +4,9 @@ import booktine.Booktine.model.User;
 import booktine.Booktine.repository.PostRepository;
 import booktine.Booktine.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +17,7 @@ import java.util.Optional;
  * 회원가입과 로그인 로직 처리, BCryptPasswordEncoder를 이용해 비밀번호를 암호화
  */
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -53,18 +56,28 @@ public class UserService {
     }
 
 
-    // 로그인: 이메일과 비밀번호를 사용
+    // 로그인 검증 (AuthController에서 직접 사용할 수도 있지만, 스프링 시큐리티용은 loadUserByUsername)
     public User loginUser(String email, String rawPassword) throws Exception {
-        Optional<User> optionalUser = userRepository.findByEmail(email);
-        if (optionalUser.isEmpty()) {
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty() || !passwordEncoder.matches(rawPassword, opt.get().getPassword())) {
             throw new Exception("Invalid email or password");
         }
-        User user = optionalUser.get();
-        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
-            throw new Exception("Invalid email or password");
-        }
-        return user;
+        return opt.get();
     }
+
+    // ★ UserDetailsService 구현
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getEmail())
+                .password(user.getPassword())
+                .roles("USER")
+                .build();
+    }
+
+
     //이메일로 유저 조회
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);

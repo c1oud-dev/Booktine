@@ -62,14 +62,24 @@ public class SettingsController {
     }
 
     @PostMapping("/{email}/uploadProfile")
-    public ResponseEntity<?> uploadProfile(@PathVariable String email, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadProfile(
+            @PathVariable String email,
+            @RequestParam("file") MultipartFile file
+    ) {
         Optional<User> opt = userService.findByEmail(email);
         if (opt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         User user = opt.get();
         try {
-            // 예시: 파일을 "uploads" 폴더에 저장하고 URL을 생성 (실제 환경에 맞게 수정)
+            // ——— 이전 업로드 파일 삭제 ———
+           String oldUrl = user.getAvatarUrl();
+           if (oldUrl != null && !oldUrl.isBlank()) {
+                   Path oldFile = Paths.get("uploads",
+                               oldUrl.substring(oldUrl.lastIndexOf('/') + 1));
+                   Files.deleteIfExists(oldFile);
+            }
+            // 새 파일 저장
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Path uploadPath = Paths.get("uploads");
             if (!Files.exists(uploadPath)) {
@@ -77,14 +87,20 @@ public class SettingsController {
             }
             Path filePath = uploadPath.resolve(filename);
             Files.write(filePath, file.getBytes());
-            // 예: 정적 리소스로 제공되는 URL (실제 URL 구성에 맞게 조정)
-            user.setAvatarUrl("/uploads/" + filename);
+
+            // 새 URL을 도메인 객체에 저장
+            String newUrl = "/uploads/" + filename;
+            user.setAvatarUrl(newUrl);
             userService.updateUser(user);
-            return ResponseEntity.ok("Profile image updated successfully.");
+
+   // JSON으로 새 avatarUrl을 반환
+           return ResponseEntity.ok(Map.of("avatarUrl", newUrl));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading file");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error uploading file"));
         }
     }
+
 
     @PutMapping("/{email}")
     public ResponseEntity<?> updateUserSettings(@PathVariable String email, @RequestBody Map<String, Object> payload) {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-const BASE_URL = process.env.REACT_APP_API_URL!;
 
 interface PostDetail {
   id: number;
@@ -99,7 +98,7 @@ const PostDetailPage: React.FC = () => {
   
 
   useEffect(() => {
-    fetch(`${BASE_URL}/api/posts/${id}`, { credentials: 'include' }) // 절대 경로 사용
+    fetch(`/api/posts/${id}`, { credentials: 'include' }) // 절대 경로 사용
       .then((res) => {
         if (!res.ok) {
           throw new Error('게시글 불러오기 실패');
@@ -110,7 +109,7 @@ const PostDetailPage: React.FC = () => {
       .catch((err) => console.error('Error fetching post:', err));
 
     const handleProfileImageUpdate = () => {
-      fetch(`${BASE_URL}/api/posts/${id}`, { credentials: 'include' })
+      fetch(`/api/posts/${id}`, { credentials: 'include' })
         .then((res) => {
           if (!res.ok) {
             throw new Error('게시글 불러오기 실패');
@@ -137,7 +136,7 @@ const PostDetailPage: React.FC = () => {
   };
 
   const handleDelete = () => {
-    fetch(`${BASE_URL}/api/posts/${id}`, { method: 'DELETE', credentials: 'include' })
+    fetch(`/api/posts/${id}`, { method: 'DELETE', credentials: 'include' })
     .then((res) => {
       if (!res.ok) {
         throw new Error('게시글 삭제 실패');
@@ -247,7 +246,7 @@ const PostDetailPage: React.FC = () => {
                           ? post.author.avatar
                           : post.author.avatar.startsWith('/')
                               ? `${process.env.PUBLIC_URL}${post.author.avatar}`
-                              : `${BASE_URL}${post.author.avatar}`
+                              : `${post.author.avatar}`
                       : `${process.env.PUBLIC_URL}/default_avatar.png`
               }
               alt="Profile"

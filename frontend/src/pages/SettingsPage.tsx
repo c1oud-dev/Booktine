@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-const BASE_URL = process.env.REACT_APP_API_URL!;
 
 
 const SettingsPage: React.FC = () => {
@@ -41,7 +40,7 @@ const confirmDeleteAccount = async () => {
     return;
   }
   try {
-    const res = await fetch(`${BASE_URL}/api/auth/delete-account?email=${email}`, {
+    const res = await fetch(`/api/auth/delete-account?email=${email}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: deletionPassword }),
@@ -53,22 +52,8 @@ const confirmDeleteAccount = async () => {
     }
     // 성공 시
     setDeletionComplete(true);
-    // 탈퇴 시 연관된 게시물 목록 초기화용 이벤트
     window.dispatchEvent(new Event('postsUpdated'));
-    localStorage.removeItem('email');
-    localStorage.removeItem('nickname');
-    localStorage.removeItem('profileImage');
-    localStorage.removeItem('goalEmail');            // 추가: 목표 관련 구분 키 삭제
-    localStorage.removeItem('yearlyGoal');             // 추가: 기본 연간 목표 삭제
-    localStorage.removeItem('yearlyAchieved');         // 추가: 달성 수 삭제
-    localStorage.removeItem('monthlyGoal');            // 추가: 기본 월간 목표 삭제
-    const currentYear = new Date().getFullYear();
-    localStorage.removeItem(`yearlyGoal_${currentYear}`); // 추가: 연도별 연간 목표 삭제
-    for (let m = 1; m <= 12; m++) {                       // 추가: 월별 목표 삭제
-      localStorage.removeItem(`monthlyGoal_${currentYear}_${m}`);
-    }
-    // 탈퇴 후 메인(또는 로그인) 페이지로 이동
-    navigate('/');
+    
   } catch (error) {
     console.error(error);
     setDeletionError("회원 탈퇴에 실패했습니다.");
@@ -89,7 +74,7 @@ const confirmDeleteAccount = async () => {
       return;
     }
     try {
-      const res = await fetch(`${BASE_URL}/api/settings/${email}`, {
+      const res = await fetch(`/api/settings/${email}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         // 오직 avatarUrl만 업데이트하도록 수정 (passwordConfirmation 미포함)
@@ -112,36 +97,35 @@ const confirmDeleteAccount = async () => {
 
   // 파일 업로드 후 응답 처리
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('profileImage', file);
-
-      try {
-        const res = await fetch(`${BASE_URL}/upload-profile`, {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
-        });
-        if (!res.ok) throw new Error('프로필 사진 업로드 실패');
-
-        const data = await res.json();
-        const uploadedUrl = data.imageUrl;
-
-        // 1) SettingsPage 프로필 이미지 갱신
-        setProfileImage(uploadedUrl);
-        // 2) 로컬스토리지나 글로벌 상태에 저장하여 Header 등에서도 불러오기
-        localStorage.setItem('profileImage', uploadedUrl);
-        window.dispatchEvent(new Event('profileImageUpdated'));
-
-        alert('프로필 사진이 성공적으로 업로드되었습니다.');
-      } catch (error) {
-        console.error(error);
-        alert('프로필 사진 업로드에 실패했습니다.');
-      }
+    const storedEmail = localStorage.getItem('email');
+    if (!storedEmail) return alert('로그인이 필요합니다.');
+    if (!e.target.files?.length) return;
+  
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+  
+    try {
+      const res = await fetch(
+        `/api/settings/${encodeURIComponent(storedEmail)}/uploadProfile`,
+        { method: 'POST', body: formData, credentials: 'include' }
+      );
+      if (!res.ok) throw new Error();
+  
+      // JSON에서 새 avatarUrl 추출
+      const { avatarUrl } = await res.json();
+      // state와 localStorage 갱신
+      setProfileImage(avatarUrl);
+      localStorage.setItem('profileImage', avatarUrl);
+      window.dispatchEvent(new Event('profileImageUpdated'));
+  
+      alert('프로필 사진이 성공적으로 업로드되었습니다.');
+    } catch {
+      alert('프로필 사진 업로드에 실패했습니다.');
     }
   };
+  
+  
 
 
   // 저장/취소 버튼
@@ -161,7 +145,7 @@ const confirmDeleteAccount = async () => {
     };
 
     // API 요청 (PUT 방식으로 업데이트)
-    fetch(`${BASE_URL}/api/settings/${email}`, {
+    fetch(`/api/settings/${email}`, {
       method: 'PUT', // 백엔드에서 업데이트 방식에 맞게 수정 (PUT 혹은 POST)
       headers: {
         'Content-Type': 'application/json',
@@ -201,7 +185,7 @@ const confirmDeleteAccount = async () => {
       console.error('No email found in localStorage');
       return;
     }
-    fetch(`${BASE_URL}/api/settings/${storedEmail}`, { credentials: 'include' })
+    fetch(`/api/settings/${storedEmail}`, { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch user settings');
         return res.json();
@@ -686,9 +670,13 @@ const confirmDeleteAccount = async () => {
                         cursor: 'pointer',
                       }}
                       onClick={() => {
+                        localStorage.clear();
+                        // (원한다면 events도)
+                        window.dispatchEvent(new Event('postsUpdated'));
+                        // 모달 닫고, 홈(또는 로그인)으로
                         setShowDeleteAccountModal(false);
                         navigate('/');
-                        window.location.reload(); // 로컬스토리지 삭제된 상태로 앱 다시 렌더링
+                        window.location.reload();
                       }}
                     >
                       확인

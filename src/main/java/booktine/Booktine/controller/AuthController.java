@@ -3,28 +3,36 @@ package booktine.Booktine.controller;
 
 import booktine.Booktine.model.User;
 import booktine.Booktine.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
  * 회원가입/로그인 등 인증 관련 API 엔드포인트
  */
 @RestController
-@CrossOrigin(
-        origins = {
-                "https://booktine.vercel.app",   // Vercel 프로덕션
-                "http://localhost:3000"          // 로컬 개발
-        },
-        allowCredentials = "true"
-)
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = {"http://localhost:3000"}, allowCredentials = "true")
 public class AuthController {
 
-    private final UserService userService;
+    @Autowired private UserService userService;
+    @Autowired private AuthenticationManager authManager;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     static class ResetPasswordRequest {
         private String email;
@@ -63,7 +71,7 @@ public class AuthController {
     }
 
     // 로그인 엔드포인트
-    @PostMapping("/login")
+    /*@PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
             User user = userService.loginUser(request.getEmail(), request.getPassword());
@@ -71,6 +79,41 @@ public class AuthController {
             return ResponseEntity.ok(user);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }*/
+
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(
+            @RequestBody LoginRequest req,
+            HttpServletRequest servletReq
+    ) {
+        try {
+            // 1) 도메인 User로 인증 검사 (비밀번호 일치 여부 확인)
+            User domainUser = userService.loginUser(req.getEmail(), req.getPassword());
+
+            // 2) 세션 생성 및 SecurityContext에 인증 등록
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    domainUser.getEmail(),    // principal
+                    null,                     // credentials은 이미 검증됐으므로 null
+                    authorities
+            );
+            SecurityContextHolder.getContext().setAuthentication(auth);
+            servletReq.getSession(true)
+                    .setAttribute(
+                            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                            SecurityContextHolder.getContext()
+                    );
+
+            // 3) 도메인 User 객체를 클라이언트에 반환
+            return ResponseEntity.ok(domainUser);
+
+        } catch (Exception e) {
+            // 인증 실패
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
     }
 
