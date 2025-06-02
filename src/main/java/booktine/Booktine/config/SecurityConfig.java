@@ -70,8 +70,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(h -> h.frameOptions(f -> f.sameOrigin()))                  // ★ H2 콘솔용
-                .sessionManagement(s -> s.sessionCreationPolicy(
-                        SessionCreationPolicy.STATELESS))                      // ★ 토큰 기반이면 stateless
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))                      // ★ 토큰 기반이면 stateless
                 .exceptionHandling(e -> e.authenticationEntryPoint(
                         (req, res, ex) -> res.sendError(
                                 HttpServletResponse.SC_UNAUTHORIZED)))

@@ -49,6 +49,22 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, String>> me(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User user = (User) auth.getPrincipal();
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "email", user.getEmail(),
+                        "nickname", user.getNickname()
+                )
+        );
+    }
+
+
     // 회원가입 엔드포인트
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest request) {
