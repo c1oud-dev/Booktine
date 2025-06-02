@@ -35,3 +35,5 @@ out/
 
 ### VS Code ###
 .vscode/
+/data/booktine.mv.db
+/frontend/.env

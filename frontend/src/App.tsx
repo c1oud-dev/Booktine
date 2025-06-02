@@ -8,14 +8,24 @@ import PostDetailPage from './pages/PostDetailPage';
 import Header from './components/Header';
 import ProgressPage from './pages/ProgressPage';
 import SettingsPage from './pages/SettingsPage';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Footer from './components/Footer'; 
+import { api } from './lib/api';
 
 
 //라우팅 담당 파일
 const App: React.FC = () => {
+
+  const [auth, setAuth] = useState<{ email: string; nickname: string } | null>(null);
+  
   useEffect(() => {
-    
+    api
+      .get<{ email: string; nickname: string }>('/auth/me')   // ③ 제네릭으로 r 타입 명시
+      .then((res) => setAuth(res.data))
+      .catch(() => {
+        localStorage.clear();
+        setAuth(null);
+      });
   }, []);
 
   return (
