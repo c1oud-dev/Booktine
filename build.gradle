@@ -46,9 +46,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-def frontendDir= "$projectDir/frontend"
-def generatedResourcesDir= "$buildDir/generated/resources"   // ★ 새 위치
-
+def frontendDir = "$projectDir/frontend"
+def generatedResourcesDir = "$buildDir/generated/resources"
 // 1) React 빌드
 task frontendBuild(type: Exec) {
 	workingDir frontendDir
