@@ -46,15 +46,13 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-def frontendDir            = "$projectDir/frontend"
-def generatedResourcesDir  = "$buildDir/generated/resources"   // ★ 새 위치
+def frontendDir= "$projectDir/frontend"
+def generatedResourcesDir= "$buildDir/generated/resources"   // ★ 새 위치
 
 // 1) React 빌드
 task frontendBuild(type: Exec) {
 	workingDir frontendDir
-	commandLine (System.getProperty("os.name").toLowerCase().contains("windows")
-			? ['cmd', '/c', 'npm', 'run', 'build']
-			: ['npm', 'run', 'build'])
+	commandLine "npm", "run", "build"
 }
 
 // 2) 빌드 산출물을 build/generated/... 으로 복사
@@ -65,19 +63,9 @@ task copyFrontend(type: Copy) {
 }
 
 // 3) Java 리소스 경로에 포함
-sourceSets {
-	main {
-		resources {
-			srcDir generatedResourcesDir     // ★ 추가
-		}
-	}
-}
+sourceSets.main.resources.srcDir generatedResourcesDir
 
 // 4) processResources 가 copyFrontend 이후 실행되도록
-tasks.named('processResources') {
-	dependsOn copyFrontend                 // ★ 핵심
-}
+tasks.processResources.dependsOn copyFrontend
 
-bootJar {
-	dependsOn copyFrontend                 // JAR 만들기 전에도 보장
-}
+bootJar.dependsOn copyFrontend
