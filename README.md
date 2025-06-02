@@ -13,7 +13,6 @@
 - [기능](#기능)
 - [설치 및 실행](#설치-및-실행)
 - [서비스 화면](#서비스-화면)
-- [사용 기술](#사용-기술)
 - [프로젝트 구조](#프로젝트-구조)
 - [개선 목표](#개선-목표)
 - [프로젝트 후기](#프로젝트-후기)
@@ -164,7 +163,7 @@ Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달�
 ### ✓ Progress
 | Progress |
 | :---------------------------------------------- |
-|  • **연간 목표 현황 (Yearly Goal Card)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 상단 원형 게이지 : 올해 목표 대비 완독 비율(%) 표시 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 아래 텍스트 : “목표”, “달성”, “남은 책” 권수로 수치 요약 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 목표 설정 버튼 : 연간 목표 수치 변경 모달로 이동 <br> • **월별 목표 현황 (Monthly Goal Card)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 카드 헤더에서 연도·월 선택 드롭다운 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 원형 게이지: 선택한 달의 목표 대비 달성 비율(%) <br> &nbsp;&nbsp;&nbsp;&nbsp; - 아래 “목표” 와 “달성” 권수 표시 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 목표 설정 버튼: 해당 월 목표 수치 수정 <br> • **월별 독서량 차트 (Monthly Reading Bar Chart)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - X축: 1월–12월, Y축: 권수 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 연─은 “목표”, 실선─은 “달성” 바(bar)로 비교 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 선택한 연도의 월별 진행 상황 한눈에 확인 <br> • **장르별 독서 비율 (Genre Distribution Donut & Table)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 도넛 차트: 전체 읽은 책 중 장르별 비중 시각화 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 차트 옆 표(Table): 각 장르명, Value(권), 백분율(%) 나열 <br> &nbsp;&nbsp;&nbsp;&nbsp; - “가장 많이 읽은 장르” 텍스트로 추천 장르 강조 <br> <br> 이렇게 연간·월간 목표 관리와 **세부 통계(월별 권수, 장르 분포)**를 한 화면에서 직관적으로 파악할 수 있습니다. |
+|  • **연간 목표 현황 (Yearly Goal Card)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 상단 원형 게이지 : 올해 목표 대비 완독 비율(%) 표시 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 아래 텍스트 : “목표”, “달성”, “남은 책” 권수로 수치 요약 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 목표 설정 버튼 : 연간 목표 수치 변경 모달로 이동 <br> • **월별 목표 현황 (Monthly Goal Card)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 카드 헤더에서 연도·월 선택 드롭다운 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 원형 게이지: 선택한 달의 목표 대비 달성 비율(%) <br> &nbsp;&nbsp;&nbsp;&nbsp; - 아래 “목표” 와 “달성” 권수 표시 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 목표 설정 버튼: 해당 월 목표 수치 수정 <br> • **연간 독서량 차트 (Monthly Reading Bar Chart)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 가입한 연도부터 연간 독서량 진행 상황을 한눈에 확인 <br> • **월별 독서량 차트 (Monthly Reading Bar Chart)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - X축: 1월–12월, Y축: 권수 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 연─은 “목표”, 실선─은 “달성” 바(bar)로 비교 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 선택한 연도의 월별 진행 상황 한눈에 확인 <br> • **장르별 독서 비율 (Genre Distribution Donut & Table)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 도넛 차트: 전체 읽은 책 중 장르별 비중 시각화 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 차트 옆 표(Table): 각 장르명, Value(권), 백분율(%) 나열 <br> &nbsp;&nbsp;&nbsp;&nbsp; - “가장 많이 읽은 장르” 텍스트로 추천 장르 강조 <br> <br> 이렇게 연간·월간 목표 관리와 **세부 통계(월별 권수, 장르 분포)**를 한 화면에서 직관적으로 파악할 수 있습니다. |
 | ![Image](https://github.com/user-attachments/assets/78c294bf-9e55-4e35-ad5c-fbfc03efe7fe) |
 
 
@@ -176,12 +175,12 @@ Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달�
 
 | 2️⃣ 프로필 정보 수정 |
 | :---------------------------------------------- |
-|  • **Basic Info 편집** <br> &nbsp;&nbsp;&nbsp;&nbsp; - Nickname: 입력 필드에서 즉시 변경 가능 <br> &nbsp;&nbsp;&nbsp;&nbsp; - About Me: 자기소개 텍스트박스에 원하는 내용 작성 <br> • **보안 확인** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 변경 사항을 저장하려면 Password 필드에 현재 비밀번호 입력 필수 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 입력하지 않으면 SAVE 버튼 비활성화 또는 오류 메시지 표시 <br> • **액션 버튼** <br> &nbsp;&nbsp;&nbsp;&nbsp; - SAVE: 비밀번호 확인 후 서버에 업데이트 <br> &nbsp;&nbsp;&nbsp;&nbsp; - CANCEL: 입력 전 상태로 편집 취소 <br> • **즉시 반영** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 저장 후 상단 내비게이션과 Settings 페이지, Book Note 등에서 새 닉네임·소개·아바타가 모두 업데이트됨 <br> <br> 이로써 사용자는 닉네임·소개 글을 안전하게 변경하고, 변경 전후 상태를 취소하거나 저장할 수 있습니다. |
+|  • **Basic Info 편집** <br> &nbsp;&nbsp;&nbsp;&nbsp; - Nickname : 입력 필드에서 변경 가능 <br> &nbsp;&nbsp;&nbsp;&nbsp; - About Me : 자기소개 텍스트박스에 원하는 내용 작성 <br> • **보안 확인** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 변경 사항을 저장하려면 Password 필드에 현재 비밀번호 입력 필수 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 입력하지 않으면 오류 메시지 표시 <br> • **액션 버튼** <br> &nbsp;&nbsp;&nbsp;&nbsp; - SAVE : 비밀번호 확인 후 서버에 업데이트 <br> &nbsp;&nbsp;&nbsp;&nbsp; - CANCEL : 입력 전 상태로 편집 취소 <br> • **즉시 반영** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 저장 후 상단 내비게이션과 Settings 페이지, Book Note 등에서 새 닉네임·소개·아바타가 모두 업데이트됨 <br> <br> 이로써 사용자는 닉네임·소개 글을 안전하게 변경하고, 변경 전후 상태를 취소하거나 저장할 수 있습니다. |
 | ![Image](https://github.com/user-attachments/assets/6ed7ae4e-b781-48b2-a82f-4e38023d4125) |
 
 | 3️⃣ 회원탈퇴 |
 | :---------------------------------------------- |
-|  • **“회원 탈퇴” 링크 클릭** <br> &nbsp;&nbsp;&nbsp;&nbsp; - Settings 페이지 하단의 텍스트 링크를 누르면 탈퇴 확인 모달이 표시됩니다. <br> • **비밀번호 확인** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 모달 내 비밀번호 입력 필드에 현재 비밀번호를 입력해야 “확인” 버튼이 활성화됩니다. <br> • **탈퇴 처리** <br> &nbsp;&nbsp;&nbsp;&nbsp; - “확인” 클릭 시 서버 요청 → 계정 및 연관 데이터(게시물, 메모 등) 전부 삭제 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 성공적으로 탈퇴되면 자동으로 로그아웃되고 로그인 화면(또는 홈)으로 리다이렉트됩니다. <br> • **취소 옵션** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 모달의 “취소” 버튼으로 탈퇴 절차를 중단할 수 있습니다. |
+|  • **“회원 탈퇴” 링크 클릭** <br> &nbsp;&nbsp;&nbsp;&nbsp; - Settings 페이지 하단의 텍스트 링크를 누르면 탈퇴 확인 모달이 표시됩니다. <br> • **비밀번호 확인** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 모달 내 암호 입력 필드에 현재 비밀번호를 입력해야 “확인” 버튼이 활성화 <br> • **탈퇴 처리** <br> &nbsp;&nbsp;&nbsp;&nbsp; - “확인” 클릭 시 서버 요청 → 계정 및 연관 데이터(게시물, 메모 등) 전부 삭제 <br> &nbsp;&nbsp;&nbsp;&nbsp; - 성공적으로 탈퇴되면 자동으로 로그아웃되고 메인 화면으로 리다이렉트됩니다. <br> • **취소 옵션** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 모달의 “취소” 버튼으로 탈퇴 절차를 중단할 수 있습니다. |
 | ![Image](https://github.com/user-attachments/assets/f16e472d-d51d-43f0-90a0-b16cda01ea24) |
 
 
@@ -190,17 +189,6 @@ Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달�
 | :---------------------------------------------- |
 |  • **“Log Out” 버튼 클릭** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 상단 내비게이션 바에 위치한 로그아웃 버튼을 누르면 <br> • **세션/쿠키 삭제** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 클라이언트의 인증 토큰(쿠키, 로컬 스토리지 등)을 제거 <br> • **서버 알림(Optional)** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 필요 시 서버에 로그아웃 요청을 보내 세션을 무효화 <br> • **리다이렉션** <br> &nbsp;&nbsp;&nbsp;&nbsp; - 로그아웃 후 로그인 화면(또는 메인 페이지)으로 자동 이동 <br> <br> 이를 통해 사용자는 안전하게 계정에서 로그아웃하고, 다른 사용자가 접근하지 못하도록 세션이 완전히 종료됩니다. |
 | ![Image](https://github.com/user-attachments/assets/5a3fa785-5a95-45ed-8642-b23522db3c0e) |
-
-<br>
-
-## 사용 기술
-
-- **백엔드**  
-  - Java, Spring Boot, Spring Security, Spring Data JPA, Lombok
-  - RESTful API 구현 및 파일 업로드/다운로드 기능
-- **프론트엔드** 
-  - React, TypeScript, Chart.js, Axios, React Router
-  - Responsive 디자인 및 사용자 인터랙션 구현
 
 <br>
 
@@ -213,29 +201,20 @@ Booktine/
 │       │   ├── AuthModal.tsx  
 │       │   ├── Header.tsx  
 │       │   ├── Footer.tsx  
-│       │   ├── Modal.tsx  
+│       │   ├── MonthlyBarChart.tsx
 │       │   ├── AnnualLineChart.tsx  
 │       │   ├── HomeGenreDoughnutChart.tsx  
-│       │   └── …  
+│       │   └── GenreDoughnutChart.tsx  
 │       ├── pages/                   # 화면 단위 컴포넌트  
 │       │   ├── HomePage.tsx  
-│       │   ├── BookNotePage.tsx  
+│       │   ├── BookNote.tsx  
 │       │   ├── ProgressPage.tsx  
 │       │   ├── SettingsPage.tsx  
 │       │   ├── CreatePostPage.tsx  
-│       │   ├── EditPostPage.tsx  
+│       │   ├── MainPage.tsx  
 │       │   └── PostDetailPage.tsx  
 │       ├── services/                # API 호출 로직  
 │       │   ├── AuthService.ts  
-│       │   ├── PostService.ts  
-│       │   ├── UserService.ts  
-│       │   └── Api.ts  
-│       ├── hooks/                   # 커스텀 훅  
-│       │   ├── useAuth.ts  
-│       │   └── useFetch.ts  
-│       ├── utils/                   # 유틸 함수  
-│       │   ├── dateUtils.ts  
-│       │   └── chartUtils.ts  
 │       ├── App.tsx                  # 최상위 컴포넌트  
 │       ├── index.tsx                # 진입점  
 │       ├── index.css  
@@ -244,43 +223,65 @@ Booktine/
     └── main/  
         ├── java/com/c1ouddev/booktine/  
         │   ├── config/              # 설정 클래스  
-        │   │   └── CorsConfig.java  
+        │   │   └── SecurityConfig.java
         │   ├── controller/          # REST API 엔드포인트  
-        │   │   ├── AuthController.java  
+        │   │   ├── AuthController.java 
+	│   │   ├── ProgressController.java
+	│   │   ├── RecommendationController.java
         │   │   ├── PostController.java  
-        │   │   └── UserController.java  
-        │   ├── domain/              # JPA 엔티티  
+        │   │   ├── UploadController.java
+        │   │   └── SettingsController.java
+        │   ├── model/              # JPA 엔티티  
         │   │   ├── User.java  
         │   │   ├── Post.java  
-        │   │   └── …  
-        │   ├── dto/                 # 요청/응답 DTO  
-        │   │   ├── AuthRequestDto.java  
-        │   │   ├── AuthResponseDto.java  
-        │   │   ├── PostDto.java  
-        │   │   └── UserDto.java  
-        │   ├── exception/           # 예외 처리  
-        │   │   ├── CustomException.java  
-        │   │   └── GlobalExceptionHandler.java  
+        │   │   ├── Memo.java  
+        │   │   └── Author.java
         │   ├── repository/          # JPA 리포지토리  
         │   │   ├── UserRepository.java  
         │   │   └── PostRepository.java  
-        │   ├── security/            # JWT, 필터 등  
-        │   │   ├── JwtTokenProvider.java  
-        │   │   ├── JwtAuthenticationFilter.java  
-        │   │   └── SecurityConfig.java  
         │   ├── service/             # 비즈니스 로직  
-        │   │   ├── AuthService.java  
+        │   │   ├── ProgressService.java  
         │   │   ├── PostService.java  
+        │   │   ├── RecommendationService.java
         │   │   └── UserService.java  
         │   └── BooktineApplication.java  
         └── resources/  
             ├── application.properties  
-            └── static/              # 정적 리소스 (if any)
 ```
 
 <br>
 
 ## 개선 목표
+
+### 1. 로그인
+- **SNS, Google 등 다른 이메일 연동**
+  - 소셜 로그인(네이버, 카카오, Google 등) 기능 추가
+  - 해당 소셜 계정과 사용자 계정 매핑 처리
+- **이메일 인증**
+  - 회원가입 시 입력한 이메일로 인증 코드 발송
+  - 인증 코드 입력 후 계정 활성화
+
+---
+
+### 2. 비밀번호 찾기
+- **이메일 입력 및 인증 코드 발송**
+  - 회원 등록된 이메일 주소를 입력 후 “인증코드 발송” 버튼 클릭
+  - 서버에서 입력된 이메일로 6자리 인증 코드 전송
+- **인증 코드 확인**
+  - 받은 코드를 입력 필드에 입력하면 “코드 확인” 버튼 활성화
+  - 코드 유효성 검사 후 성공 시 다음 단계로 이동
+- **새 비밀번호 설정**
+  - 인증 코드 확인이 완료되면 새 비밀번호 입력창과 확인용 입력창 노출
+  - 두 필드에 동일한 비밀번호를 입력한 뒤 “비밀번호 재설정” 버튼 클릭
+
+---
+
+### 3. Book Note
+- **페이지 분류/목록 기능 추가**
+  - 카테고리(장르, 상태 등)별 필터링 기능 구현
+  - 작성된 노트 목록을 분류별로 그룹화하여 표시
+  - 페이지네이션 또는 무한 스크롤 적용으로 노트 탐색 편의성 향상
+
 
 <br>
 
