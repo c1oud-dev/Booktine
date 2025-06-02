@@ -1,7 +1,7 @@
 ##### 1) 빌드 스테이지 #######################################################
-FROM gradle:8.7-jdk17 AS build          # ✅ JDK 17 + Gradle
+FROM gradle:8.7-jdk17 AS build
 
-# Node 20 설치 (React 빌드용) — apt 한 줄이면 끝
+# Node 20 설치 (React 빌드용)
 RUN apt-get update \
  && apt-get install -y curl gnupg \
  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -9,12 +9,11 @@ RUN apt-get update \
 
 WORKDIR /workspace
 COPY . .
-
-# React + Spring 한 번에 빌드
-RUN gradle bootJar --no-daemon
+RUN gradle bootJar --no-daemon        # React + Spring 한 번에 빌드
 
 ##### 2) 런타임 스테이지 ######################################################
-FROM eclipse-temurin:17-jre             # 실행에는 JRE만 필요
+FROM eclipse-temurin:17-jre
+
 WORKDIR /opt/app
 COPY --from=build /workspace/build/libs/*.jar app.jar
 EXPOSE 8080
