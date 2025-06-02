@@ -18,6 +18,7 @@ RUN npm --prefix frontend ci --omit=dev
 
 # 5️⃣ 전체 소스 복사 후 React + Spring 한 번에 빌드
 COPY . .
+RUN chmod +x gradlew
 RUN ./gradlew bootJar --no-daemon
 
 ##### 2) 런타임 스테이지 ######################################################
