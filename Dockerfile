@@ -1,6 +1,6 @@
 # ─── ① 빌드 스테이지 ──────────────────────────────────────────────────────────
 # - JDK 17 + Gradle + Node 20 이미 포함된 공식 이미지 활용
-FROM gradle:8.7.0-jdk17-node AS build
+FROM gradle:8.7-jdk17 AS build
 
 # 1) 캐시 최적화 ─ package.json만 먼저 복사 → npm ci 레이어 고정
 WORKDIR /workspace
