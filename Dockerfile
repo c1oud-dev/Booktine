@@ -1,5 +1,5 @@
 ##### 1) 빌드 스테이지 ########################################################
-FROM gradle:8.7-jdk21 AS build
+FROM gradle:8.7-jdk17-node AS build
 
 # Node·npm 설치 (React 빌드용)
 USER root
