@@ -5,6 +5,9 @@
 ![Image](https://github.com/user-attachments/assets/8ed33009-4fc7-4a37-bba0-dd0d0621b8ca)
 독서 기록과 목표 관리를 한 곳에서! 사용자가 독서 습관을 추적하고, 독서 노트 및 메모를 관리하며, 맞춤형 책 추천을 받을 수 있는 풀스택 웹 애플리케이션입니다.
 
+
+- 배포 URL : https://booktine-prod.onrender.com
+
 <br>
 
 ## 목차
