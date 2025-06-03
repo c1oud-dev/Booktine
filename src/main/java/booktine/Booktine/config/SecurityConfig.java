@@ -76,7 +76,16 @@ public class SecurityConfig {
                                 HttpServletResponse.SC_UNAUTHORIZED)))
                 .authenticationProvider(daoAuthProvider)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/h2-console/**").permitAll() // ★ 허용 경로 추가
+                        .requestMatchers(
+                                "/",                 // SPA 엔트리(index.html)
+                                "/index.html",
+                                "/static/**",        // CRA 빌드된 JS · CSS
+                                "/favicon.ico",
+                                "/assets/**",        // 이미지 등 정적 자산
+                                "/actuator/health",  // Render 헬스 체크
+                                "/api/auth/**",
+                                "/h2-console/**"
+                                ).permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();
