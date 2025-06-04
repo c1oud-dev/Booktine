@@ -1,7 +1,7 @@
 # 📚 Booktine - 독서 습관 관리 서비스
 
 ![Image](https://github.com/user-attachments/assets/8ed33009-4fc7-4a37-bba0-dd0d0621b8ca)
-독서 기록과 목표 관리를 한 곳에서! 사용자가 독서 습관을 추적하고, 독서 노트 및 메모를 관리하며, 맞춤형 책 추천을 받을 수 있는 풀스택 웹 애플리케이션입니다.
+“Booktine”은 사용자가 자신의 독서 이력을 기록·관리하고, 목표를 설정하여 달성 현황을 시각화할 수 있는 풀스택 독서 관리 플랫폼입니다. Spring Boot 기반의 RESTful 백엔드와 React 기반의 SPA(단일 페이지 애플리케이션) 프런트엔드를 연동하여, 인증·인가, 독서 노트 CRUD, 통계 시각화, 목표 설정·달성 기능을 제공합니다.
 
 
 🔗 **배포 URL** : https://booktine-prod.onrender.com
@@ -19,28 +19,44 @@
 - [개발 기간](#개발-기간)
 - [서비스 화면](#서비스-화면)
 - [프로젝트 구조](#프로젝트-구조)
-- [추후 개선 사항](#추후-개선-사항)
+- [향후 개선 계획](#향후-개선-계획)
 - [프로젝트 후기](#프로젝트-후기)
 
 <br>
 
 ## 소개
-Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달성할 수 있도록 도와주는 웹 애플리케이션입니다.
-이 프로젝트는 사용자가 자신이 읽은 책의 진행 상황을 기록하고, 독서 노트와 메모를 통해 인사이트를 정리하며, 장르별 맞춤형 책 추천을 받을 수 있도록 개발되었습니다.
+“Booktine”은 다음과 같은 문제를 해결하기 위해 기획되었습니다.
+
+- **독서 이력 관리의 번거로움**  
+  종이 노트나 단순 메모 앱이 아닌, 웹 기반 플랫폼에서 언제 어디서든 독서 이력을 조회·작성하고자 함.
+
+- **독서 목표 설정 및 시각화**  
+  연간·월간 목표를 자유롭게 설정하고 달성 현황을 차트로 한눈에 확인하여 동기 부여를 높이고자 함.
+
+- **책 노트 작성 및 관리**  
+  읽은 책에 대한 감상·요약을 남기고, 카테고리(독서 상태)를 통해 정리·검색할 수 있도록 함.
+
+- **간단한 회원 관리 기능**  
+  개인 계정을 생성하여 자신의 독서 이력·목표·설정을 안전하게 보관·관리할 수 있도록 함.
+
+위 요구사항을 반영하여, 백엔드(Spring Boot + JPA + MySQL)와 프런트엔드(React + TypeScript + Chart.js)로 구성된 웹 애플리케이션을 완성했습니다.
 
 <br>
 
 ## 개발 환경
-| **언어 및 런타임** | Java 11+, JavaScript (ES6+), TypeScript 4.x |                                           
-|-----------------|:-----------------|
-| **백엔드** | Spring Boot 3.x, Spring MVC, Spring Security, Spring Data JPA (Hibernate), Maven Wrapper, 내장Tomcat, Nginx |
-| **프론트엔드** | React 18.x, TypeScript, React Hooks & Context API, Axios, Chart.js, Vite (또는 Create React App) |
-| **데이터베이스** | 개발: H2 (in-memory)<br>운영: MySQL 8.x |
-| **디자인 & 프로토타이핑** | Figma |
-| **버전 관리** | GitHub (c1oud-dev/Booktine), 브랜치 전략: main / develop / feature/* |
-| **개발 도구** | IntelliJ IDEA, VS Code, Postman / Insomnia, Git Bash / Windows Terminal / iTerm2 |
-| **배포 & CI/CD** | 프론트: GitHub Pages / Vercel<br>백엔드: Railway (or AWS/GCP/Azure) + Nginx<br>CI: GitHub Actions |
-| **기타** | Docker (MySQL 컨테이너), 환경 변수: `.env` (frontend), `application.properties` (backend), Lint/Formatter: ESLint, Prettier, Spotless |
+| 구분         | 기술 및 라이브러리               |
+|-------------|-----------------------------------|
+| **언어**      | Java 11, JavaScript (ES6+), TypeScript 4.x |
+| **백엔드**     | Spring Boot 3.x, Spring Security, Spring Data JPA (Hibernate) |
+| **데이터베이스** | H2 (개발용), MySQL 8 (운영용)               |
+| **프런트엔드**   | React 18, React Router, Axios, Chart.js, Tailwind CSS (또는 CSS Module) |
+| **빌드 도구**   | Gradle (백엔드), npm / Yarn (프런트엔드)   |
+| **배포 환경**   | Render (백엔드, Free), GitHub Pages (프런트엔드) |
+| **인증/인가**   | JWT (추후 구현 예정) / 세션 기반 인증        |
+| **버전 관리**   | Git + GitHub                          |
+| **협업 도구**   | GitHub Issues / 프로젝트 보드 (칸반)         |
+| **IDE**       | IntelliJ IDEA, VS Code                |
+| **테스트**     | JUnit 5 (단위 테스트), React Testing Library (추후) |
 
 <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=SpringBoot&logoColor=white"> <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=JUnit5&logoColor=white"> <img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=white"> <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white"> <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=Chart.js&logoColor=white">
 
@@ -236,7 +252,7 @@ Booktine/
 
 <br>
 
-## 추후 개선 사항
+## 향후 개선 계획
 
 ### 1. 로그인
 - **SNS, Google 등 다른 이메일 연동**
