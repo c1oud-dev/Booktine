@@ -79,6 +79,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/",                 // SPA 엔트리(index.html)
                                 "/index.html",
+                                "/manifest.json",            // PWA manifest
+                                "/logo*.png", "/Main.png",   // 루트에 놓인 이미지들
+                                "/*.css", "/*.js", "/*.png", // 빌드 루트-레벨 정적파일
                                 "/static/**",        // CRA 빌드된 JS · CSS
                                 "/favicon.ico",
                                 "/assets/**",        // 이미지 등 정적 자산
