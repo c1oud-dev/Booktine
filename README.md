@@ -1,12 +1,14 @@
 # 📚 Booktine - 독서 습관 관리 서비스
 
-<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=SpringBoot&logoColor=white"> <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=JUnit5&logoColor=white"> <img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=white"> <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white"> <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=Chart.js&logoColor=white">
-
 ![Image](https://github.com/user-attachments/assets/8ed33009-4fc7-4a37-bba0-dd0d0621b8ca)
 독서 기록과 목표 관리를 한 곳에서! 사용자가 독서 습관을 추적하고, 독서 노트 및 메모를 관리하며, 맞춤형 책 추천을 받을 수 있는 풀스택 웹 애플리케이션입니다.
 
 
-- 배포 URL : https://booktine-prod.onrender.com
+🔗 **배포 URL** : https://booktine-prod.onrender.com
+
+✉️ **테스트 이메일** : booktine@test.com
+
+🔑 **테스트 패스워드** : booktine@1
 
 <br>
 
@@ -14,7 +16,6 @@
 - [소개](#소개)
 - [개발 환경](#개발-환경)
 - [기능](#기능)
-- [설치 및 실행](#설치-및-실행)
 - [개발 기간](#개발-기간)
 - [서비스 화면](#서비스-화면)
 - [프로젝트 구조](#프로젝트-구조)
@@ -41,6 +42,8 @@ Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달�
 | **배포 & CI/CD** | 프론트: GitHub Pages / Vercel<br>백엔드: Railway (or AWS/GCP/Azure) + Nginx<br>CI: GitHub Actions |
 | **기타** | Docker (MySQL 컨테이너), 환경 변수: `.env` (frontend), `application.properties` (backend), Lint/Formatter: ESLint, Prettier, Spotless |
 
+<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white"> <img src="https://img.shields.io/badge/Spring-6DB33F?style=for-the-badge&logo=Spring&logoColor=white"> <img src="https://img.shields.io/badge/SpringBoot-6DB33F?style=for-the-badge&logo=SpringBoot&logoColor=white"> <img src="https://img.shields.io/badge/JUnit5-25A162?style=for-the-badge&logo=JUnit5&logoColor=white"> <img src="https://img.shields.io/badge/Hibernate-59666C?style=for-the-badge&logo=Hibernate&logoColor=white"> <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=JavaScript&logoColor=white"> <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=white"> <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white"> <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=Chart.js&logoColor=white">
+
 <br>
 
 ## 기능
@@ -58,36 +61,6 @@ Booktine은 독서 습관을 체계적으로 관리하고 독서 목표를 달�
 
 - **사용자 설정 및 프로필 관리**  
   사용자 프로필 사진 업로드, 기본 정보 수정, 게시글 수 및 완독한 책 수 등 개인별 통계 정보를 확인할 수 있습니다.
-
-<br>
-
-## 설치 및 실행
-### 백엔드
-1. **환경 준비**
-    - Java 11 이상
-    - Maven 또는 Gradle 설치
-    - MySQL (또는 H2) 데이터베이스 생성 및 접근 정보 확인
-2. **설정 파일 업데이트**
-   ```properties
-   # src/main/resources/application.properties
-   spring.datasource.url=jdbc:mysql://{HOST}:{PORT}/{DATABASE}?useSSL=false&serverTimezone=UTC
-   spring.datasource.username={USERNAME}
-   spring.datasource.password={PASSWORD}
-   server.port=${PORT:8080}
-3. **프로젝트 빌드 및 실행:**
-   ```bash
-   ./mvnw clean install
-   ./mvnw spring-boot:run
-
-### 프론트엔드
-1. **환경 준비**
-    - Node.js (v16 이상) & npm 설치
-2. **프로젝트 실행**
-  ```bash
-  cd frontend
-  npm install
-  npm start
-  ```
 
 <br>
 
