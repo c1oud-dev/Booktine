@@ -5,6 +5,15 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
 ### STS ###
 .apt_generated
 .classpath
@@ -17,15 +26,6 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -35,5 +35,34 @@ out/
 
 ### VS Code ###
 .vscode/
-/data/booktine.mv.db
+
+### Environment & Secrets ###
+.env
+.env.*
+!.env.example
+application-prod.properties
+application-local.properties
+*.secret.properties
+
+### H2 DB 로컬 파일 ###
+/data/
+*.mv.db
+*.trace.db
+
+### 프론트엔드 환경변수 ###
 /frontend/.env
+/frontend/.env.*
+!/frontend/.env.example
+
+### 로그 ###
+*.log
+logs/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Docker ###
+Dockerfile
+docker-compose*.yml
+.dockerignore
