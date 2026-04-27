@@ -1,5 +1,9 @@
 package booktine.Booktine.global;
 
+/**
+ * 서비스 전역에서 사용하는 에러 코드 정의
+ * CustomException 발생 시 ErrorCode를 함께 던져 GlobalExceptionHandler에서 일괄 처리
+ */
 public enum ErrorCode {
     INVALID_INPUT(400, "잘못된 입력입니다."),
     UNAUTHORIZED(401, "인증이 필요합니다."),
