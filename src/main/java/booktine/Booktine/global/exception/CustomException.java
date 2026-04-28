@@ -1,4 +1,4 @@
-package booktine.Booktine.global;
+package booktine.Booktine.global.exception;
 
 /**
  * 비즈니스 로직 예외 처리에 사용하는 커스텀 예외

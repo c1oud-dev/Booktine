@@ -1,4 +1,4 @@
-package booktine.Booktine.global;
+package booktine.Booktine.global.response;
 
 /**
  * 모든 API 응답에 사용되는 공통 응답 래퍼

@@ -1,5 +1,6 @@
-package booktine.Booktine.global;
+package booktine.Booktine.global.exception;
 
+import booktine.Booktine.global.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
