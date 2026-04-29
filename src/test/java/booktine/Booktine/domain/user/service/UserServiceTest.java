@@ -1,4 +1,4 @@
-package booktine.Booktine.user.service;
+package booktine.Booktine.domain.user.service;
 
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;

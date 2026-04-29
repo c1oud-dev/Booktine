@@ -1,4 +1,4 @@
-package booktine.Booktine.post.service;
+package booktine.Booktine.domain.post.service;
 
 import booktine.Booktine.domain.post.dto.PostCreateRequest;
 import booktine.Booktine.domain.post.dto.PostResponse;
