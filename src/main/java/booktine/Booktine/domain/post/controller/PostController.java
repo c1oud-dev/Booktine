@@ -3,6 +3,7 @@ package booktine.Booktine.domain.post.controller;
 import booktine.Booktine.domain.post.dto.PostCreateRequest;
 import booktine.Booktine.domain.post.dto.PostResponse;
 import booktine.Booktine.domain.post.dto.PostUpdateRequest;
+import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.service.PostService;
 import booktine.Booktine.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -28,6 +29,18 @@ public class PostController {
     @GetMapping
     public ApiResponse<List<PostResponse>> getPosts(@RequestParam Long userId) {
         return ApiResponse.ok(postService.getPostsByUserId(userId));
+    }
+
+    /**
+     * 키워드와 독서 상태를 조건으로 게시물을 검색한다.
+     */
+    @GetMapping("/search")
+    public ApiResponse<List<PostResponse>> searchPosts(
+            @RequestParam Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) ReadingStatus status
+    ) {
+        return ApiResponse.ok(postService.searchPosts(userId, keyword, status));
     }
 
     /**
