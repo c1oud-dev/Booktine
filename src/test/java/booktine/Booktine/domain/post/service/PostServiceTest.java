@@ -6,7 +6,6 @@ import booktine.Booktine.domain.post.dto.PostUpdateRequest;
 import booktine.Booktine.domain.post.entity.Post;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
-import booktine.Booktine.domain.post.service.PostService;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
@@ -194,6 +193,36 @@ class PostServiceTest {
                 .build();
         ReflectionTestUtils.setField(post, "id", id);
         return post;
+    }
+
+    @Test
+    @DisplayName("키워드로 게시물 검색 성공")
+    void searchPosts_byKeyword() {
+        // given
+        User user = createUser(1L);
+        Post post = createPost(1L, user, "제목");
+        given(postRepository.searchPosts(1L, "제목", null)).willReturn(List.of(post));
+
+        // when
+        List<PostResponse> res = postService.searchPosts(1L, "제목", null);
+
+        // then
+        assertThat(res).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("독서 상태로 게시물 필터 성공")
+    void searchPosts_byStatus() {
+        // given
+        User user = createUser(1L);
+        Post post = createPost(1L, user, "제목");
+        given(postRepository.searchPosts(1L, null, ReadingStatus.READING)).willReturn(List.of(post));
+
+        // when
+        List<PostResponse> res = postService.searchPosts(1L, null, ReadingStatus.READING);
+
+        // then
+        assertThat(res).hasSize(1);
     }
 }
 
