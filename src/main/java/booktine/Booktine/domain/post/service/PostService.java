@@ -42,9 +42,7 @@ public class PostService {
                 .publishedDate(request.publishedDate())
                 .summary(request.summary())
                 .readingStatus(request.readingStatus())
-                .completedDate(request.completedDate())
-                .user(user)
-                .build();
+                .completedDate(request.completedDate()).user(user).build();
 
         return PostResponse.from(postRepository.save(post));
     }
