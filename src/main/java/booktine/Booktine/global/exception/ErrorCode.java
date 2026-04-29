@@ -11,6 +11,7 @@ public enum ErrorCode {
     NOT_FOUND(404, "요청한 리소스를 찾을 수 없습니다."),
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다."),
     POST_NOT_FOUND(404, "게시물을 찾을 수 없습니다."),
+    MEMO_NOT_FOUND(404, "메모를 찾을 수 없습니다."),
     INVALID_PASSWORD(400, "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
