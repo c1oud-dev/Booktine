@@ -38,8 +38,7 @@ public class UserService {
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        User savedUser = userRepository.save(user);
-        return toUserResponse(savedUser);
+        return UserResponse.from(userRepository.save(user));
     }
 
     /**
@@ -60,8 +59,7 @@ public class UserService {
      * 사용자 식별자로 내 정보를 조회한다.
      */
     public UserResponse getMyInfo(Long userId) {
-        User user = getUserById(userId);
-        return toUserResponse(user);
+        return UserResponse.from(getUserById(userId));
     }
 
     /**
@@ -75,7 +73,7 @@ public class UserService {
         validateNicknameDuplicationOnUpdate(user, request.nickname());
 
         user.updateProfile(request.nickname(), request.aboutMe());
-        return toUserResponse(user);
+        return UserResponse.from(user);
     }
 
     /**
@@ -83,8 +81,7 @@ public class UserService {
      */
     @Transactional
     public void deleteMyAccount(Long userId) {
-        User user = getUserById(userId);
-        userRepository.delete(user);
+        userRepository.delete(getUserById(userId));
     }
 
     /**
@@ -129,18 +126,5 @@ public class UserService {
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-    }
-
-    /**
-     * User 엔티티를 UserResponse DTO로 변환한다.
-     */
-    private UserResponse toUserResponse(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getEmail(),
-                user.getNickname(),
-                user.getAboutMe(),
-                user.getProfileImageUrl()
-        );
     }
 }
