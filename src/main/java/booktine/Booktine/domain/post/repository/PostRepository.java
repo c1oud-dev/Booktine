@@ -10,7 +10,7 @@ import java.util.List;
  * 게시물 엔티티의 DB 접근을 담당하는 JPA 리포지토리.
  * 사용자별 게시물 목록/검색/상태 집계 쿼리를 제공한다.
  */
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
 
     /**
      * 사용자 ID로 전체 게시물 목록을 조회한다.
