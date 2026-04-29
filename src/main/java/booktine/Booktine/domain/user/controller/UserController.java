@@ -27,7 +27,7 @@ public class UserController {
     /**
      * 회원가입 요청을 처리한다.
      */
-    @PostMapping("/api/auth/signup")
+    @PostMapping("/auth/signup")
     public ApiResponse<UserResponse> signUp(@Valid @RequestBody SignUpRequest request) {
         return ApiResponse.ok(userService.signUp(request));
     }
@@ -35,7 +35,7 @@ public class UserController {
     /**
      * 이메일 중복 여부를 확인한다.
      */
-    @GetMapping("/api/users/check/email")
+    @GetMapping("/users/check/email")
     public ApiResponse<Boolean> checkEmail(
             @RequestParam
             @NotBlank(message = "이메일은 필수입니다.")
@@ -48,7 +48,7 @@ public class UserController {
     /**
      * 닉네임 중복 여부를 확인한다.
      */
-    @GetMapping("/api/users/check/nickname")
+    @GetMapping("/users/check/nickname")
     public ApiResponse<Boolean> checkNickname(
             @RequestParam
             @NotBlank(message = "닉네임은 필수입니다.")
@@ -60,7 +60,7 @@ public class UserController {
     /**
      * 사용자 ID 기준으로 내 정보를 조회한다.
      */
-    @GetMapping("/api/users/me")
+    @GetMapping("/users/me")
     public ApiResponse<UserResponse> getMyInfo(@RequestParam Long userId) {
         return ApiResponse.ok(userService.getMyInfo(userId));
     }
@@ -68,7 +68,7 @@ public class UserController {
     /**
      * 사용자 ID 기준으로 내 프로필을 수정한다.
      */
-    @PutMapping("/api/users/me")
+    @PutMapping("/users/me")
     public ApiResponse<UserResponse> updateMyProfile(
             @RequestParam Long userId,
             @Valid @RequestBody UpdateProfileRequest request
@@ -79,7 +79,7 @@ public class UserController {
     /**
      * 사용자 ID 기준으로 회원탈퇴를 수행한다.
      */
-    @DeleteMapping("/api/users/me")
+    @DeleteMapping("/users/me")
     public ApiResponse<Void> deleteMyAccount(@RequestParam Long userId) {
         userService.deleteMyAccount(userId);
         return ApiResponse.ok();
