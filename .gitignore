@@ -66,3 +66,6 @@ Thumbs.db
 Dockerfile
 docker-compose*.yml
 .dockerignore
+
+# QueryDSL
+src/main/generated
