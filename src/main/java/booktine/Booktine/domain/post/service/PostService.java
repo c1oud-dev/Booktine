@@ -4,6 +4,7 @@ import booktine.Booktine.domain.post.dto.PostCreateRequest;
 import booktine.Booktine.domain.post.dto.PostResponse;
 import booktine.Booktine.domain.post.dto.PostUpdateRequest;
 import booktine.Booktine.domain.post.entity.Post;
+import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
@@ -108,5 +109,15 @@ public class PostService {
         if (!post.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
+    }
+
+    /**
+     * 키워드와 독서 상태를 조건으로 게시물을 검색한다.
+     * 조건이 없으면 전체 목록을 반환한다.
+     */
+    public List<PostResponse> searchPosts(Long userId, String keyword, ReadingStatus status) {
+        return postRepository.searchPosts(userId, keyword, status).stream()
+                .map(PostResponse::from)
+                .toList();
     }
 }
