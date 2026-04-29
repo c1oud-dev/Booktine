@@ -11,6 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 사용자 관련 HTTP API 엔드포인트를 제공하는 컨트롤러.
@@ -83,5 +84,21 @@ public class UserController {
     public ApiResponse<Void> deleteMyAccount(@RequestParam Long userId) {
         userService.deleteMyAccount(userId);
         return ApiResponse.ok();
+    }
+
+    /**
+     * 사용자 ID 기준으로 프로필 이미지를 업로드한다.
+     */
+    @PostMapping("/users/me/image")
+    public ApiResponse<UserResponse> uploadMyImage(@RequestParam Long userId, @RequestParam MultipartFile image) {
+        return ApiResponse.ok(userService.uploadMyImage(userId, image));
+    }
+
+    /**
+     * 사용자 ID 기준으로 프로필 이미지를 삭제한다.
+     */
+    @DeleteMapping("/users/me/image")
+    public ApiResponse<UserResponse> deleteMyImage(@RequestParam Long userId) {
+        return ApiResponse.ok(userService.deleteMyImage(userId));
     }
 }

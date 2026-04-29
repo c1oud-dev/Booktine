@@ -7,10 +7,12 @@ import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
+import booktine.Booktine.global.s3.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 사용자 도메인 비즈니스 로직을 처리하는 서비스.
@@ -23,6 +25,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final S3Service s3Service;
 
     /**
      * 회원가입 요청을 처리하고 BCrypt로 암호화한 비밀번호를 저장한다.
@@ -78,10 +81,39 @@ public class UserService {
 
     /**
      * 사용자 식별자로 회원을 삭제한다.
+     * 프로필 이미지가 존재하면 S3에서도 함께 삭제한다.
      */
     @Transactional
     public void deleteMyAccount(Long userId) {
-        userRepository.delete(getUserById(userId));
+        User user = getUserById(userId);
+        if (user.getProfileImageUrl() != null) {
+            s3Service.deleteImage(user.getProfileImageUrl());
+        }
+        userRepository.delete(user);
+    }
+
+    /**
+     * 프로필 이미지를 S3에 업로드하고 URL을 저장한다.
+     */
+    @Transactional
+    public UserResponse uploadMyImage(Long userId, MultipartFile image) {
+        User user = getUserById(userId);
+        if (user.getProfileImageUrl() != null) {
+            s3Service.deleteImage(user.getProfileImageUrl());
+        }
+        user.updateProfileImageUrl(s3Service.uploadImage(image));
+        return UserResponse.from(user);
+    }
+
+    /**
+     * 프로필 이미지를 S3에서 삭제하고 URL을 초기화한다.
+     */
+    @Transactional
+    public UserResponse deleteMyImage(Long userId) {
+        User user = getUserById(userId);
+        s3Service.deleteImage(user.getProfileImageUrl());
+        user.updateProfileImageUrl(null);
+        return UserResponse.from(user);
     }
 
     /**

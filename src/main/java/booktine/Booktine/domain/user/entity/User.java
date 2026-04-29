@@ -54,4 +54,11 @@ public class User extends BaseEntity {
         this.nickname = nickname;
         this.aboutMe = aboutMe;
     }
+
+    /**
+     * 프로필 이미지 URL을 변경한다.
+     */
+    public void updateProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
 }
