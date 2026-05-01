@@ -61,4 +61,11 @@ public class User extends BaseEntity {
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
+
+    /**
+     * 사용자 비밀번호를 변경한다.
+     */
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }
