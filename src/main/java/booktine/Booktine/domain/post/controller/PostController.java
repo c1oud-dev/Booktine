@@ -8,6 +8,8 @@ import booktine.Booktine.domain.post.service.PostService;
 import booktine.Booktine.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,8 +29,8 @@ public class PostController {
      * 사용자 ID 기준으로 게시물 목록을 조회한다.
      */
     @GetMapping
-    public ApiResponse<List<PostResponse>> getPosts(@RequestParam Long userId) {
-        return ApiResponse.ok(postService.getPostsByUserId(userId));
+    public ApiResponse<Page<PostResponse>> getPosts(@RequestParam Long userId, Pageable pageable) {
+        return ApiResponse.ok(postService.getPostsByUserId(userId, pageable));
     }
 
     /**

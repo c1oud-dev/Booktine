@@ -2,6 +2,8 @@ package booktine.Booktine.domain.post.repository;
 
 import booktine.Booktine.domain.post.entity.Post;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -16,7 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
     /**
      * 사용자 ID로 전체 게시물 목록을 조회한다.
      */
-    List<Post> findAllByUserId(Long userId);
+    Page<Post> findAllByUserId(Long userId, Pageable pageable);
 
     /**
      * 사용자 ID와 독서 상태로 게시물 목록을 조회한다.

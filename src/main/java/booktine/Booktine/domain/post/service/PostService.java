@@ -11,6 +11,8 @@ import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,10 +53,9 @@ public class PostService {
     /**
      * 사용자 ID 기준으로 게시물 목록을 조회한다.
      */
-    public List<PostResponse> getPostsByUserId(Long userId) {
-        return postRepository.findAllByUserId(userId).stream()
-                .map(PostResponse::from)
-                .toList();
+    public Page<PostResponse> getPostsByUserId(Long userId, Pageable pageable) {
+        return postRepository.findAllByUserId(userId, pageable)
+                .map(PostResponse::from);
     }
 
     /**
