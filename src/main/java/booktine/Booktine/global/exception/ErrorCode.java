@@ -18,6 +18,7 @@ public enum ErrorCode {
     MONTHLY_GOAL_ALREADY_EXISTS(409, "해당 월의 월간 목표가 이미 존재합니다."),
     RECOMMENDATION_NOT_FOUND(404, "추천 도서를 찾을 수 없습니다."),
     RECOMMENDATION_NOT_AVAILABLE(404, "추천 가능한 도서를 찾을 수 없습니다."),
+    REMINDER_NOT_FOUND(404, "리마인더를 찾을 수 없습니다."),
     INVALID_PASSWORD(400, "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
