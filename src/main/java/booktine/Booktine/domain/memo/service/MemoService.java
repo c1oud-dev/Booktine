@@ -10,10 +10,10 @@ import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * 메모 도메인 비즈니스 로직을 담당하는 서비스.
@@ -40,9 +40,9 @@ public class MemoService {
     /**
      * 게시물 존재 여부와 작성자 본인 여부를 확인한 뒤 메모 목록을 조회한다.
      */
-    public List<MemoResponse> getMemos(Long userId, Long postId) {
+    public Page<MemoResponse> getMemos(Long userId, Long postId, Pageable pageable) {
         getOwnedPost(userId, postId);
-        return memoRepository.findAllByPostId(postId).stream().map(MemoResponse::from).toList();
+        return memoRepository.findAllByPostId(postId, pageable).map(MemoResponse::from);
     }
 
     /**

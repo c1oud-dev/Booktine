@@ -6,9 +6,9 @@ import booktine.Booktine.domain.memo.dto.MemoUpdateRequest;
 import booktine.Booktine.domain.memo.service.MemoService;
 import booktine.Booktine.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 게시물 메모 관련 HTTP API 엔드포인트를 제공하는 컨트롤러.
@@ -25,8 +25,8 @@ public class MemoController {
      * 게시물별 메모 목록을 조회한다.
      */
     @GetMapping
-    public ApiResponse<List<MemoResponse>> getMemos(@RequestParam Long userId, @PathVariable Long postId) {
-        return ApiResponse.ok(memoService.getMemos(userId, postId));
+    public ApiResponse<Page<MemoResponse>> getMemos(@RequestParam Long userId, @PathVariable Long postId, Pageable pageable) {
+        return ApiResponse.ok(memoService.getMemos(userId, postId, pageable));
     }
 
     /**
