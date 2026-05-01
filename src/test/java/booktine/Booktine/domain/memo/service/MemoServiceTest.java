@@ -17,6 +17,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -70,13 +73,14 @@ class MemoServiceTest {
         ReflectionTestUtils.setField(memo, "id", 2L);
 
         given(postRepository.findById(1L)).willReturn(Optional.of(post));
-        given(memoRepository.findAllByPostId(1L)).willReturn(List.of(memo));
+        PageRequest pageable = PageRequest.of(0, 10);
+        given(memoRepository.findAllByPostId(1L, pageable)).willReturn(new PageImpl<>(List.of(memo)));
 
         // when
-        List<MemoResponse> res = memoService.getMemos(1L, 1L);
+        Page<MemoResponse> res = memoService.getMemos(1L, 1L, pageable);
 
         // then
-        assertThat(res).hasSize(1);
+        assertThat(res.getContent()).hasSize(1);
     }
 
     @Test
