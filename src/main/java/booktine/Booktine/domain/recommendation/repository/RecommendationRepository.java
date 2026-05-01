@@ -1,9 +1,9 @@
 package booktine.Booktine.domain.recommendation.repository;
 
 import booktine.Booktine.domain.recommendation.entity.Recommendation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.List;
 
 /**
  * Recommendation 엔티티 영속성 처리를 담당하는 레포지토리.
@@ -14,5 +14,5 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     /**
      * 사용자 ID 기준으로 저장된 추천 도서 목록을 조회한다.
      */
-    List<Recommendation> findAllByUserId(Long userId);
+    Page<Recommendation> findAllByUserId(Long userId, Pageable pageable);
 }

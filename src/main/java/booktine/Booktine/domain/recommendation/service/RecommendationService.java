@@ -10,6 +10,9 @@ import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,11 +79,25 @@ public class RecommendationService {
     /**
      * 사용자별 저장된 추천 도서 목록을 조회한다.
      */
-    public List<RecommendationResponse> getSavedRecommendations(Long userId) {
+    public Page<RecommendationResponse> getSavedRecommendations(Long userId, Pageable pageable) {
         getUserById(userId);
-        return recommendationRepository.findAllByUserId(userId).stream()
-                .map(RecommendationResponse::from)
-                .toList();
+        return recommendationRepository.findAllByUserId(userId, pageable).map(RecommendationResponse::from);
+    }
+
+    /**
+     * 키워드 기준 외부 도서 검색 결과를 페이지 응답으로 반환한다.
+     */
+    public Page<AladinBookResponse> searchBooks(String query, Pageable pageable) {
+        List<AladinBookResponse> books = aladinApiClient.searchBooksByKeyword(query);
+        return paginateExternalResult(books, pageable);
+    }
+
+    /**
+     * 베스트셀러 외부 조회 결과를 페이지 응답으로 반환한다.
+     */
+    public Page<AladinBookResponse> getBestsellers(Pageable pageable) {
+        List<AladinBookResponse> books = aladinApiClient.getBestsellers();
+        return paginateExternalResult(books, pageable);
     }
 
     /**
@@ -102,5 +119,17 @@ public class RecommendationService {
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * 외부 API 리스트 결과를 오프셋 기반 페이지 객체로 변환한다.
+     */
+    private Page<AladinBookResponse> paginateExternalResult(List<AladinBookResponse> books, Pageable pageable) {
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), books.size());
+        if (start >= books.size()) {
+            return new PageImpl<>(List.of(), pageable, books.size());
+        }
+        return new PageImpl<>(books.subList(start, end), pageable, books.size());
     }
 }

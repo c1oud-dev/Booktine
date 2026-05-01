@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * 알라딘 ItemSearch API 연동을 담당하는 클라이언트.
- * RecommendationService에서 장르 기반 추천 후보 도서를 조회할 때 사용된다.
+ * 알라딘 OpenAPI 연동을 담당하는 클라이언트.
+ * RecommendationService에서 장르 추천/키워드 검색/베스트셀러 조회를 위해 호출한다.
  */
 @Slf4j
 @Component
@@ -30,13 +30,21 @@ public class AladinApiClient {
      * 장르(키워드) 기준으로 알라딘 ItemSearch API를 호출해 도서 목록을 조회한다.
      */
     public List<AladinBookResponse> searchBooksByGenre(String genre) {
+        return searchBooksByKeyword(genre);
+    }
+
+    /**
+     * 키워드 기준으로 알라딘 ItemSearch API를 호출해 도서 목록을 조회한다.
+     */
+    public List<AladinBookResponse> searchBooksByKeyword(String query) {
         try {
             AladinSearchResponse response = restClient.get()
                     .uri(uriBuilder -> uriBuilder
                             .path("/ItemSearch.aspx")
                             .queryParam("ttbkey", ttbKey)
                             .queryParam("QueryType", "Keyword")
-                            .queryParam("Query", genre)
+                            .queryParam("Query", query)
+                            .queryParam("MaxResults", 20)
                             .queryParam("output", "js")
                             .queryParam("Version", "20131101")
                             .build())
@@ -49,13 +57,42 @@ public class AladinApiClient {
             }
             return response.item();
         } catch (Exception exception) {
-            log.warn("알라딘 API 호출에 실패했습니다. genre={}", genre, exception);
+            log.warn("알라딘 키워드 검색 API 호출에 실패했습니다. query={}", query, exception);
             return Collections.emptyList();
         }
     }
 
     /**
-     * 알라딘 ItemSearch API 루트 응답 객체를 매핑한다.
+     * 알라딘 ItemList API를 호출해 베스트셀러 목록을 조회한다.
+     */
+    public List<AladinBookResponse> getBestsellers() {
+        try {
+            AladinSearchResponse response = restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/ItemList.aspx")
+                            .queryParam("ttbkey", ttbKey)
+                            .queryParam("QueryType", "Bestseller")
+                            .queryParam("MaxResults", 20)
+                            .queryParam("SearchTarget", "Book")
+                            .queryParam("output", "js")
+                            .queryParam("Version", "20131101")
+                            .build())
+                    .accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .body(AladinSearchResponse.class);
+
+            if (response == null || response.item() == null) {
+                return Collections.emptyList();
+            }
+            return response.item();
+        } catch (Exception exception) {
+            log.warn("알라딘 베스트셀러 API 호출에 실패했습니다.", exception);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * 알라딘 API 루트 응답 객체를 매핑한다.
      */
     private record AladinSearchResponse(List<AladinBookResponse> item) {
     }
