@@ -16,6 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -80,14 +83,15 @@ class PostServiceTest {
         // given
         User user = createUser(1L);
         Post post = createPost(11L, user, "목록제목");
-        given(postRepository.findAllByUserId(1L)).willReturn(List.of(post));
+        PageRequest pageable = PageRequest.of(0, 10);
+        given(postRepository.findAllByUserId(1L, pageable)).willReturn(new PageImpl<>(List.of(post)));
 
         // when
-        List<PostResponse> responses = postService.getPostsByUserId(1L);
+        Page<PostResponse> responses = postService.getPostsByUserId(1L, pageable);
 
         // then
-        assertThat(responses).hasSize(1);
-        assertThat(responses.get(0).title()).isEqualTo("목록제목");
+        assertThat(responses.getContent()).hasSize(1);
+        assertThat(responses.getContent().get(0).title()).isEqualTo("목록제목");
     }
 
     /**
