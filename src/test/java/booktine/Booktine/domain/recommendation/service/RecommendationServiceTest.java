@@ -15,6 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
@@ -118,14 +121,15 @@ class RecommendationServiceTest {
                 .build();
         ReflectionTestUtils.setField(recommendation, "id", 2L);
 
+        PageRequest pageable = PageRequest.of(0, 10);
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
-        given(recommendationRepository.findAllByUserId(1L)).willReturn(List.of(recommendation));
+        given(recommendationRepository.findAllByUserId(1L, pageable)).willReturn(new PageImpl<>(List.of(recommendation)));
 
         // when
-        List<RecommendationResponse> responses = recommendationService.getSavedRecommendations(1L);
+        Page<RecommendationResponse> responses = recommendationService.getSavedRecommendations(1L, pageable);
 
         // then
-        assertThat(responses).hasSize(1);
+        assertThat(responses.getContent()).hasSize(1);
     }
 
     @Test
