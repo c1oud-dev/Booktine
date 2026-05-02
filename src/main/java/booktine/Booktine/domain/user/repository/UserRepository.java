@@ -1,6 +1,7 @@
 package booktine.Booktine.domain.user.repository;
 
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -14,7 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 이메일 중복 여부를 확인한다.
      */
-    boolean existsByEmail(String email);
+    boolean existsByEmailAndAuthProvider(String email, UserAuthProvider authProvider);
 
     /**
      * 닉네임 중복 여부를 확인한다.
@@ -24,5 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /**
      * 이메일로 사용자 정보를 조회한다.
      */
-    Optional<User> findByEmail(String email);
+    Optional<User> findByEmailAndAuthProvider(String email, UserAuthProvider authProvider);
+
+    /**
+     * 소셜 제공자와 제공자 사용자 식별자로 사용자 정보를 조회한다.
+     */
+    Optional<User> findByAuthProviderAndProviderId(UserAuthProvider authProvider, String providerId);
 }
