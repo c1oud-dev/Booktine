@@ -22,6 +22,9 @@ public enum ErrorCode {
     INVALID_PASSWORD(400, "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(409, "이미 사용 중인 이메일입니다."),
     DUPLICATE_NICKNAME(409, "이미 사용 중인 닉네임입니다."),
+    EMAIL_CODE_EXPIRED(400, "인증 코드가 만료되었거나 존재하지 않습니다."),
+    EMAIL_CODE_MISMATCH(400, "인증 코드가 일치하지 않습니다."),
+    USER_NOT_VERIFIED(403, "이메일 인증이 완료되지 않은 계정입니다."),
     INTERNAL_SERVER_ERROR(500, "서버 내부 오류가 발생했습니다.");
 
     private final int status;
