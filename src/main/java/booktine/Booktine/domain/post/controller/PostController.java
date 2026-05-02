@@ -6,6 +6,7 @@ import booktine.Booktine.domain.post.dto.PostUpdateRequest;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.service.PostService;
 import booktine.Booktine.global.response.ApiResponse;
+import booktine.Booktine.global.security.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,8 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 게시물 관련 HTTP API 엔드포인트를 제공하는 컨트롤러.
- * D8 인증 연동 전까지는 RequestParam userId를 사용해 임시 사용자 식별을 수행한다.
+ * 게시물 API를 제공하는 컨트롤러로,
+ * 인증 컨텍스트의 userId를 기준으로 사용자 리소스를 처리한다.
  */
 @RestController
 @RequiredArgsConstructor
@@ -29,7 +30,8 @@ public class PostController {
      * 사용자 ID 기준으로 게시물 목록을 조회한다.
      */
     @GetMapping
-    public ApiResponse<Page<PostResponse>> getPosts(@RequestParam Long userId, Pageable pageable) {
+    public ApiResponse<Page<PostResponse>> getPosts(Pageable pageable) {
+        Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(postService.getPostsByUserId(userId, pageable));
     }
 
@@ -38,23 +40,24 @@ public class PostController {
      */
     @GetMapping("/search")
     public ApiResponse<List<PostResponse>> searchPosts(
-            @RequestParam Long userId,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) ReadingStatus status
-    ) {
+            @RequestParam(required = false) ReadingStatus status)
+    {
+        Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(postService.searchPosts(userId, keyword, status));
     }
 
     /**
-     * 사용자 ID 기준으로 게시물을 생성한다.
+     * 현재 로그인 사용자 게시물을 생성한다.
      */
     @PostMapping
-    public ApiResponse<PostResponse> createPost(@RequestParam Long userId, @Valid @RequestBody PostCreateRequest request) {
+    public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(postService.createPost(userId, request));
     }
 
     /**
-     * 게시물 ID 기준으로 게시물 상세를 조회한다.
+     * 게시물 단건을 조회한다.
      */
     @GetMapping("/{id}")
     public ApiResponse<PostResponse> getPost(@PathVariable Long id) {
@@ -62,23 +65,21 @@ public class PostController {
     }
 
     /**
-     * 사용자 ID와 게시물 ID 기준으로 게시물을 수정한다.
+     * 현재 로그인 사용자 게시물을 수정한다.
      */
     @PutMapping("/{id}")
-    public ApiResponse<PostResponse> updatePost(
-            @RequestParam Long userId,
-            @PathVariable Long id,
-            @RequestBody PostUpdateRequest request
+    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @RequestBody PostUpdateRequest request
     ) {
+        Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(postService.updatePost(userId, id, request));
     }
 
     /**
-     * 사용자 ID와 게시물 ID 기준으로 게시물을 삭제한다.
+     * 현재 로그인 사용자 게시물을 삭제한다.
      */
     @DeleteMapping("/{id}")
-    public ApiResponse<Void> deletePost(@RequestParam Long userId, @PathVariable Long id) {
-        postService.deletePost(userId, id);
-        return ApiResponse.ok();
+    public ApiResponse<Void> deletePost(@PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        postService.deletePost(userId, id); return ApiResponse.ok();
     }
 }
