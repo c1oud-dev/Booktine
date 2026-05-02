@@ -4,6 +4,7 @@ import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
@@ -40,6 +41,8 @@ public class UserService {
                 .nickname(request.nickname())
                 .password(passwordEncoder.encode(request.password()))
                 .emailVerified(false)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
                 .build();
 
         return UserResponse.from(userRepository.save(user));
@@ -49,7 +52,7 @@ public class UserService {
      * 전달받은 이메일의 중복 여부를 확인한다.
      */
     public boolean isEmailDuplicated(String email) {
-        return userRepository.existsByEmail(email);
+        return userRepository.existsByEmailAndAuthProvider(email, UserAuthProvider.LOCAL);
     }
 
     /**
@@ -121,7 +124,7 @@ public class UserService {
      * 이메일 중복 시 예외를 발생시킨다.
      */
     private void validateEmailDuplication(String email) {
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailAndAuthProvider(email, UserAuthProvider.LOCAL)) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
     }

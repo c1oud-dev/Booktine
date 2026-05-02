@@ -5,6 +5,7 @@ import booktine.Booktine.domain.auth.dto.EmailVerifyRequest;
 import booktine.Booktine.domain.auth.dto.LoginRequest;
 import booktine.Booktine.domain.auth.dto.TokenResponse;
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
@@ -41,7 +42,7 @@ public class AuthService {
     /** 로그인 후 AT/RT 발급 및 Redis에 RT 저장을 수행한다. */
     @Transactional
     public LoginResult login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         if (!passwordEncoder.matches(request.password(), user.getPassword())) throw new CustomException(ErrorCode.INVALID_PASSWORD);
         if (!user.isEmailVerified()) throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
 
@@ -73,7 +74,7 @@ public class AuthService {
         if (!savedCode.equals(request.code())) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
 
         if ("SIGNUP".equalsIgnoreCase(request.purpose())) {
-            User user = userRepository.findByEmail(request.email()).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+            User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             user.verifyEmail();
         }
         redisTemplate.delete(key);
@@ -87,7 +88,7 @@ public class AuthService {
         if (savedCode == null) throw new CustomException(ErrorCode.EMAIL_CODE_EXPIRED);
         if (!savedCode.equals(code)) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
 
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByEmailAndAuthProvider(email, UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updatePassword(passwordEncoder.encode(newPassword));
         redisTemplate.delete(key);
     }
