@@ -4,6 +4,8 @@ import booktine.Booktine.domain.admin.service.AdminService;
 import booktine.Booktine.domain.post.dto.PostResponse;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin")
+@Tag(name = "관리자", description = "관리자 관련 API")
 public class AdminController {
 
     private final AdminService adminService;
@@ -25,6 +28,7 @@ public class AdminController {
     /**
      * 전체 사용자 목록을 조회한다.
      */
+    @Operation(summary = "전체 사용자 조회", description = "관리자 용도로 전체 사용자 목록을 페이지 단위로 조회합니다.")
     @GetMapping("/users")
     public ApiResponse<Page<UserResponse>> getUsers(Pageable pageable) {
         return ApiResponse.ok(adminService.getUsers(pageable));
@@ -33,6 +37,7 @@ public class AdminController {
     /**
      * 전체 게시물 목록을 조회한다.
      */
+    @Operation(summary = "전체 게시물 조회", description = "관리자 용도로 전체 게시물 목록을 페이지 단위로 조회합니다.")
     @GetMapping("/posts")
     public ApiResponse<Page<PostResponse>> getPosts(Pageable pageable) {
         return ApiResponse.ok(adminService.getPosts(pageable));
