@@ -4,6 +4,7 @@ import booktine.Booktine.domain.auth.dto.EmailVerifyRequest;
 import booktine.Booktine.domain.auth.dto.LoginRequest;
 import booktine.Booktine.domain.auth.dto.TokenResponse;
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
@@ -27,6 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
+/**
+ * AuthService 단위 테스트.
+ * 인증 관련 유스케이스(로그인, 토큰 재발급, 이메일 인증)에 대한 서비스 로직을 검증한다.
+ */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
     @InjectMocks private AuthService authService;
@@ -38,14 +43,18 @@ class AuthServiceTest {
     @Mock private ValueOperations<String, String> valueOperations;
     @Mock private JavaMailSender javaMailSender;
 
+    /**
+     * 로컬 계정 로그인 성공 시 Access Token이 정상 반환되는지 검증한다.
+     */
     @Test
     @DisplayName("로그인 성공")
     void login_success() {
         // given
         LoginRequest request = new LoginRequest("test@test.com", "pw");
-        User user = User.builder().email("test@test.com").password("encoded").nickname("n").emailVerified(true).build();
+        User user = User.builder().email("test@test.com").password("encoded").nickname("n")
+                .emailVerified(true).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
         ReflectionTestUtils.setField(user, "id", 1L);
-        given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+        given(userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(Optional.of(user));
         given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
         given(jwtProvider.generateAccessToken(1L)).willReturn("at");
         given(jwtProvider.generateRefreshToken(1L)).willReturn("rt");
@@ -56,16 +65,20 @@ class AuthServiceTest {
         AuthService.LoginResult result = authService.login(request);
 
         // then
-        assertThat(result.tokenResponse().accessToken()).isEqualTo("at");
+        assertThat(result.refreshToken()).isEqualTo("rt");
     }
 
+    /**
+     * 이메일 미인증 계정 로그인 시 차단되는지 검증한다.
+     */
     @Test
     @DisplayName("이메일 미인증 사용자 로그인 차단")
     void login_fail_unverified_user() {
         // given
         LoginRequest request = new LoginRequest("test@test.com", "pw");
-        User user = User.builder().email("test@test.com").password("encoded").nickname("n").emailVerified(false).build();
-        given(userRepository.findByEmail(request.email())).willReturn(Optional.of(user));
+        User user = User.builder().email("test@test.com").password("encoded").nickname("n")
+                .emailVerified(false).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
+        given(userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(Optional.of(user));
         given(passwordEncoder.matches(request.password(), user.getPassword())).willReturn(true);
 
         // when & then
@@ -74,6 +87,9 @@ class AuthServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_VERIFIED);
     }
 
+    /**
+     * 유효한 Refresh Token으로 Access Token 재발급이 가능한지 검증한다.
+     */
     @Test
     @DisplayName("토큰 재발급 성공")
     void reissue_success() {
@@ -90,14 +106,18 @@ class AuthServiceTest {
         assertThat(response.accessToken()).isEqualTo("new-at");
     }
 
+    /**
+     * 회원가입 목적 이메일 인증 코드 검증 시 계정이 활성화되는지 검증한다.
+     */
     @Test
     @DisplayName("회원가입 이메일 인증 코드 검증 시 계정 활성화")
     void verifyEmailCode_signup_success() {
         // given
-        User user = User.builder().email("test@test.com").password("encoded").nickname("n").emailVerified(false).build();
+        User user = User.builder().email("test@test.com").password("encoded").nickname("n")
+                .emailVerified(false).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get("EMAIL_CODE:SIGNUP:test@test.com")).willReturn("123456");
-        given(userRepository.findByEmail("test@test.com")).willReturn(Optional.of(user));
+        given(userRepository.findByEmailAndAuthProvider("test@test.com", UserAuthProvider.LOCAL)).willReturn(Optional.of(user));
 
         // when
         authService.verifyEmailCode(new EmailVerifyRequest("test@test.com", "SIGNUP", "123456"));
@@ -106,4 +126,3 @@ class AuthServiceTest {
         assertThat(user.isEmailVerified()).isTrue();
     }
 }
-

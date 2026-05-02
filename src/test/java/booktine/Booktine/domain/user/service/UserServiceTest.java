@@ -4,10 +4,11 @@ import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import booktine.Booktine.domain.user.repository.UserRepository;
-import booktine.Booktine.domain.user.service.UserService;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
+import booktine.Booktine.global.s3.S3Service;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,8 +27,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * UserService 단위 테스트
- * Mockito를 사용하여 UserRepository, BCryptPasswordEncoder를 Mock 처리
- * 실제 DB 연결 없이 서비스 로직만 검증
+ * Mockito를 사용해 UserRepository, BCryptPasswordEncoder, S3Service를 Mock 처리하고
+ * 사용자 도메인 서비스의 핵심 비즈니스 로직을 검증한다.
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -41,12 +42,18 @@ class UserServiceTest {
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
+    @Mock
+    private S3Service s3Service;
+
+    /**
+     * 회원가입 시 중복 검증과 저장이 정상 처리되는지 검증한다.
+     */
     @Test
     @DisplayName("회원가입 성공")
     void signUp_success() {
         // given
         SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
-        given(userRepository.existsByEmail(request.email())).willReturn(false);
+        given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
         given(userRepository.existsByNickname(request.nickname())).willReturn(false);
         given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
 
@@ -54,11 +61,14 @@ class UserServiceTest {
                 .email(request.email())
                 .nickname(request.nickname())
                 .password("encodedPassword")
+                .emailVerified(false)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
                 .build();
         ReflectionTestUtils.setField(savedUser, "id", 1L);
         given(userRepository.save(any(User.class))).willReturn(savedUser);
 
-// when
+        // when
         UserResponse response = userService.signUp(request);
 
         // then
@@ -67,25 +77,30 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    /**
+     * 회원가입 시 로컬 계정 이메일이 중복되면 예외가 발생하는지 검증한다.
+     */
     @Test
     @DisplayName("이메일 중복 시 예외 발생")
     void signUp_duplicateEmail_throwsException() {
         // given
         SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
-        given(userRepository.existsByEmail(request.email())).willReturn(true);
+        given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> userService.signUp(request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
     }
-
+    /**
+     * 회원가입 시 닉네임이 중복되면 예외가 발생하는지 검증한다.
+     */
     @Test
     @DisplayName("닉네임 중복 시 예외 발생")
     void signUp_duplicateNickname_throwsException() {
         // given
         SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
-        given(userRepository.existsByEmail(request.email())).willReturn(false);
+        given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
         given(userRepository.existsByNickname(request.nickname())).willReturn(true);
 
         // when & then
@@ -94,6 +109,9 @@ class UserServiceTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_NICKNAME);
     }
 
+    /**
+     * 사용자 식별자로 내 정보를 조회할 수 있는지 검증한다.
+     */
     @Test
     @DisplayName("내 정보 조회 성공")
     void getMyInfo_success() {
@@ -102,9 +120,12 @@ class UserServiceTest {
                 .email("test@test.com")
                 .nickname("테스터")
                 .password("encodedPassword")
+                .emailVerified(true)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
                 .build();
         ReflectionTestUtils.setField(user, "id", 1L);
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
         // when
         UserResponse response = userService.getMyInfo(1L);
@@ -114,6 +135,9 @@ class UserServiceTest {
         assertThat(response.nickname()).isEqualTo("테스터");
     }
 
+    /**
+     * 비밀번호 검증 후 프로필 수정이 정상 반영되는지 검증한다.
+     */
     @Test
     @DisplayName("내 정보 수정 성공")
     void updateMyProfile_success() {
@@ -122,6 +146,9 @@ class UserServiceTest {
                 .email("test@test.com")
                 .nickname("테스터")
                 .password("encodedPassword")
+                .emailVerified(true)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
                 .build();
         ReflectionTestUtils.setField(user, "id", 1L);
 
@@ -138,12 +165,20 @@ class UserServiceTest {
         assertThat(response.aboutMe()).isEqualTo("새자기소개");
     }
 
+    /**
+     * 사용자 탈퇴 시 사용자 삭제가 수행되는지 검증한다.
+     */
     @Test
     @DisplayName("회원탈퇴 성공")
     void deleteMyAccount_success() {
         // given
         User user = User.builder()
                 .email("test@test.com")
+                .password("encodedPassword")
+                .nickname("테스터")
+                .emailVerified(true)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
                 .build();
         ReflectionTestUtils.setField(user, "id", 1L);
 
