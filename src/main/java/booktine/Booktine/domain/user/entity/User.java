@@ -13,7 +13,10 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
-@Table(name = "users")
+@Table(name = "users", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_provider_email", columnNames = {"auth_provider", "email"}),
+        @UniqueConstraint(name = "uk_users_provider_provider_id", columnNames = {"auth_provider", "provider_id"})
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User extends BaseEntity {
 
@@ -21,11 +24,18 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "auth_provider", nullable = false, length = 20)
+    private UserAuthProvider authProvider;
+
+    @Column(name = "provider_id")
+    private String providerId;
 
     @Column(nullable = false, unique = true)
     private String nickname;
@@ -42,7 +52,8 @@ public class User extends BaseEntity {
      * 회원가입 시 새 사용자 엔티티를 생성하기 위한 빌더 생성자.
      */
     @Builder
-    public User(String email, String password, String nickname, boolean emailVerified, String aboutMe, String profileImageUrl) {
+    public User(String email, String password, String nickname, boolean emailVerified,
+                String aboutMe, String profileImageUrl, UserAuthProvider authProvider, String providerId) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
