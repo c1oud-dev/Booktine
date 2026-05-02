@@ -30,6 +30,9 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    @Column(nullable = false)
+    private boolean emailVerified;
+
     @Column(columnDefinition = "TEXT")
     private String aboutMe;
 
@@ -39,10 +42,11 @@ public class User extends BaseEntity {
      * 회원가입 시 새 사용자 엔티티를 생성하기 위한 빌더 생성자.
      */
     @Builder
-    public User(String email, String password, String nickname, String aboutMe, String profileImageUrl) {
+    public User(String email, String password, String nickname, boolean emailVerified, String aboutMe, String profileImageUrl) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
+        this.emailVerified = emailVerified;
         this.aboutMe = aboutMe;
         this.profileImageUrl = profileImageUrl;
     }
@@ -67,5 +71,12 @@ public class User extends BaseEntity {
      */
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    /**
+     * 이메일 인증 완료 상태로 계정을 활성화한다.
+     * */
+    public void verifyEmail() {
+        this.emailVerified = true;
     }
 }
