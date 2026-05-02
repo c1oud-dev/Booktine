@@ -1,5 +1,7 @@
 package booktine.Booktine.global.config;
 
+import booktine.Booktine.domain.auth.service.OAuth2LoginSuccessHandler;
+import booktine.Booktine.domain.auth.service.SocialOAuth2UserService;
 import booktine.Booktine.global.security.CustomAccessDeniedHandler;
 import booktine.Booktine.global.security.CustomAuthenticationEntryPoint;
 import booktine.Booktine.global.security.JwtFilter;
@@ -28,16 +30,22 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final SocialOAuth2UserService socialOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     /**
      * 인증 필터와 예외 핸들러를 주입받아 시큐리티 필터 체인 구성에 사용한다.
      */
     public SecurityConfig(JwtFilter jwtFilter,
                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
-                          CustomAccessDeniedHandler customAccessDeniedHandler) {
+                          CustomAccessDeniedHandler customAccessDeniedHandler,
+                          SocialOAuth2UserService socialOAuth2UserService,
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.jwtFilter = jwtFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
+        this.socialOAuth2UserService = socialOAuth2UserService;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     /**
@@ -49,6 +57,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo.userService(socialOAuth2UserService))
+                        .successHandler(oAuth2LoginSuccessHandler)
+                )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
