@@ -1,8 +1,6 @@
 package booktine.Booktine.domain.auth.controller;
 
-import booktine.Booktine.domain.auth.dto.LoginRequest;
-import booktine.Booktine.domain.auth.dto.PasswordResetRequest;
-import booktine.Booktine.domain.auth.dto.TokenResponse;
+import booktine.Booktine.domain.auth.dto.*;
 import booktine.Booktine.domain.auth.service.AuthService;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
@@ -17,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * 인증 관련 HTTP 요청을 처리하는 컨트롤러.
- * 로그인/로그아웃/토큰 재발급/비밀번호 재설정 API를 제공한다.
+ * 로그인/로그아웃/토큰 재발급/이메일 인증/비밀번호 재설정 API를 제공한다.
  */
 @RestController
 @RequiredArgsConstructor
@@ -31,6 +29,27 @@ public class AuthController {
         AuthService.LoginResult result = authService.login(request);
         response.addCookie(buildRefreshTokenCookie(result.refreshToken()));
         return ApiResponse.ok(result.tokenResponse());
+    }
+
+    /** 이메일 인증 코드를 발송한다. */
+    @PostMapping("/email/send")
+    public ApiResponse<Void> sendEmailCode(@Valid @RequestBody EmailSendRequest request) {
+        authService.sendEmailCode(request);
+        return ApiResponse.ok();
+    }
+
+    /** 이메일 인증 코드를 검증하고 계정을 활성화한다. */
+    @PostMapping("/email/verify")
+    public ApiResponse<Void> verifyEmailCode(@Valid @RequestBody EmailVerifyRequest request) {
+        authService.verifyEmailCode(request);
+        return ApiResponse.ok();
+    }
+
+    /** 이메일 인증 코드 검증 기반으로 비밀번호를 재설정한다. */
+    @PostMapping("/password/reset")
+    public ApiResponse<Void> resetPasswordByEmail(@Valid @RequestBody PasswordResetByEmailRequest request) {
+        authService.resetPasswordByEmail(request.email(), request.code(), request.newPassword());
+        return ApiResponse.ok();
     }
 
     /** Authorization 헤더의 AT를 기반으로 로그아웃 처리한다. */
@@ -87,4 +106,3 @@ public class AuthController {
         return cookie;
     }
 }
-
