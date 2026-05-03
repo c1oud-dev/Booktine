@@ -31,10 +31,10 @@ public class StatisticsService {
     /** 전체/올해/이번달 완독 수를 집계한 기본 통계를 반환한다. */
     public BasicStatsResponse getBasicStats(Long userId) {
         LocalDate now = LocalDate.now();
-        LocalDate yearStart = LocalDate.of(now.getYear(), 1, 1);
-        LocalDate yearEnd = LocalDate.of(now.getYear(), 12, 31);
-        LocalDate monthStart = LocalDate.of(now.getYear(), now.getMonthValue(), 1);
-        LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+        LocalDate yearStart = getYearStart(now.getYear());
+        LocalDate yearEnd = getYearEnd(now.getYear());
+        LocalDate monthStart = getMonthStart(now);
+        LocalDate monthEnd = getMonthEnd(monthStart);
 
         long totalFinished = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
         long currentYearFinished = postRepository.countByUserIdAndReadingStatusAndCompletedDateBetween(
@@ -64,8 +64,8 @@ public class StatisticsService {
 
     /** 특정 연도의 1~12월 완독 건수를 집계한 월별 추이를 반환한다. */
     public List<MonthlyReadCountResponse> getAnnualTrend(Long userId, Integer year) {
-        LocalDate yearStart = LocalDate.of(year, 1, 1);
-        LocalDate yearEnd = LocalDate.of(year, 12, 31);
+        LocalDate yearStart = getYearStart(year);
+        LocalDate yearEnd = getYearEnd(year);
         List<Post> posts = postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(
                 userId, ReadingStatus.COMPLETED, yearStart, yearEnd);
 
@@ -75,5 +75,25 @@ public class StatisticsService {
         return IntStream.rangeClosed(1, 12)
                 .mapToObj(month -> new MonthlyReadCountResponse(month, countByMonth.getOrDefault(month, 0L)))
                 .toList();
+    }
+
+    /** 전달받은 연도의 시작일(1월 1일)을 반환한다. */
+    private LocalDate getYearStart(int year) {
+        return LocalDate.of(year, 1, 1);
+    }
+
+    /** 전달받은 연도의 종료일(12월 31일)을 반환한다. */
+    private LocalDate getYearEnd(int year) {
+        return LocalDate.of(year, 12, 31);
+    }
+
+    /** 전달받은 날짜 기준 월의 시작일을 반환한다. */
+    private LocalDate getMonthStart(LocalDate date) {
+        return LocalDate.of(date.getYear(), date.getMonthValue(), 1);
+    }
+
+    /** 전달받은 월 시작일 기준 월의 종료일을 반환한다. */
+    private LocalDate getMonthEnd(LocalDate monthStart) {
+        return monthStart.withDayOfMonth(monthStart.lengthOfMonth());
     }
 }

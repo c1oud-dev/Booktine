@@ -29,7 +29,7 @@ public class AnnualGoalService {
     /** 연간 목표를 설정한다. 동일 연도에 이미 존재하면 예외를 발생시킨다. */
     @Transactional
     public AnnualGoalResponse create(Long userId, AnnualGoalCreateRequest request) {
-        User user = getUser(userId);
+        User user = getUserOrThrow(userId);
         if (annualGoalRepository.findByUserIdAndYear(userId, request.year()).isPresent()) {
             throw new CustomException(ErrorCode.ANNUAL_GOAL_ALREADY_EXISTS);
         }
@@ -43,30 +43,26 @@ public class AnnualGoalService {
 
     /** 특정 연도의 연간 목표를 조회한다. */
     public AnnualGoalResponse getGoal(Long userId, Integer year) {
-        getUser(userId);
-        return AnnualGoalResponse.from(
-                annualGoalRepository.findByUserIdAndYear(userId, year)
-                        .orElseThrow(() -> new CustomException(ErrorCode.ANNUAL_GOAL_NOT_FOUND))
-        );
+        validateUserExists(userId);
+        return AnnualGoalResponse.from(findGoalByUserAndYear(userId, year));
     }
 
     /** 사용자 연간 목표 목록을 조회한다. */
     public List<AnnualGoalResponse> getAll(Long userId) {
-        getUser(userId);
+        validateUserExists(userId);
         return annualGoalRepository.findAllByUserIdOrderByYearAsc(userId).stream().map(AnnualGoalResponse::from).toList();
     }
 
     /** 특정 연도의 연간 목표를 조회한다. */
     public AnnualGoalResponse getByYear(Long userId, Integer year) {
-        return AnnualGoalResponse.from(getByUserAndYear(userId, year));
+        return AnnualGoalResponse.from(findGoalByUserAndYear(userId, year));
     }
 
     /** 특정 연도의 연간 목표를 수정한다. */
     @Transactional
     public AnnualGoalResponse update(Long userId, Integer year, AnnualGoalCreateRequest request) {
-        getUser(userId);
-        AnnualGoal goal = annualGoalRepository.findByUserIdAndYear(userId, year)
-                .orElseThrow(() -> new CustomException(ErrorCode.ANNUAL_GOAL_NOT_FOUND));
+        validateUserExists(userId);
+        AnnualGoal goal = findGoalByUserAndYear(userId, year);
         goal.updateGoalCount(request.goalCount());
         return AnnualGoalResponse.from(goal);
     }
@@ -74,18 +70,24 @@ public class AnnualGoalService {
     /** 특정 연도의 연간 목표를 삭제한다. */
     @Transactional
     public void deleteByYear(Long userId, Integer year) {
-        annualGoalRepository.delete(getByUserAndYear(userId, year));
+        annualGoalRepository.delete(findGoalByUserAndYear(userId, year));
     }
 
     /** ID로 사용자를 조회한다. */
-    private User getUser(Long userId) {
+    private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 
+    /** 사용자 존재 여부를 검증한다. */
+    private void validateUserExists(Long userId) {
+        getUserOrThrow(userId);
+    }
+
+
     /** 사용자/연도 조건으로 연간 목표를 조회한다. */
-    private AnnualGoal getByUserAndYear(Long userId, Integer year) {
-        getUser(userId);
+    private AnnualGoal findGoalByUserAndYear(Long userId, Integer year) {
+        validateUserExists(userId);
         return annualGoalRepository.findByUserIdAndYear(userId, year)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.ANNUAL_GOAL_NOT_FOUND));
     }
 }

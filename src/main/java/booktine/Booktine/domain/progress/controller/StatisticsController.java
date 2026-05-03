@@ -31,23 +31,25 @@ public class StatisticsController {
     @Operation(summary = "기본 독서 통계 조회", description = "로그인한 사용자의 누적 독서 통계 요약 정보를 조회합니다.")
     @GetMapping
     public ApiResponse<BasicStatsResponse> getBasicStats() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(statisticsService.getBasicStats(userId));
+        return ApiResponse.ok(statisticsService.getBasicStats(getCurrentUserId()));
     }
 
     /** 장르별 독서 비율을 조회한다. */
     @Operation(summary = "장르별 독서 통계 조회", description = "로그인한 사용자의 장르별 독서 통계를 조회합니다.")
     @GetMapping("/genre")
     public ApiResponse<List<GenreStatsResponse>> getGenreStats() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(statisticsService.getGenreStats(userId));
+        return ApiResponse.ok(statisticsService.getGenreStats(getCurrentUserId()));
     }
 
     /** 연간 월별 독서량 추이를 조회한다. */
     @Operation(summary = "연간 월별 독서량 조회", description = "지정한 연도의 월별 독서량 통계를 조회합니다.")
     @GetMapping("/annual")
     public ApiResponse<List<MonthlyReadCountResponse>> getAnnualTrend(@RequestParam Integer year) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(statisticsService.getAnnualTrend(userId, year));
+        return ApiResponse.ok(statisticsService.getAnnualTrend(getCurrentUserId(), year));
+    }
+
+    /** 인증 컨텍스트에서 현재 사용자 ID를 조회한다. */
+    private Long getCurrentUserId() {
+        return SecurityUtils.getCurrentUserId();
     }
 }

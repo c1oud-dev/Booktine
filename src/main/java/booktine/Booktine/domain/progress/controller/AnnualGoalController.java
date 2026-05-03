@@ -25,23 +25,25 @@ public class AnnualGoalController {
     @Operation(summary = "독서 목표 생성", description = "로그인한 사용자의 독서 목표를 생성합니다.")
     @PostMapping
     public ApiResponse<AnnualGoalResponse> create(@RequestBody AnnualGoalCreateRequest request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(annualGoalService.create(userId, request));
+        return ApiResponse.ok(annualGoalService.create(getCurrentUserId(), request));
     }
 
     /** 특정 연도의 연간 목표를 조회한다. */
     @Operation(summary = "독서 목표 조회", description = "로그인한 사용자의 기간별 독서 목표를 조회합니다.")
     @GetMapping
     public ApiResponse<AnnualGoalResponse> getGoal(@RequestParam Integer year) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(annualGoalService.getGoal(userId, year));
+        return ApiResponse.ok(annualGoalService.getGoal(getCurrentUserId(), year));
     }
 
     /** 특정 연도의 연간 목표를 수정한다. */
     @Operation(summary = "독서 목표 수정", description = "로그인한 사용자의 기존 독서 목표를 수정합니다.")
     @PutMapping
     public ApiResponse<AnnualGoalResponse> update(@RequestParam Integer year, @RequestBody AnnualGoalCreateRequest request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(annualGoalService.update(userId, year, request));
+        return ApiResponse.ok(annualGoalService.update(getCurrentUserId(), year, request));
+    }
+
+    /** 인증 컨텍스트에서 현재 사용자 ID를 조회한다. */
+    private Long getCurrentUserId() {
+        return SecurityUtils.getCurrentUserId();
     }
 }
