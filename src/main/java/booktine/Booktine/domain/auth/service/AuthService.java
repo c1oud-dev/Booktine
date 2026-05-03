@@ -33,7 +33,14 @@ public class AuthService {
     private static final String RT_PREFIX = "RT:";
     private static final String BL_PREFIX = "BL:";
     private static final String EMAIL_CODE_PREFIX = "EMAIL_CODE:";
+    private static final String EMAIL_VERIFY_ATTEMPT_PREFIX = "EMAIL_VERIFY_ATTEMPT:";
+    private static final String LOGIN_FAIL_PREFIX = "LOGIN_FAIL:";
+    private static final String LOGIN_LOCK_PREFIX = "LOGIN_LOCK:";
     private static final long EMAIL_CODE_TTL_MINUTES = 5L;
+    private static final long EMAIL_VERIFY_ATTEMPT_TTL_MINUTES = 10L;
+    private static final int EMAIL_VERIFY_MAX_ATTEMPTS = 5;
+    private static final int LOGIN_MAX_ATTEMPTS = 5;
+    private static final long LOGIN_LOCK_MINUTES = 15L;
     private static final String SIGNUP_PURPOSE = "SIGNUP";
     private static final String PASSWORD_RESET_PURPOSE = "PASSWORD_RESET";
 
@@ -50,8 +57,13 @@ public class AuthService {
     /** 로그인 후 AT/RT 발급 및 Redis에 RT 저장을 수행한다. */
     @Transactional
     public LoginResult login(LoginRequest request) {
+        validateLoginLock(request.email());
         User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            increaseLoginFailCount(request.email());
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+        resetLoginFailCount(request.email());
         if (!user.isEmailVerified()) throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
 
         String accessToken = jwtProvider.generateAccessToken(user.getId());
@@ -78,7 +90,9 @@ public class AuthService {
     /** 이메일 인증 코드를 검증하고 회원가입 목적이면 계정을 활성화한다. */
     @Transactional
     public void verifyEmailCode(EmailVerifyRequest request) {
+        validateEmailVerifyAttempt(request.email(), request.purpose());
         validateEmailCode(request.email(), request.purpose(), request.code());
+        resetEmailVerifyAttempt(request.email(), request.purpose());
 
         if (SIGNUP_PURPOSE.equalsIgnoreCase(request.purpose())) {
             User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
@@ -96,7 +110,6 @@ public class AuthService {
         user.updatePassword(passwordEncoder.encode(newPassword));
         deleteEmailCode(email, PASSWORD_RESET_PURPOSE);
     }
-
 
     /** 로그아웃 시 RT를 삭제하고 AT를 블랙리스트에 등록한다. */
     @Transactional
@@ -129,7 +142,23 @@ public class AuthService {
 
     /** 인증 코드 Redis Key를 생성한다. */
     private String buildEmailCodeKey(String email, String purpose) {
-        return EMAIL_CODE_PREFIX + purpose + ":" + email; }
+        return EMAIL_CODE_PREFIX + purpose + ":" + email;
+    }
+
+    /** 이메일 인증 코드 시도 횟수 Key를 생성한다. */
+    private String buildEmailVerifyAttemptKey(String email, String purpose) {
+        return EMAIL_VERIFY_ATTEMPT_PREFIX + purpose + ":" + email;
+    }
+
+    /** 로그인 실패 횟수 Key를 생성한다. */
+    private String buildLoginFailKey(String email) {
+        return LOGIN_FAIL_PREFIX + email;
+    }
+
+    /** 로그인 잠금 Key를 생성한다. */
+    private String buildLoginLockKey(String email) {
+        return LOGIN_LOCK_PREFIX + email;
+    }
 
     /** 이메일 인증 코드를 Redis에 저장한다. */
     private void saveEmailCode(String email, String purpose, String code) {
@@ -154,12 +183,61 @@ public class AuthService {
     private void validateEmailCode(String email, String purpose, String code) {
         String savedCode = redisTemplate.opsForValue().get(buildEmailCodeKey(email, purpose));
         if (savedCode == null) throw new CustomException(ErrorCode.EMAIL_CODE_EXPIRED);
-        if (!savedCode.equals(code)) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
+        if (!savedCode.equals(code)) {
+            increaseEmailVerifyAttempt(email, purpose);
+            throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
+        }
     }
 
     /** 이메일 인증 코드 Redis 데이터를 삭제한다. */
     private void deleteEmailCode(String email, String purpose) {
         redisTemplate.delete(buildEmailCodeKey(email, purpose));
+    }
+
+    /** 이메일 인증 시도 횟수 제한을 검증한다. */
+    private void validateEmailVerifyAttempt(String email, String purpose) {
+        String attemptValue = redisTemplate.opsForValue().get(buildEmailVerifyAttemptKey(email, purpose));
+        if (attemptValue != null && Integer.parseInt(attemptValue) >= EMAIL_VERIFY_MAX_ATTEMPTS) {
+            throw new CustomException(ErrorCode.EMAIL_VERIFY_ATTEMPT_EXCEEDED);
+        }
+    }
+
+    /** 이메일 인증 실패 횟수를 증가시킨다. */
+    private void increaseEmailVerifyAttempt(String email, String purpose) {
+        Long attemptCount = redisTemplate.opsForValue().increment(buildEmailVerifyAttemptKey(email, purpose));
+        if (attemptCount != null && attemptCount == 1L) {
+            redisTemplate.expire(buildEmailVerifyAttemptKey(email, purpose), EMAIL_VERIFY_ATTEMPT_TTL_MINUTES, TimeUnit.MINUTES);
+        }
+    }
+
+    /** 이메일 인증 성공 시 시도 횟수를 초기화한다. */
+    private void resetEmailVerifyAttempt(String email, String purpose) {
+        redisTemplate.delete(buildEmailVerifyAttemptKey(email, purpose));
+    }
+
+    /** 로그인 잠금 상태를 검증한다. */
+    private void validateLoginLock(String email) {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(buildLoginLockKey(email)))) {
+            throw new CustomException(ErrorCode.LOGIN_ATTEMPT_EXCEEDED);
+        }
+    }
+
+    /** 로그인 실패 횟수를 증가시키고 한도를 넘으면 잠금 처리한다. */
+    private void increaseLoginFailCount(String email) {
+        String failKey = buildLoginFailKey(email);
+        Long failCount = redisTemplate.opsForValue().increment(failKey);
+        if (failCount != null && failCount == 1L) {
+            redisTemplate.expire(failKey, LOGIN_LOCK_MINUTES, TimeUnit.MINUTES);
+        }
+        if (failCount != null && failCount >= LOGIN_MAX_ATTEMPTS) {
+            redisTemplate.opsForValue().set(buildLoginLockKey(email), "LOCKED", LOGIN_LOCK_MINUTES, TimeUnit.MINUTES);
+        }
+    }
+
+    /** 로그인 성공 시 실패 횟수와 잠금 상태를 초기화한다. */
+    private void resetLoginFailCount(String email) {
+        redisTemplate.delete(buildLoginFailKey(email));
+        redisTemplate.delete(buildLoginLockKey(email));
     }
 
     /** 로그인 결과를 반환하기 위한 record 타입. */
