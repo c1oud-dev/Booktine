@@ -16,7 +16,11 @@ import java.time.LocalDate;
  */
 @Getter
 @Entity
-@Table(name = "posts")
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_posts_user_id", columnList = "user_id"),
+        @Index(name = "idx_posts_reading_status", columnList = "reading_status"),
+        @Index(name = "idx_posts_completed_date", columnList = "completed_date")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseEntity {
 

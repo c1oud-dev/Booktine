@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
-@Table(name = "memos")
+@Table(name = "memos", indexes = {
+        @Index(name = "idx_memos_post_id", columnList = "post_id")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Memo extends BaseEntity {
 

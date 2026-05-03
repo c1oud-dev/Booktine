@@ -15,7 +15,10 @@ import java.time.LocalTime;
  */
 @Getter
 @Entity
-@Table(name = "reminders")
+@Table(name = "reminders", indexes = {
+        @Index(name = "idx_reminders_user_id", columnList = "user_id"),
+        @Index(name = "idx_reminders_reminder_time", columnList = "reminder_time")
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Reminder extends BaseEntity {
 
