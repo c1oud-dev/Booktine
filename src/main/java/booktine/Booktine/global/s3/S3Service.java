@@ -1,5 +1,7 @@
 package booktine.Booktine.global.s3;
 
+import booktine.Booktine.global.exception.CustomException;
+import booktine.Booktine.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -19,6 +22,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class S3Service {
+
+    private static final long MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/jpeg", "image/jpg", "image/png");
 
     private final S3Client s3Client;
 
@@ -32,6 +38,7 @@ public class S3Service {
      * 전달받은 이미지를 UUID 기반 파일명으로 S3에 업로드하고 URL을 반환한다.
      */
     public String uploadImage(MultipartFile image) {
+        validateImage(image);
         try {
             String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
             s3Client.putObject(
@@ -45,7 +52,20 @@ public class S3Service {
             );
             return "https://" + bucket + ".s3." + region + ".amazonaws.com/" + fileName;
         } catch (IOException e) {
-            throw new IllegalStateException("이미지 업로드에 실패했습니다.", e);
+            throw new CustomException(ErrorCode.IMAGE_UPLOAD_FAILED);
+        }
+    }
+
+    /** 프로필 이미지 파일 형식 및 크기를 검증한다. */
+    private void validateImage(MultipartFile image) {
+        if (image == null || image.isEmpty()) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+        if (!ALLOWED_CONTENT_TYPES.contains(image.getContentType())) {
+            throw new CustomException(ErrorCode.INVALID_IMAGE_TYPE);
+        }
+        if (image.getSize() > MAX_IMAGE_SIZE_BYTES) {
+            throw new CustomException(ErrorCode.IMAGE_SIZE_EXCEEDED);
         }
     }
 
