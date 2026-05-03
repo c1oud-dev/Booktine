@@ -26,10 +26,10 @@ public class MonthlyGoal extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "goal_year", nullable = false)
     private Integer year;
 
-    @Column(nullable = false)
+    @Column(name = "goal_month", nullable = false)
     private Integer month;
 
     @Column(nullable = false)

@@ -26,7 +26,7 @@ public class AnnualGoal extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(nullable = false)
+    @Column(name = "goal_year", nullable = false)
     private Integer year;
 
     @Column(nullable = false)
