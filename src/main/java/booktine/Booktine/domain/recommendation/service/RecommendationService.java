@@ -3,6 +3,7 @@ package booktine.Booktine.domain.recommendation.service;
 import booktine.Booktine.domain.recommendation.client.AladinApiClient;
 import booktine.Booktine.domain.recommendation.dto.AladinBookResponse;
 import booktine.Booktine.domain.recommendation.dto.RecommendationResponse;
+import booktine.Booktine.domain.recommendation.dto.RecommendationSaveRequest;
 import booktine.Booktine.domain.recommendation.entity.Recommendation;
 import booktine.Booktine.domain.recommendation.repository.RecommendationRepository;
 import booktine.Booktine.domain.user.entity.User;
@@ -43,17 +44,8 @@ public class RecommendationService {
             throw new CustomException(ErrorCode.RECOMMENDATION_NOT_AVAILABLE);
         }
 
-        AladinBookResponse picked = books.get(random.nextInt(books.size()));
-        Recommendation recommendation = Recommendation.builder()
-                .user(user)
-                .title(picked.title())
-                .author(picked.author())
-                .publisher(picked.publisher())
-                .coverImageUrl(picked.cover())
-                .genre(genre)
-                .description(picked.description())
-                .isbn(picked.isbn13())
-                .build();
+        AladinBookResponse randomBook = pickRandomBook(books);
+        Recommendation recommendation = createRecommendation(user, randomBook, genre);
         return RecommendationResponse.from(recommendation);
     }
 
@@ -61,19 +53,11 @@ public class RecommendationService {
      * 추천 도서를 사용자의 저장 목록에 저장한다.
      */
     @Transactional
-    public RecommendationResponse saveRecommendation(Long userId, RecommendationResponse request) {
+    public RecommendationResponse saveRecommendation(Long userId, RecommendationSaveRequest request) {
         User user = getUserById(userId);
-        Recommendation recommendation = Recommendation.builder()
-                .user(user)
-                .title(request.title())
-                .author(request.author())
-                .publisher(request.publisher())
-                .coverImageUrl(request.coverImageUrl())
-                .genre(request.genre())
-                .description(request.description())
-                .isbn(request.isbn())
-                .build();
-        return RecommendationResponse.from(recommendationRepository.save(recommendation));
+        Recommendation recommendation = createRecommendation(user, request);
+        Recommendation savedRecommendation = recommendationRepository.save(recommendation);
+        return RecommendationResponse.from(savedRecommendation);
     }
 
     /**
@@ -111,6 +95,45 @@ public class RecommendationService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         recommendationRepository.delete(recommendation);
+    }
+
+    /**
+     * 외부 도서 목록에서 무작위 도서를 선택한다.
+     */
+    private AladinBookResponse pickRandomBook(List<AladinBookResponse> books) {
+        return books.get(random.nextInt(books.size()));
+    }
+
+    /**
+     * 알라딘 응답 DTO를 기반으로 추천 엔티티를 생성한다.
+     */
+    private Recommendation createRecommendation(User user, AladinBookResponse book, String genre) {
+        return Recommendation.builder()
+                .user(user)
+                .title(book.title())
+                .author(book.author())
+                .publisher(book.publisher())
+                .coverImageUrl(book.cover())
+                .genre(genre)
+                .description(book.description())
+                .isbn(book.isbn13())
+                .build();
+    }
+
+    /**
+     * 저장 요청 DTO를 기반으로 추천 엔티티를 생성한다.
+     */
+    private Recommendation createRecommendation(User user, RecommendationSaveRequest request) {
+        return Recommendation.builder()
+                .user(user)
+                .title(request.title())
+                .author(request.author())
+                .publisher(request.publisher())
+                .coverImageUrl(request.coverImageUrl())
+                .genre(request.genre())
+                .description(request.description())
+                .isbn(request.isbn())
+                .build();
     }
 
     /**

@@ -2,6 +2,7 @@ package booktine.Booktine.domain.recommendation.controller;
 
 import booktine.Booktine.domain.recommendation.dto.AladinBookResponse;
 import booktine.Booktine.domain.recommendation.dto.RecommendationResponse;
+import booktine.Booktine.domain.recommendation.dto.RecommendationSaveRequest;
 import booktine.Booktine.domain.recommendation.service.RecommendationService;
 import booktine.Booktine.global.response.ApiResponse;
 import booktine.Booktine.global.security.SecurityUtils;
@@ -34,7 +35,7 @@ public class RecommendationController {
     /** 추천 도서를 사용자 저장 목록에 저장한다. */
     @Operation(summary = "추천 도서 저장", description = "추천 받은 도서를 내 추천 목록에 저장합니다.")
     @PostMapping
-    public ApiResponse<RecommendationResponse> saveRecommendation(@RequestBody RecommendationResponse request) {
+    public ApiResponse<RecommendationResponse> saveRecommendation(@RequestBody RecommendationSaveRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(recommendationService.saveRecommendation(userId, request));
     }

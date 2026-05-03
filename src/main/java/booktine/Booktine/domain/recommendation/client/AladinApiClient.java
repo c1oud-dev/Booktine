@@ -18,6 +18,10 @@ import java.util.List;
 @Component
 public class AladinApiClient {
 
+    private static final String OUTPUT_FORMAT = "js";
+    private static final String API_VERSION = "20131101";
+    private static final int MAX_RESULTS = 20;
+
     private final RestClient restClient;
     private final String ttbKey;
 
@@ -37,46 +41,42 @@ public class AladinApiClient {
      * 키워드 기준으로 알라딘 ItemSearch API를 호출해 도서 목록을 조회한다.
      */
     public List<AladinBookResponse> searchBooksByKeyword(String query) {
-        try {
-            AladinSearchResponse response = restClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/ItemSearch.aspx")
-                            .queryParam("ttbkey", ttbKey)
-                            .queryParam("QueryType", "Keyword")
-                            .queryParam("Query", query)
-                            .queryParam("MaxResults", 20)
-                            .queryParam("output", "js")
-                            .queryParam("Version", "20131101")
-                            .build())
-                    .accept(MediaType.APPLICATION_JSON)
-                    .retrieve()
-                    .body(AladinSearchResponse.class);
-
-            if (response == null || response.item() == null) {
-                return Collections.emptyList();
-            }
-            return response.item();
-        } catch (Exception exception) {
-            log.warn("알라딘 키워드 검색 API 호출에 실패했습니다. query={}", query, exception);
-            return Collections.emptyList();
-        }
+        return fetchItems(() -> restClient.get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/ItemSearch.aspx")
+                                .queryParam("ttbkey", ttbKey)
+                                .queryParam("QueryType", "Keyword")
+                                .queryParam("Query", query)
+                                .queryParam("MaxResults", MAX_RESULTS)
+                                .queryParam("output", OUTPUT_FORMAT)
+                                .queryParam("Version", API_VERSION)
+                                .build()),
+                () -> log.warn("알라딘 키워드 검색 API 호출에 실패했습니다. query={}", query));
     }
 
     /**
      * 알라딘 ItemList API를 호출해 베스트셀러 목록을 조회한다.
      */
     public List<AladinBookResponse> getBestsellers() {
+        return fetchItems(() -> restClient.get()
+                        .uri(uriBuilder -> uriBuilder
+                                .path("/ItemList.aspx")
+                                .queryParam("ttbkey", ttbKey)
+                                .queryParam("QueryType", "Bestseller")
+                                .queryParam("MaxResults", MAX_RESULTS)
+                                .queryParam("SearchTarget", "Book")
+                                .queryParam("output", OUTPUT_FORMAT)
+                                .queryParam("Version", API_VERSION)
+                                .build()),
+                () -> log.warn("알라딘 베스트셀러 API 호출에 실패했습니다."));
+    }
+
+    /**
+     * 알라딘 API 호출 결과를 공통적으로 파싱해 도서 목록으로 반환한다.
+     */
+    private List<AladinBookResponse> fetchItems(RequestSupplier requestSupplier, Runnable failLogAction) {
         try {
-            AladinSearchResponse response = restClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/ItemList.aspx")
-                            .queryParam("ttbkey", ttbKey)
-                            .queryParam("QueryType", "Bestseller")
-                            .queryParam("MaxResults", 20)
-                            .queryParam("SearchTarget", "Book")
-                            .queryParam("output", "js")
-                            .queryParam("Version", "20131101")
-                            .build())
+            AladinSearchResponse response = requestSupplier.get()
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
                     .body(AladinSearchResponse.class);
@@ -86,9 +86,18 @@ public class AladinApiClient {
             }
             return response.item();
         } catch (Exception exception) {
-            log.warn("알라딘 베스트셀러 API 호출에 실패했습니다.", exception);
+            failLogAction.run();
+            log.debug("알라딘 API 예외 상세", exception);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * RestClient 요청 생성을 추상화한 함수형 인터페이스.
+     */
+    @FunctionalInterface
+    private interface RequestSupplier {
+        RestClient.RequestHeadersSpec<?> get();
     }
 
     /**
