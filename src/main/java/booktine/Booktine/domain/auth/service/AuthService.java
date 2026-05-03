@@ -12,6 +12,8 @@ import booktine.Booktine.global.exception.ErrorCode;
 import booktine.Booktine.global.jwt.JwtProperties;
 import booktine.Booktine.global.jwt.JwtProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,6 +25,7 @@ import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 /** 인증 관련 비즈니스 로직을 처리하는 서비스. */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,6 +41,9 @@ public class AuthService {
     private final JwtProperties jwtProperties;
     private final StringRedisTemplate redisTemplate;
     private final JavaMailSender javaMailSender;
+
+    @Value("${spring.profiles.active:local}")
+    private String activeProfile;
 
     /** 로그인 후 AT/RT 발급 및 Redis에 RT 저장을 수행한다. */
     @Transactional
@@ -55,6 +61,7 @@ public class AuthService {
     /** 이메일 인증 코드를 생성해 Redis에 저장하고 메일로 발송한다. */
     @Transactional
     public void sendEmailCode(EmailSendRequest request) {
+        log.info("[DEBUG] activeProfile: {}", activeProfile);
         String code = String.format("%06d", new SecureRandom().nextInt(1_000_000));
         redisTemplate.opsForValue().set(buildEmailCodeKey(request.email(), request.purpose()), code, EMAIL_CODE_TTL_MINUTES, TimeUnit.MINUTES);
 
@@ -62,7 +69,12 @@ public class AuthService {
         message.setTo(request.email());
         message.setSubject("[Booktine] 이메일 인증 코드");
         message.setText("인증 코드: " + code + "\n" + EMAIL_CODE_TTL_MINUTES + "분 안에 입력해 주세요.");
-        javaMailSender.send(message);
+
+        if (activeProfile.equals("prod")) {
+            javaMailSender.send(message);
+        } else {
+            log.info("[로컬 환경] 이메일 발송 스킵 - 수신자: {}, 인증 코드: {}", request.email(), code);
+        }
     }
 
     /** 이메일 인증 코드를 검증하고 회원가입 목적이면 계정을 활성화한다. */

@@ -60,6 +60,8 @@ public class User extends BaseEntity {
         this.emailVerified = emailVerified;
         this.aboutMe = aboutMe;
         this.profileImageUrl = profileImageUrl;
+        this.authProvider = authProvider;
+        this.providerId = providerId;
     }
 
     /**
