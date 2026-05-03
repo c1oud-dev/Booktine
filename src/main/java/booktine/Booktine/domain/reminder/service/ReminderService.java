@@ -25,17 +25,20 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ReminderService {
 
+    private static final String CONNECTED_MESSAGE = "리마인더 SSE 연결이 완료되었습니다.";
+
     private final ReminderRepository reminderRepository;
     private final SseEmitterManager sseEmitterManager;
 
     /**
      * 사용자 요청으로 새 리마인더를 저장한다.
+     * 요청 시각을 분 단위로 정규화해 스케줄 알림 조회 조건을 일관되게 유지한다.
      */
     @Transactional
     public ReminderResponse createReminder(Long userId, ReminderCreateRequest request) {
         Reminder reminder = Reminder.builder()
                 .userId(userId)
-                .reminderTime(request.reminderTime().withSecond(0).withNano(0))
+                .reminderTime(normalizeToMinute(request.reminderTime()))
                 .message(request.message())
                 .build();
         return ReminderResponse.from(reminderRepository.save(reminder));
@@ -43,39 +46,64 @@ public class ReminderService {
 
     /**
      * 특정 사용자의 리마인더 목록을 조회한다.
+     * 엔티티를 응답 DTO로 변환해 외부 스펙을 고정한다.
      */
     public List<ReminderResponse> getReminders(Long userId) {
-        return reminderRepository.findAllByUserId(userId).stream().map(ReminderResponse::from).toList();
+        return reminderRepository.findAllByUserId(userId)
+                .stream()
+                .map(ReminderResponse::from)
+                .toList();
     }
 
     /**
-     * 사용자 SSE 연결을 생성하고 초기 연결 이벤트를 보낸다.
+     * 사용자 SSE 연결을 생성하고 초기 연결 이벤트를 전송한다.
      */
     public SseEmitter connect(Long userId) {
         SseEmitter emitter = sseEmitterManager.connect(userId);
-        sseEmitterManager.send(userId, "리마인더 SSE 연결이 완료되었습니다.");
+        sseEmitterManager.send(userId, CONNECTED_MESSAGE);
         return emitter;
     }
 
     /**
      * 사용자 소유 리마인더를 삭제한다.
+     * 사용자 소유권 검증을 통과한 경우에만 삭제를 수행한다.
      */
     @Transactional
-    public void deleteReminder(Long userId, Long id) {
-        Reminder reminder = reminderRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.REMINDER_NOT_FOUND));
+    public void deleteReminder(Long userId, Long reminderId) {
+        Reminder reminder = findUserReminder(userId, reminderId);
         reminderRepository.delete(reminder);
     }
 
     /**
-     * 매 분마다 현재 시각과 일치하는 리마인더를 조회해 SSE 이벤트로 전송한다.
+     * 매 분 현재 시각과 일치하는 리마인더를 조회해 SSE 이벤트를 전송한다.
      */
     @Scheduled(cron = "0 * * * * *")
     public void sendReminderNotifications() {
-        LocalTime now = LocalTime.now().withSecond(0).withNano(0);
-        List<Reminder> reminders = reminderRepository.findAllByReminderTime(now);
-        for (Reminder reminder : reminders) {
-            sseEmitterManager.send(reminder.getUserId(), ReminderResponse.from(reminder));
-        }
+        LocalTime currentTime = normalizeToMinute(LocalTime.now());
+        List<Reminder> reminders = reminderRepository.findAllByReminderTime(currentTime);
+        reminders.forEach(this::sendReminderNotification);
+    }
+
+    /**
+     * 사용자와 리마인더 ID로 리마인더를 조회한다.
+     * 조회 실패 시 리마인더 없음 예외를 발생시킨다.
+     */
+    private Reminder findUserReminder(Long userId, Long reminderId) {
+        return reminderRepository.findByIdAndUserId(reminderId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.REMINDER_NOT_FOUND));
+    }
+
+    /**
+     * 리마인더 알림 전송 시각을 분 단위로 정규화한다.
+     */
+    private LocalTime normalizeToMinute(LocalTime time) {
+        return time.withSecond(0).withNano(0);
+    }
+
+    /**
+     * 단일 리마인더를 사용자별 SSE 채널로 전송한다.
+     */
+    private void sendReminderNotification(Reminder reminder) {
+        sseEmitterManager.send(reminder.getUserId(), ReminderResponse.from(reminder));
     }
 }

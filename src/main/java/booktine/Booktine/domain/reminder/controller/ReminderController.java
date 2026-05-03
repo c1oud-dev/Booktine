@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 독서 리마인더 관련 HTTP API 엔드포인트를 제공하는 컨트롤러.
- * D8 인증 적용 전 단계에서 userId RequestParam 기반으로 리마인더 기능을 테스트한다.
+ * 사용자 요청을 검증한 뒤 ReminderService에 위임하고 ApiResponse 형태로 응답을 반환한다.
  */
 @RestController
 @RequiredArgsConstructor
@@ -49,9 +49,9 @@ public class ReminderController {
 
     /** 사용자 소유 리마인더를 삭제한다. */
     @Operation(summary = "리마인더 삭제", description = "사용자의 리마인더를 삭제합니다.")
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deleteReminder(@RequestParam Long userId, @PathVariable Long id) {
-        reminderService.deleteReminder(userId, id);
+    @DeleteMapping("/{reminderId}")
+    public ApiResponse<Void> deleteReminder(@RequestParam Long userId, @PathVariable Long reminderId) {
+        reminderService.deleteReminder(userId, reminderId);
         return ApiResponse.ok();
     }
 }
