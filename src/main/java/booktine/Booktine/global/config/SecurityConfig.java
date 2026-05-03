@@ -66,7 +66,16 @@ public class SecurityConfig {
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/auth/login",
+                                "/auth/email/send",
+                                "/auth/email/verify",
+                                "/auth/password/reset",
+                                "/auth/reissue",
+                                "/users/signup",
+                                "/users/check-email",
+                                "/users/check-nickname").permitAll()
+                        .requestMatchers("/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

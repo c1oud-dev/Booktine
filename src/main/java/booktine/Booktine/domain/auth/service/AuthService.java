@@ -71,7 +71,7 @@ public class AuthService {
         if (isProdProfile()) {
             javaMailSender.send(message);
         } else {
-            log.info("[로컬 환경] 이메일 발송 스킵 - 수신자: {}, 인증 코드: {}", request.email(), code);
+            log.info("[로컬 환경] 이메일 발송 스킵 - 수신자: {}", request.email());
         }
     }
 

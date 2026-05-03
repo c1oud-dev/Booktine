@@ -1,10 +1,13 @@
 package booktine.Booktine.global.security;
 
+import booktine.Booktine.global.exception.CustomException;
+import booktine.Booktine.global.exception.ErrorCode;
 import booktine.Booktine.global.jwt.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,14 +27,17 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String BLACKLIST_PREFIX = "BL:";
 
     private final JwtProvider jwtProvider;
+    private final StringRedisTemplate redisTemplate;
 
     /**
-     * JWT 파싱/검증을 수행할 JwtProvider를 주입받는다.
+     * JWT 파싱/검증과 블랙리스트 확인을 위해 JwtProvider, Redis 템플릿을 주입받는다.
      */
-    public JwtFilter(JwtProvider jwtProvider) {
+    public JwtFilter(JwtProvider jwtProvider, StringRedisTemplate redisTemplate) {
         this.jwtProvider = jwtProvider;
+        this.redisTemplate = redisTemplate;
     }
 
     /**
@@ -44,6 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token != null) {
             jwtProvider.validateToken(token);
+            validateBlacklistedToken(token);
             Long userId = jwtProvider.getUserId(token);
             AuthUser authUser = new AuthUser(userId);
 
@@ -56,6 +63,15 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Redis 블랙리스트에 등록된 토큰인지 확인하고, 등록된 토큰이면 인증 예외를 발생시킨다.
+     */
+    private void validateBlacklistedToken(String token) {
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(BLACKLIST_PREFIX + token))) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
     }
 
     /**
