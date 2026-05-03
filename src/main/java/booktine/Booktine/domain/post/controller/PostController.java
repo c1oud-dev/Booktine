@@ -63,7 +63,7 @@ public class PostController {
     /** 로그인 사용자가 소유한 게시물을 수정한다. */
     @Operation(summary = "게시글 수정", description = "게시글 ID에 해당하는 내 게시글을 수정합니다.")
     @PutMapping("/{id}")
-    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @RequestBody PostUpdateRequest request) {
+    public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
         return ApiResponse.ok(postService.updatePost(getCurrentUserId(), id, request));
     }
 

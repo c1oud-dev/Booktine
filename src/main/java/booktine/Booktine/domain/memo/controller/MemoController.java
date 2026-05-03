@@ -8,6 +8,7 @@ import booktine.Booktine.global.response.ApiResponse;
 import booktine.Booktine.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +48,7 @@ public class MemoController {
      */
     @Operation(summary = "게시물 메모 작성", description = "특정 게시물에 새로운 메모를 작성합니다.")
     @PostMapping
-    public ApiResponse<MemoResponse> createMemo(@PathVariable Long postId, @RequestBody MemoCreateRequest request) {
+    public ApiResponse<MemoResponse> createMemo(@PathVariable Long postId, @Valid @RequestBody MemoCreateRequest request) {
         return ApiResponse.ok(memoService.createMemo(getCurrentUserId(), postId, request));
     }
 
@@ -63,7 +64,7 @@ public class MemoController {
     @PutMapping("/{memoId}")
     public ApiResponse<MemoResponse> updateMemo(@PathVariable Long postId,
                                                 @PathVariable Long memoId,
-                                                @RequestBody MemoUpdateRequest request) {
+                                                @Valid @RequestBody MemoUpdateRequest request) {
         return ApiResponse.ok(memoService.updateMemo(getCurrentUserId(), postId, memoId, request));
     }
 

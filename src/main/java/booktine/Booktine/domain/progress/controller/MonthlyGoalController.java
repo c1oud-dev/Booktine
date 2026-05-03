@@ -7,6 +7,7 @@ import booktine.Booktine.global.response.ApiResponse;
 import booktine.Booktine.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class MonthlyGoalController {
     /** 월간 목표를 생성한다. */
     @Operation(summary = "독서 목표 생성", description = "로그인한 사용자의 독서 목표를 생성합니다.")
     @PostMapping
-    public ApiResponse<MonthlyGoalResponse> create(@RequestBody MonthlyGoalCreateRequest request) {
+    public ApiResponse<MonthlyGoalResponse> create(@Valid @RequestBody MonthlyGoalCreateRequest request) {
         return ApiResponse.ok(monthlyGoalService.create(getCurrentUserId(), request));
     }
 
@@ -41,7 +42,7 @@ public class MonthlyGoalController {
     public ApiResponse<MonthlyGoalResponse> update(
             @RequestParam Integer year,
             @RequestParam Integer month,
-            @RequestBody MonthlyGoalCreateRequest request) {
+            @Valid @RequestBody MonthlyGoalCreateRequest request) {
         return ApiResponse.ok(monthlyGoalService.update(getCurrentUserId(), year, month, request));
     }
 
