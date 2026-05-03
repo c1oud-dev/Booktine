@@ -34,6 +34,8 @@ public class AuthService {
     private static final String BL_PREFIX = "BL:";
     private static final String EMAIL_CODE_PREFIX = "EMAIL_CODE:";
     private static final long EMAIL_CODE_TTL_MINUTES = 5L;
+    private static final String SIGNUP_PURPOSE = "SIGNUP";
+    private static final String PASSWORD_RESET_PURPOSE = "PASSWORD_RESET";
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -61,16 +63,12 @@ public class AuthService {
     /** 이메일 인증 코드를 생성해 Redis에 저장하고 메일로 발송한다. */
     @Transactional
     public void sendEmailCode(EmailSendRequest request) {
-        log.info("[DEBUG] activeProfile: {}", activeProfile);
         String code = String.format("%06d", new SecureRandom().nextInt(1_000_000));
-        redisTemplate.opsForValue().set(buildEmailCodeKey(request.email(), request.purpose()), code, EMAIL_CODE_TTL_MINUTES, TimeUnit.MINUTES);
+        saveEmailCode(request.email(), request.purpose(), code);
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(request.email());
-        message.setSubject("[Booktine] 이메일 인증 코드");
-        message.setText("인증 코드: " + code + "\n" + EMAIL_CODE_TTL_MINUTES + "분 안에 입력해 주세요.");
+        SimpleMailMessage message = createEmailCodeMessage(request.email(), code);
 
-        if (activeProfile.equals("prod")) {
+        if (isProdProfile()) {
             javaMailSender.send(message);
         } else {
             log.info("[로컬 환경] 이메일 발송 스킵 - 수신자: {}, 인증 코드: {}", request.email(), code);
@@ -80,29 +78,23 @@ public class AuthService {
     /** 이메일 인증 코드를 검증하고 회원가입 목적이면 계정을 활성화한다. */
     @Transactional
     public void verifyEmailCode(EmailVerifyRequest request) {
-        String key = buildEmailCodeKey(request.email(), request.purpose());
-        String savedCode = redisTemplate.opsForValue().get(key);
-        if (savedCode == null) throw new CustomException(ErrorCode.EMAIL_CODE_EXPIRED);
-        if (!savedCode.equals(request.code())) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
+        validateEmailCode(request.email(), request.purpose(), request.code());
 
-        if ("SIGNUP".equalsIgnoreCase(request.purpose())) {
+        if (SIGNUP_PURPOSE.equalsIgnoreCase(request.purpose())) {
             User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             user.verifyEmail();
         }
-        redisTemplate.delete(key);
+        deleteEmailCode(request.email(), request.purpose());
     }
 
     /** 이메일 인증 코드를 검증한 뒤 비밀번호를 재설정한다. */
     @Transactional
     public void resetPasswordByEmail(String email, String code, String newPassword) {
-        String key = buildEmailCodeKey(email, "PASSWORD_RESET");
-        String savedCode = redisTemplate.opsForValue().get(key);
-        if (savedCode == null) throw new CustomException(ErrorCode.EMAIL_CODE_EXPIRED);
-        if (!savedCode.equals(code)) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
+        validateEmailCode(email, PASSWORD_RESET_PURPOSE, code);
 
         User user = userRepository.findByEmailAndAuthProvider(email, UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         user.updatePassword(passwordEncoder.encode(newPassword));
-        redisTemplate.delete(key);
+        deleteEmailCode(email, PASSWORD_RESET_PURPOSE);
     }
 
 
@@ -138,6 +130,37 @@ public class AuthService {
     /** 인증 코드 Redis Key를 생성한다. */
     private String buildEmailCodeKey(String email, String purpose) {
         return EMAIL_CODE_PREFIX + purpose + ":" + email; }
+
+    /** 이메일 인증 코드를 Redis에 저장한다. */
+    private void saveEmailCode(String email, String purpose, String code) {
+        redisTemplate.opsForValue().set(buildEmailCodeKey(email, purpose), code, EMAIL_CODE_TTL_MINUTES, TimeUnit.MINUTES);
+    }
+
+    /** 이메일 인증 코드 메일 메시지를 생성한다. */
+    private SimpleMailMessage createEmailCodeMessage(String email, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("[Booktine] 이메일 인증 코드");
+        message.setText("인증 코드: " + code + "\n" + EMAIL_CODE_TTL_MINUTES + "분 안에 입력해 주세요.");
+        return message;
+    }
+
+    /** 운영 프로필 실행 여부를 반환한다. */
+    private boolean isProdProfile() {
+        return "prod".equals(activeProfile);
+    }
+
+    /** Redis에 저장된 이메일 인증 코드를 검증한다. */
+    private void validateEmailCode(String email, String purpose, String code) {
+        String savedCode = redisTemplate.opsForValue().get(buildEmailCodeKey(email, purpose));
+        if (savedCode == null) throw new CustomException(ErrorCode.EMAIL_CODE_EXPIRED);
+        if (!savedCode.equals(code)) throw new CustomException(ErrorCode.EMAIL_CODE_MISMATCH);
+    }
+
+    /** 이메일 인증 코드 Redis 데이터를 삭제한다. */
+    private void deleteEmailCode(String email, String purpose) {
+        redisTemplate.delete(buildEmailCodeKey(email, purpose));
+    }
 
     /** 로그인 결과를 반환하기 위한 record 타입. */
     public record LoginResult(TokenResponse tokenResponse, String refreshToken) {}
