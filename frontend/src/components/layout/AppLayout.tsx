@@ -9,6 +9,7 @@ export default function AppLayout() {
           <Link to="/">Home</Link>
           <Link to="/books">Books</Link>
           <Link to="/mypage">My Page</Link>
+          <Link to="/progress">Progress</Link>
           <Link to="/signup">Sign up</Link>
           <Link to="/login">Login</Link>
           <Link to="/logout">Logout</Link>
