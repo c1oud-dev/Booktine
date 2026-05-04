@@ -73,3 +73,14 @@ export async function updateAnnualGoal(year: number, payload: GoalPayload) {
   const res = await http.put<ApiResponse<AnnualGoal>>('/goals/annual', payload, { params: { year } });
   return res.data.data;
 }
+
+export interface BasicStats {
+  totalFinished: number;
+  currentYearFinished: number;
+  currentMonthFinished: number;
+}
+
+export async function getBasicStats() {
+  const res = await http.get<ApiResponse<BasicStats>>('/stats');
+  return res.data.data;
+}

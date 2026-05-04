@@ -1,6 +1,5 @@
 import { http } from './http';
-import type { ApiResponse } from '../types/api';
-import type { PageResponse } from './homeApi';
+import type { ApiResponse, PageResponse } from '../types/api';
 
 export interface RecommendationBook {
   id: number;

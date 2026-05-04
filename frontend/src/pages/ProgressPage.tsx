@@ -1,15 +1,16 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { getHomeStats, type BasicStats } from '../api/homeApi';
 import {
   createAnnualGoal,
   createMonthlyGoal,
   getAnnualGoal,
   getAnnualTrend,
+  getBasicStats,
   getGenreStats,
   getMonthlyGoal,
   updateAnnualGoal,
   updateMonthlyGoal,
   type AnnualGoal,
+  type BasicStats,
   type GenreStats,
   type MonthlyGoal,
   type MonthlyReadCount,
@@ -37,7 +38,7 @@ export default function ProgressPage() {
     setMessage('');
     try {
       const [basicStats, genreStats, annualTrend] = await Promise.all([
-        getHomeStats(),
+        getBasicStats(),
         getGenreStats(),
         getAnnualTrend(year),
       ]);

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { createMemo, getBookNote, getMemos } from '../api/bookNoteApi';
 import type { BookNote, Memo } from '../types/bookNote';
@@ -10,10 +10,10 @@ export default function BookDetailPage() {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [memoContent, setMemoContent] = useState('');
 
-  const filteredMemos = useMemo(() => memos.filter((m) => m.postId === postId), [memos, postId]);
+  const [memoPage, setMemoPage] = useState(1);
 
   const load = async () => {
-    const [note, memoList] = await Promise.all([getBookNote(postId), getMemos()]);
+    const [note, memoList] = await Promise.all([getBookNote(postId), getMemos(postId)]);
     setBook(note);
     setMemos(memoList);
   };
@@ -24,8 +24,9 @@ export default function BookDetailPage() {
 
   const onCreateMemo = async (e: FormEvent) => {
     e.preventDefault();
-    await createMemo({ postId, content: memoContent });
+    await createMemo(postId, { content: memoContent, page: memoPage });
     setMemoContent('');
+    setMemoPage(1);
     await load();
   };
 
@@ -36,16 +37,19 @@ export default function BookDetailPage() {
       <Link to="/books">← 목록</Link>
       <h2>{book.title}</h2>
       <p>저자: {book.author || '-'}</p>
-      <p>{book.content}</p>
+      <p>{book.summary}</p>
 
       <h3>메모</h3>
       <form className="auth-form" onSubmit={onCreateMemo}>
-        <input value={memoContent} onChange={(e) => setMemoContent(e.target.value)} placeholder="메모 입력" required />
+        <input value={memoContent} onChange={(e) => 
+          setMemoContent(e.target.value)} placeholder="메모 입력" required />
+        <input type="number" min={1} value={memoPage} onChange={(e) => 
+          setMemoPage(Number(e.target.value))} required />
         <button type="submit">메모 작성</button>
       </form>
       <ul>
-        {filteredMemos.map((memo) => (
-          <li key={memo.id}>{memo.content}</li>
+        {memos.map((memo) => (
+          <li key={memo.id}>{memo.page}p - {memo.content}</li>
         ))}
       </ul>
     </section>

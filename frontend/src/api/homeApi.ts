@@ -1,13 +1,5 @@
 import { http } from './http';
-import type { ApiResponse } from '../types/api';
-
-export interface PageResponse<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-}
+import type { ApiResponse, PageResponse } from '../types/api';
 
 export interface HomePost {
   id: number;

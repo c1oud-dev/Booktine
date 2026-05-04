@@ -1,27 +1,42 @@
+export type ReadingStatus = 'WISHLIST' | 'READING' | 'COMPLETED' | 'PAUSED';
+
 export interface BookNote {
   id: number;
+  userId: number;
   title: string;
-  content: string;
-  author?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  coverImageUrl: string | null;
+  author: string;
+  genre: string;
+  publisher: string;
+  publishedDate: string;
+  summary: string;
+  readingStatus: ReadingStatus;
+  completedDate: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Memo {
   id: number;
-  postId?: number;
+  postId: number;
   content: string;
-  createdAt?: string;
-  updatedAt?: string;
+  page: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface BookNotePayload {
   title: string;
-  content: string;
-  author?: string;
+  author: string;
+  genre: string;
+  publisher: string;
+  publishedDate: string;
+  summary: string;
+  readingStatus: ReadingStatus;
+  completedDate?: string | null;
 }
 
 export interface MemoPayload {
-  postId: number;
   content: string;
+  page: number;
 }
