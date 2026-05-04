@@ -1,10 +1,8 @@
 {
   "name": "booktine-frontend",
-  "version": "0.1.0",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
-  
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -17,9 +15,12 @@
     "react-router-dom": "^6.30.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/react": "^18.3.24",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.5.0",
+    "tailwindcss": "^4.2.4",
     "typescript": "^5.9.3",
     "vite": "^7.1.12"
   }
