@@ -1,12 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
+import BookDetailPage from '../pages/BookDetailPage';
 import BooksPage from '../pages/BooksPage';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/LoginPage';
 import LogoutPage from '../pages/LogoutPage';
 import MyPage from '../pages/MyPage';
 import NotFoundPage from '../pages/NotFoundPage';
-import SignupPage from '../pages/SignUpPage';
+import SignupPage from '../pages/SignupPage';
 import PrivateRoute from './PrivateRoute';
 
 export function AppRouter() {
@@ -20,6 +21,7 @@ export function AppRouter() {
 
         <Route element={<PrivateRoute />}>
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/books/:id" element={<BookDetailPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/logout" element={<LogoutPage />} />
         </Route>
