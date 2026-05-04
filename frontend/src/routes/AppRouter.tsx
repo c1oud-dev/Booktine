@@ -7,6 +7,7 @@ import LoginPage from '../pages/LoginPage';
 import LogoutPage from '../pages/LogoutPage';
 import MyPage from '../pages/MyPage';
 import ProgressPage from '../pages/ProgressPage';
+import RecommendationPage from '../pages/RecommendationPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import SignupPage from '../pages/SignupPage';
 import PrivateRoute from './PrivateRoute';
@@ -25,6 +26,7 @@ export function AppRouter() {
           <Route path="/books/:id" element={<BookDetailPage />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/recommendations" element={<RecommendationPage />} />
           <Route path="/logout" element={<LogoutPage />} />
         </Route>
       </Route>
