@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getAccessToken } from '../api/http';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
+import Spinner from '@/components/common/Spinner';
+import EmptyState from '@/components/common/EmptyState';
 
 const statusLabel: Record<string, string> = {
   COMPLETED: '완독',
@@ -49,61 +51,45 @@ export default function HomePage() {
   }, [isLoggedIn]);
 
   if (!isLoggedIn) {
-    return (
-      <section>
-        <h2>Booktine에 오신 것을 환영합니다</h2>
-        <p>로그인 후 나의 독서 현황, 최근 기록, 베스트셀러를 한 번에 확인할 수 있어요.</p>
-        <p>
-          <Link to="/login">로그인하기</Link>
-        </p>
-      </section>
-    );
+    return <EmptyState 
+    title="Booktine에 오신 것을 환영합니다" 
+    description="로그인 후 오늘의 독서 현황과 최근 메모를 확인해 보세요." 
+    actionLabel="로그인하기" actionTo="/login" />;
   }
 
   return (
-    <section>
-      <h2>Home</h2>
-      {loading && <p>불러오는 중...</p>}
-      {error && <p>{error}</p>}
+    <section className="space-y-6">
+      <h2 className="font-serif text-3xl">오늘의 독서 대시보드</h2>
+      {loading && <Spinner />}
+      {error && <p className="text-sm text-red-700">{error}</p>}
 
       {!loading && !error && (
         <>
-          <h3>내 독서 요약</h3>
-          <ul>
-            <li>총 완독 권수: {stats?.totalFinished ?? 0}</li>
-            <li>올해 완독 권수: {stats?.currentYearFinished ?? 0}</li>
-            <li>이번 달 완독 권수: {stats?.currentMonthFinished ?? 0}</li>
-          </ul>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <article className="rounded-xl border bg-card p-4"><p className="text-sm text-muted-foreground">총 완독 권수</p><p className="mt-2 text-3xl font-semibold">{stats?.totalFinished ?? 0}</p></article>
+            <article className="rounded-xl border bg-card p-4"><p className="text-sm text-muted-foreground">올해 완독</p><p className="mt-2 text-3xl font-semibold">{stats?.currentYearFinished ?? 0}</p></article>
+            <article className="rounded-xl border bg-card p-4"><p className="text-sm text-muted-foreground">이번 달 완독</p><p className="mt-2 text-3xl font-semibold">{stats?.currentMonthFinished ?? 0}</p></article>
+          </div>
 
-          <h3>최근 작성한 책 기록</h3>
-          {recentPosts.length === 0 ? (
-            <p>아직 작성한 책 기록이 없습니다.</p>
-          ) : (
-            <ul>
-              {recentPosts.map((post) => (
-                <li key={post.id}>
-                  <Link to={`/books/${post.id}`}>{post.title}</Link>
-                  {' · '}
-                  {post.author || '저자 미입력'}
-                  {' · '}
-                  {statusLabel[post.readingStatus] ?? post.readingStatus}
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="grid gap-6 lg:grid-cols-2">
+            <article className="rounded-xl border bg-card p-5">
+              <h3 className="font-serif text-xl">최근 독서 노트</h3>
+              {recentPosts.length === 0 ? <EmptyState title="기록이 아직 없어요" description="첫 독서 노트를 추가해 보세요." actionLabel="독서노트로 이동" actionTo="/books" /> : (
+                <ul className="mt-4 space-y-3">
+                  {recentPosts.map((post) => <li key={post.id} className="rounded-lg border bg-background p-3"><Link to={`/books/${post.id}`} className="font-medium">{post.title}</Link><p className="text-sm text-muted-foreground">{post.author || '저자 미입력'} · {statusLabel[post.readingStatus] ?? post.readingStatus}</p></li>)}
+                </ul>
+              )}
+            </article>
 
-          <h3>베스트셀러</h3>
-          {bestsellers.length === 0 ? (
-            <p>베스트셀러 데이터가 없습니다.</p>
-          ) : (
-            <ul>
-              {bestsellers.map((book) => (
-                <li key={book.isbn13}>
-                  <strong>{book.title}</strong> - {book.author}
-                </li>
-              ))}
-            </ul>
-          )}
+          <article className="rounded-xl border bg-card p-5">
+              <h3 className="font-serif text-xl">요즘 많이 읽는 책</h3>
+              {bestsellers.length === 0 ? <EmptyState title="베스트셀러 데이터 없음" description="잠시 후 다시 확인해 주세요." /> : (
+                <ul className="mt-4 space-y-3">
+                  {bestsellers.slice(0, 5).map((book) => <li key={book.isbn13} className="rounded-lg border bg-background p-3"><p className="font-medium">{book.title}</p><p className="text-sm text-muted-foreground">{book.author} · {book.publisher}</p></li>)}
+                </ul>
+              )}
+            </article>
+          </div>
         </>
       )}
     </section>
