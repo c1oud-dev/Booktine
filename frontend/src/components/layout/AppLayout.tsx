@@ -4,10 +4,12 @@ import AppHeader from './AppHeader';
 
 export default function AppLayout() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="app-shell flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
-        <Outlet />
+      <main className="app-main w-full flex-1">
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-6 shadow-card sm:px-6 sm:py-8">
+          <Outlet />
+        </div>
       </main>
       <AppFooter />
     </div>

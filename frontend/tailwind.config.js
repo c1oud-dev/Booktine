@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       fontFamily: {
-        serif: ['"Noto Serif KR"', '"Nanum Myeongjo"', 'serif'],
-        sans: ['"Pretendard"', '"Noto Sans KR"', 'system-ui', 'sans-serif'],
+        sans: ['"Inter"', '"Pretendard"', '"Noto Sans KR"', 'system-ui', 'sans-serif'],
+        serif: ['"Newsreader"', '"Noto Serif KR"', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -38,18 +38,21 @@ module.exports = {
           foreground: 'hsl(var(--popover-foreground))',
         },
         booktine: {
-          cream: '#F8F1E5',
-          beige: '#EADBC8',
-          paper: '#FFF9F0',
-          tan: '#D7BFA8',
-          brown: '#6B4F3A',
-          darkBrown: '#4A3728'
-        }
+          neutral: '#F7F8FA',
+          slate: '#E4E8EF',
+          ink: '#171B23',
+          cobalt: '#4F6EF7',
+          mint: '#15B79E',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      boxShadow: {
+        soft: '0 8px 30px rgba(15, 23, 42, 0.06)',
+        card: '0 1px 2px rgba(15, 23, 42, 0.03), 0 10px 24px rgba(15, 23, 42, 0.06)',
       },
     },
   },
