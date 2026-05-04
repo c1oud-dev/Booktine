@@ -1,24 +1,15 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
+import AppFooter from './AppFooter';
+import AppHeader from './AppHeader';
 
 export default function AppLayout() {
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <h1>Booktine</h1>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/books">Books</Link>
-          <Link to="/mypage">My Page</Link>
-          <Link to="/progress">Progress</Link>
-          <Link to="/recommendations">Recommendation</Link>
-          <Link to="/signup">Sign up</Link>
-          <Link to="/login">Login</Link>
-          <Link to="/logout">Logout</Link>
-        </nav>
-      </header>
-      <main className="app-main">
+    <div className="flex min-h-screen flex-col">
+      <AppHeader />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         <Outlet />
       </main>
+      <AppFooter />
     </div>
   );
 }
