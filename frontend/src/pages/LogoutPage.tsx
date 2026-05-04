@@ -24,9 +24,9 @@ export default function LogoutPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-xl rounded-2xl border bg-card/80 p-8 shadow-sm">
+    <section className="mx-auto w-full max-w-xl rounded-2xl border bg-card p-8 shadow-soft">
       <p className="text-sm text-muted-foreground">북타임 잠시 쉬어가기</p>
-      <h2 className="mt-2 font-serif text-3xl">로그아웃</h2>
+      <h2 className="mt-2 text-3xl font-semibold">로그아웃</h2>
       <p className="mt-4 text-sm leading-6 text-muted-foreground">
         지금 로그아웃하면 현재 세션이 종료됩니다.
         다음 방문 시 다시 로그인해서 독서 기록을 이어갈 수 있어요.
@@ -47,7 +47,7 @@ export default function LogoutPage() {
         </button>
         <Link
           to="/"
-          className="inline-flex w-full items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent sm:w-auto"
+          className="inline-flex w-full items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary sm:w-auto"
         >
           홈으로 돌아가기
         </Link>

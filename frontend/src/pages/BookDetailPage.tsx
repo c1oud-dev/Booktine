@@ -51,9 +51,9 @@ export default function BookDetailPage() {
     <section className="space-y-6">
       <Link to="/books" className="inline-flex items-center rounded-full border bg-card px-4 py-1 text-sm text-muted-foreground">← 독서 노트 목록</Link>
 
-      <div className="rounded-2xl border bg-card p-6 shadow-sm">
+      <div className="rounded-2xl border bg-card p-6 shadow-soft">
         <div className="space-y-2">
-          <h2 className="font-serif text-3xl">{book.title}</h2>
+          <h2 className="text-3xl font-semibold">{book.title}</h2>
           <p className="text-sm text-muted-foreground">{book.author || '-'} · {book.publisher || '-'}</p>
         </div>
         <p className="mt-4 rounded-xl bg-background/80 p-4 text-sm leading-6">{book.summary}</p>
@@ -70,7 +70,7 @@ export default function BookDetailPage() {
       </div>
 
       <div className="rounded-2xl border bg-card p-6">
-        <h3 className="font-serif text-2xl">메모</h3>
+        <h3 className="text-2xl font-semibold">메모</h3>
         <form className="mt-4 grid gap-3 md:grid-cols-[1fr_120px_auto]" onSubmit={onCreateMemo}>
           <input className="rounded-lg border bg-background px-3 py-2" value={memoContent} onChange={(e) => setMemoContent(e.target.value)} placeholder="인상 깊은 문장을 기록해 보세요" required />
           <input className="rounded-lg border bg-background px-3 py-2" type="number" min={1} value={memoPage} onChange={(e) => setMemoPage(Number(e.target.value))} required />

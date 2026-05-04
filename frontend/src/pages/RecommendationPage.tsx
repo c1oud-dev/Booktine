@@ -71,10 +71,10 @@ export default function RecommendationPage() {
 
   return (
     <section className="space-y-6">
-      <h2 className="font-serif text-3xl">도서 추천</h2>
+      <h2 className="text-3xl font-semibold">도서 추천</h2>
       {message && <p className="rounded-lg bg-secondary/60 px-3 py-2 text-sm">{message}</p>}
-      <article className="rounded-2xl border bg-card p-5">
-        <h3 className="font-serif text-xl">장르별 추천</h3>
+      <article className="rounded-2xl border bg-card p-6 shadow-soft">
+        <h3 className="text-xl font-semibold">장르별 추천</h3>
         <div className="mt-3 flex flex-wrap gap-2">
           <select className="rounded-lg border bg-background px-3 py-2" 
             value={selectedGenre} onChange={(e) => 
@@ -89,14 +89,14 @@ export default function RecommendationPage() {
       }
       </article>
 
-      <article className="rounded-2xl border bg-card p-5">
-        <h3 className="font-serif text-xl">도서 검색</h3>
+      <article className="rounded-2xl border bg-card p-6 shadow-soft">
+        <h3 className="text-xl font-semibold">도서 검색</h3>
         <form className="mt-3 flex gap-2" onSubmit={onSearch}><input className="flex-1 rounded-lg border bg-background px-3 py-2" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="책 제목 또는 저자" /><button type="submit">검색</button></form>
         {searchItems.length === 0 ? <div className="mt-4"><EmptyState title="검색 결과가 없어요" description="검색어를 입력해 새로운 책을 찾아보세요." /></div> : <ul className="mt-4 grid gap-3 sm:grid-cols-2">{searchItems.map((item) => <li key={item.isbn13} className="rounded-xl border bg-background/70 p-4"><p className="line-clamp-1 font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.author}</p><button className="mt-3" type="button" onClick={() => onSave(item)}>저장</button></li>)}</ul>}
       </article>
 
-      <article className="rounded-2xl border bg-card p-5">
-        <h3 className="font-serif text-xl">저장한 추천 도서</h3>
+      <article className="rounded-2xl border bg-card p-6 shadow-soft">
+        <h3 className="text-xl font-semibold">저장한 추천 도서</h3>
         {savedItems.length === 0 ? <div className="mt-4"><EmptyState title="저장된 추천이 없어요" description="마음에 드는 추천 도서를 저장해 보세요." /></div> : <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{savedItems.map((item) => <li key={item.id} className="rounded-xl border bg-background/70 p-4"><p className="line-clamp-1 font-medium">{item.title}</p><p className="mt-1 text-xs text-muted-foreground">{item.author}</p><button className="mt-3 border bg-card text-foreground" type="button" onClick={async () => { await deleteRecommendation(item.id); await loadSaved(); }}>삭제</button></li>)}</ul>}
       </article>
       {loading && <Spinner />}

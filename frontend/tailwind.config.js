@@ -5,7 +5,6 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ['"Inter"', '"Pretendard"', '"Noto Sans KR"', 'system-ui', 'sans-serif'],
-        serif: ['"Newsreader"', '"Noto Serif KR"', 'serif'],
       },
       colors: {
         border: 'hsl(var(--border))',
@@ -33,17 +32,6 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--popover-foreground))',
-        },
-        booktine: {
-          neutral: '#F7F8FA',
-          slate: '#E4E8EF',
-          ink: '#171B23',
-          cobalt: '#4F6EF7',
-          mint: '#15B79E',
-        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -51,8 +39,8 @@ module.exports = {
         sm: 'calc(var(--radius) - 4px)',
       },
       boxShadow: {
-        soft: '0 8px 30px rgba(15, 23, 42, 0.06)',
-        card: '0 1px 2px rgba(15, 23, 42, 0.03), 0 10px 24px rgba(15, 23, 42, 0.06)',
+        soft: '0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05)',
+        float: '0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 36px rgba(15, 23, 42, 0.09)',
       },
     },
   },

@@ -1,27 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 220 23% 98%;
-  --foreground: 224 25% 14%;
+  --background: 210 20% 99%;
+  --foreground: 222 26% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 224 25% 14%;
+  --card-foreground: 222 26% 12%;
   --popover: 0 0% 100%;
-  --popover-foreground: 224 25% 14%;
-  --primary: 228 90% 63%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 220 20% 95%;
-  --secondary-foreground: 223 20% 20%;
-  --muted: 220 18% 95%;
+  --popover-foreground: 222 26% 12%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 20% 96%;
+  --secondary-foreground: 222 26% 16%;
+  --muted: 220 18% 96%;
   --muted-foreground: 220 10% 42%;
-  --accent: 169 79% 40%;
-  --accent-foreground: 210 40% 98%;
-  --border: 220 18% 88%;
-  --input: 220 18% 88%;
-  --ring: 228 90% 63%;
+  --accent: 220 18% 96%;
+  --accent-foreground: 222 26% 16%;
+  --border: 220 14% 88%;
+  --input: 220 14% 88%;
+  --ring: 221 83% 53%;
   --radius: 0.875rem;
 }
 
@@ -34,10 +34,10 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Inter', 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
-  background-color: hsl(var(--background));
+  background: hsl(var(--background));
   color: hsl(var(--foreground));
-  letter-spacing: -0.01em;
-  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 h1,
@@ -46,8 +46,8 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Newsreader', 'Noto Serif KR', serif;
-  color: hsl(var(--foreground));
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -55,43 +55,37 @@ a {
   text-decoration: none;
 }
 
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid hsl(var(--input));
+  border-radius: 0.75rem;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0.625rem 0.875rem;
+  font-size: 0.925rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid hsl(var(--ring) / 0.3);
+  outline-offset: 1px;
+}
+
+button {
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
 .app-shell {
   min-height: 100vh;
 }
 
 .app-main {
-  max-width: 72rem;
+  max-width: 80rem;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
-}
-.auth-form input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid hsl(var(--input));
-  border-radius: 0.625rem;
-  background-color: hsl(var(--card));
-}
-
-.auth-form input:focus-visible {
-  outline: 2px solid hsl(var(--ring));
-  outline-offset: 1px;
-}
-
-.auth-form button,
-button {
-  width: fit-content;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid hsl(var(--primary));
-  border-radius: 0.625rem;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.auth-form button:hover,
-button:hover {
-  background: hsl(228 90% 58%);
-  border-color: hsl(228 90% 58%);
+  padding: 2rem 1.25rem 4rem;
 }

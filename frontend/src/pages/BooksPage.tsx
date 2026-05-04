@@ -52,9 +52,9 @@ export default function BooksPage() {
   return (
      <section className="space-y-6">
       <div className="flex items-end justify-between">
-        <h2 className="font-serif text-3xl">독서 노트</h2>
+        <h2 className="text-3xl font-semibold">독서 노트</h2>
       </div>
-      <form className="grid gap-3 rounded-xl border bg-card p-5 md:grid-cols-2" onSubmit={onSubmit}>
+      <form className="grid gap-3 rounded-xl border bg-card p-6 shadow-soft md:grid-cols-2" onSubmit={onSubmit}>
         <input className="rounded-lg border bg-background px-3 py-2" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="제목" required />
         <input className="rounded-lg border bg-background px-3 py-2" value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="저자" required />
         <input className="rounded-lg border bg-background px-3 py-2" value={genre} onChange={(e) => setGenre(e.target.value)} placeholder="장르" required />
@@ -73,8 +73,8 @@ export default function BooksPage() {
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((book) => (
-            <li key={book.id} className="rounded-xl border bg-card p-4">
-              <Link to={`/books/${book.id}`} className="line-clamp-1 font-serif text-lg">{book.title}</Link>
+            <li key={book.id} className="rounded-xl border bg-card p-5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
+              <Link to={`/books/${book.id}`} className="line-clamp-1 text-lg font-semibold">{book.title}</Link>
               <p className="mt-1 text-sm text-muted-foreground">{book.author} · {book.genre}</p>
               <p className="mt-2 line-clamp-3 text-sm">{book.summary}</p>
               <div className="mt-4 flex gap-2">

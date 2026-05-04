@@ -29,13 +29,13 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-md rounded-2xl border bg-card/80 p-8 shadow-sm">
+    <section className="mx-auto w-full max-w-md rounded-2xl border bg-card p-8 shadow-soft">
       <p className="text-sm text-muted-foreground">다시 이어 읽기</p>
-      <h2 className="mt-2 font-serif text-3xl">로그인</h2>
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <input className="w-full rounded-lg border bg-background px-3 py-2" value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="이메일" required />
-        <input className="w-full rounded-lg border bg-background px-3 py-2" value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" required />
-        <button type="submit" disabled={loading} className="w-full rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground disabled:opacity-70">
+      <h1 className="mt-2 text-3xl font-semibold">로그인</h1>
+      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+        <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="이메일" required />
+        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="비밀번호" required />
+        <button type="submit" disabled={loading} className="w-full bg-primary px-4 py-2 text-primary-foreground hover:-translate-y-0.5 hover:shadow-float disabled:opacity-70">
           {loading ? <Spinner label="로그인 중..." className="justify-center text-primary-foreground" /> : '로그인'}
         </button>
       </form>

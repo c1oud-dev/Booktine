@@ -65,8 +65,8 @@ export default function ProgressPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-5">
-        <h2 className="mr-auto font-serif text-3xl">독서 Progress</h2>
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border bg-card p-6 shadow-soft">
+        <h2 className="mr-auto text-3xl font-semibold">독서 Progress</h2>
         <label className="text-sm">연도
           <input className="ml-2 w-24 rounded-lg border bg-background px-2 py-1" type="number" min={2000} value={year} onChange={(e) => setYear(Number(e.target.value))} /></label>
         <label className="text-sm">월
@@ -77,19 +77,18 @@ export default function ProgressPage() {
           {message && <p className="rounded-lg bg-secondary/60 px-3 py-2 text-sm">{message}</p>}
           <div className="grid gap-4 md:grid-cols-3">
             {[['총 완독', stats?.totalFinished ?? 0], ['올해 완독', stats?.currentYearFinished ?? 0], ['이번 달 완독', stats?.currentMonthFinished ?? 0]].map(([k, v]) => (
-              <article key={String(k)} className="rounded-xl border bg-card p-4"><p className="text-sm text-muted-foreground">{k}</p><p className="mt-2 font-serif text-3xl">{v}</p></article>
-            ))}
+              <article key={String(k)} className="rounded-xl border bg-card p-4"><p className="text-sm text-muted-foreground">{k}</p><p className="mt-2 text-3xl font-semibold">{v}</p></article>            ))}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <article className="rounded-2xl border bg-card p-5">
-              <h3 className="font-serif text-xl">{year}년 월별 완독 추이</h3>
+            <article className="rounded-2xl border bg-card p-6 shadow-soft">
+              <h3 className="text-xl font-semibold">{year}년 월별 완독 추이</h3>
               <ul className="mt-4 space-y-2">
                 {trend.map((row) => <li key={row.month}><div className="mb-1 flex justify-between text-sm"><span>{row.month}월</span><span>{row.count}권</span></div><div className="h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, row.count * 10)}%` }} /></div></li>)}
               </ul>
             </article>
-            <article className="rounded-2xl border bg-card p-5">
-              <h3 className="font-serif text-xl">장르 통계</h3>
+            <article className="rounded-2xl border bg-card p-6 shadow-soft">
+              <h3 className="text-xl font-semibold">장르 통계</h3>
               <ul className="mt-4 space-y-2">
                 {genres.map((genre) => <li key={genre.genre}><div className="mb-1 flex justify-between text-sm"><span>{genre.genre}</span><span>{genre.count}권 · {genre.percentage.toFixed(1)}%</span></div><div className="h-2 rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${genre.percentage}%` }} /></div></li>)}
               </ul>
@@ -98,14 +97,14 @@ export default function ProgressPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <form onSubmit={submitMonthlyGoal} className="rounded-xl border bg-card p-4">
-              <h4 className="font-serif text-lg">월간 목표</h4>
+              <h4 className="text-lg font-semibold">월간 목표</h4>
               <input className="mt-3 w-full rounded-lg border bg-background px-3 py-2" type="number" min={1} value={monthlyGoalCount} onChange={(e) => setMonthlyGoalCount(Number(e.target.value))} required />
               <button className="mt-3" type="submit">
                 {monthlyGoal ? '월간 목표 수정' : '월간 목표 생성'}
               </button>
             </form>
             <form onSubmit={submitAnnualGoal} className="rounded-xl border bg-card p-4">
-              <h4 className="font-serif text-lg">연간 목표</h4>
+              <h4 className="text-lg font-semibold">연간 목표</h4>
               <input className="mt-3 w-full rounded-lg border bg-background px-3 py-2" type="number" min={1} value={annualGoalCount} onChange={(e) => setAnnualGoalCount(Number(e.target.value))} required />
               <button className="mt-3" type="submit">
                 {annualGoal ? '연간 목표 수정' : '연간 목표 생성'}
