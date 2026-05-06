@@ -10,6 +10,7 @@ const statusLabel: Record<string, string> = {
   COMPLETED: '완독',
   READING: '읽는 중',
   WISHLIST: '읽고 싶은 책',
+  WANT_TO_READ: '읽고 싶은 책',
   PAUSED: '중단',
 };
 
@@ -71,13 +72,13 @@ export default function HomePage() {
 
   if (!isLoggedIn) {
     return (
-      <section className="bg-white">
+      <section className="bg-card">
         <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-12 px-5 py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
           <div className="max-w-2xl">
-            <p className="inline-flex rounded-full border border-border bg-white px-4 py-2 text-sm font-bold text-muted-foreground shadow-soft">
+            <p className="inline-flex rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-muted-foreground shadow-soft">
               독서 습관 추적 & 목표 관리 서비스
             </p>
-            <h1 className="mt-7 text-5xl font-black tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+            <h1 className="mt-7 text-5xl font-black tracking-tight text-foreground break-keep sm:text-6xl lg:text-7xl">
               Booktine으로 독서 루틴을 더 선명하게.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
@@ -95,7 +96,7 @@ export default function HomePage() {
               </Link>
               <Link
                 to="/login"
-                className="inline-flex items-center justify-center rounded-full border border-border bg-white px-6 py-4 text-base font-bold text-foreground shadow-soft hover:bg-secondary"
+                className="inline-flex items-center justify-center rounded-full border border-border bg-card px-6 py-4 text-base font-bold text-foreground shadow-soft hover:bg-secondary"
               >
                 로그인
               </Link>
@@ -106,7 +107,7 @@ export default function HomePage() {
                 const Icon = item.icon;
 
                 return (
-                  <article key={item.title} className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+                  <article key={item.title} className="rounded-2xl border border-border bg-card p-5 shadow-soft min-w-0">
                     <Icon className="h-5 w-5 text-foreground" />
                     <h2 className="mt-4 text-base font-black text-foreground">
                       {item.title}
@@ -121,9 +122,9 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 top-10 hidden rounded-2xl border border-border bg-white p-5 shadow-card lg:block">
-              <p className="text-sm font-bold text-muted-foreground">이번 달 완독</p>
-              <p className="mt-1 text-4xl font-black text-foreground">12</p>
+            <div className="absolute -left-6 top-10 hidden rounded-2xl border border-border bg-card p-5 shadow-card lg:block">
+              <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
+              <p className="mt-1 text-4xl font-black text-foreground">∞</p>
             </div>
             <div className="overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
               <img
@@ -132,7 +133,7 @@ export default function HomePage() {
                 className="h-full min-h-[28rem] w-full object-cover object-center"
               />
             </div>
-            <div className="absolute -bottom-6 right-6 hidden max-w-xs rounded-2xl border border-border bg-white p-5 shadow-card sm:block">
+            <div className="absolute -bottom-6 right-6 hidden max-w-xs rounded-2xl border border-border bg-card p-5 shadow-card sm:block">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   <BookOpen className="h-5 w-5" />
@@ -151,10 +152,12 @@ export default function HomePage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div className="grid gap-8 rounded-[2rem] border border-border bg-white p-6 shadow-card lg:grid-cols-[0.95fr_1.05fr] lg:p-8">
+      <div className="grid gap-8 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[0.95fr_1.05fr] lg:p-8">
         <div className="flex flex-col justify-center">
-          <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reading dashboard</p>
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+          <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
+            Reading dashboard
+          </p>
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-foreground break-keep sm:text-5xl">
             오늘의 독서 흐름을 확인하세요.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
@@ -170,7 +173,7 @@ export default function HomePage() {
             </Link>
             <Link
               to="/progress"
-              className="inline-flex items-center justify-center rounded-full border border-border bg-white px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+              className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
             >
               진도 보기
             </Link>
@@ -180,13 +183,13 @@ export default function HomePage() {
           <img
             src="/Home1.png"
             alt="책과 독서 기록 이미지"
-            className="h-80 w-full object-cover object-center lg:h-full"
+            className="h-80 w-full object-cover object-center lg:h-full brightness-110"
           />
         </div>
       </div>
 
       {loading && (
-        <div className="rounded-2xl border border-border bg-white p-8 shadow-soft">
+        <div className="rounded-2xl border border-border bg-card p-8 shadow-soft">
           <Spinner label="홈 정보를 불러오는 중..." />
         </div>
       )}
@@ -202,15 +205,24 @@ export default function HomePage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
               <p className="text-sm font-bold text-muted-foreground">총 완독 권수</p>
-              <p className="mt-3 text-4xl font-black text-foreground">{stats?.totalFinished ?? 0}</p>
+              <p className="mt-3 text-4xl font-black text-foreground">
+                {stats?.totalFinished ?? 0}
+                <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
+              </p>
             </article>
             <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
               <p className="text-sm font-bold text-muted-foreground">올해 완독</p>
-              <p className="mt-3 text-4xl font-black text-foreground">{stats?.currentYearFinished ?? 0}</p>
+              <p className="mt-3 text-4xl font-black text-foreground">
+                {stats?.currentYearFinished ?? 0}
+                <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
+              </p>
             </article>
             <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
               <p className="text-sm font-bold text-muted-foreground">이번 달 완독</p>
-              <p className="mt-3 text-4xl font-black text-foreground">{stats?.currentMonthFinished ?? 0}</p>
+              <p className="mt-3 text-4xl font-black text-foreground">
+                {stats?.currentMonthFinished ?? 0}
+                <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
+              </p>
             </article>
           </div>
 
@@ -221,7 +233,10 @@ export default function HomePage() {
                   <p className="text-sm font-bold text-muted-foreground">Recently updated</p>
                   <h2 className="mt-2 text-2xl font-black text-foreground">최근 독서 노트</h2>
                 </div>
-                <Link to="/books" className="text-sm font-bold text-foreground underline-offset-4 hover:underline">
+                <Link
+                  to="/books"
+                  className="text-sm font-bold text-foreground underline-offset-4 hover:underline"
+                >
                   전체 보기
                 </Link>
               </div>
@@ -236,39 +251,49 @@ export default function HomePage() {
               ) : (
                 <ul className="mt-5 space-y-3">
                   {recentPosts.map((post) => (
-                    <li key={post.id} className="rounded-2xl border border-border bg-background p-4 transition hover:bg-white hover:shadow-soft">
-                      <Link to={`/books/${post.id}`} className="text-base font-black text-foreground">
-                        {post.title}
+                    <li key={post.id}>
+                      <Link
+                        to={`/books/${post.id}`}
+                        className="block rounded-2xl border border-border bg-background p-4 transition hover:bg-card hover:shadow-soft"
+                      >
+                        <p className="text-base font-black text-foreground">
+                          {post.title}
+                        </p>
+                        <p className="mt-2 text-sm font-medium text-muted-foreground">
+                          {post.author || '저자 미입력'} · {statusLabel[post.readingStatus] ?? post.readingStatus}
+                        </p>
                       </Link>
-                      <p className="mt-2 text-sm font-medium text-muted-foreground">
-                        {post.author || '저자 미입력'} · {statusLabel[post.readingStatus] ?? post.readingStatus}
-                      </p>
                     </li>
                   ))}
                 </ul>
               )}
             </article>
 
-          <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
+            <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-bold text-muted-foreground">Popular picks</p>
                   <h2 className="mt-2 text-2xl font-black text-foreground">요즘 많이 읽는 책</h2>
                 </div>
-                <Link to="/recommendations" className="text-sm font-bold text-foreground underline-offset-4 hover:underline">
+                <Link
+                  to="/recommendations"
+                  className="text-sm font-bold text-foreground underline-offset-4 hover:underline"
+                >
                   추천 보기
                 </Link>
               </div>
 
               {bestsellers.length === 0 ? (
-                <EmptyState
-                  title="베스트셀러 데이터 없음"
-                  description="잠시 후 다시 확인해 주세요."
-                />
+                <p className="mt-6 text-center text-sm font-semibold text-muted-foreground">
+                  베스트셀러 데이터를 불러올 수 없어요. 잠시 후 다시 확인해 주세요.
+                </p>
               ) : (
                 <ul className="mt-5 space-y-3">
                   {bestsellers.slice(0, 5).map((book, index) => (
-                    <li key={book.isbn13} className="flex gap-4 rounded-2xl border border-border bg-background p-4 transition hover:bg-white hover:shadow-soft">
+                    <li
+                      key={book.isbn13}
+                      className="flex gap-4 rounded-2xl border border-border bg-background p-4 transition hover:bg-card hover:shadow-soft"
+                    >
                       <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-black text-primary-foreground">
                         {index + 1}
                       </span>

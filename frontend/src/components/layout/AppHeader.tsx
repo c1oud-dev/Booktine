@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, UserRound } from 'lucide-react';
 import { getAccessToken } from '@/api/http';
 import { cn } from '@/lib/utils';
 
@@ -11,16 +12,43 @@ const navItems = [
 ];
 
 export default function AppHeader() {
-  const isLoggedIn = Boolean(getAccessToken());
+  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(getAccessToken()));
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsLoggedIn(Boolean(getAccessToken()));
+    };
+
+    window.addEventListener('storage', handleAuthChange);
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleAuthChange);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.relative')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-white/95 backdrop-blur-xl">
-      <div className="mx-auto grid h-16 w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-5 sm:px-6 lg:grid-cols-[1fr_auto_1fr] lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-xl">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-6 lg:px-8">
         <Link to="/" className="text-xl font-black tracking-tight text-foreground">
           Booktine
         </Link>
 
-        <nav className="hidden items-center justify-center gap-1 rounded-full border border-border/70 bg-white px-1 py-1 shadow-soft md:flex" aria-label="주요 메뉴">
+        <nav className="hidden items-center justify-center gap-1 rounded-full border border-border/70 bg-card px-1 py-1 shadow-soft md:flex" aria-label="주요 메뉴">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -43,17 +71,41 @@ export default function AppHeader() {
         <div className="flex items-center justify-end gap-3">
           {isLoggedIn ? (
             <>
-              <Link
-                to="/mypage"
-                className="hidden items-center gap-2 rounded-full border border-border/80 bg-card px-2.5 py-1.5 shadow-soft sm:inline-flex"
-              >
-                <img
-                  src="/default_avatar.png"
-                  alt="사용자 프로필"
-                  className="h-8 w-8 rounded-full border object-cover"
-                />
-                <span className="text-sm font-bold text-foreground">Reader</span>
-              </Link>
+              <div className="relative hidden sm:block">
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-2.5 py-1.5 shadow-soft"
+                >
+                  <img
+                    src="/default_avatar.png"
+                    alt="사용자 프로필"
+                    className="h-8 w-8 rounded-full border object-cover"
+                  />
+                  <span className="text-sm font-bold text-foreground">Reader</span>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-12 z-50 w-48 rounded-2xl border border-border bg-card p-2 shadow-card">
+                    <Link
+                      to="/mypage"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
+                    >
+                      <UserRound className="h-4 w-4" />
+                      마이페이지
+                    </Link>
+                    <Link
+                      to="/logout"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      로그아웃
+                    </Link>
+                  </div>
+                )}
+              </div>
               <Link
                 to="/logout"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"

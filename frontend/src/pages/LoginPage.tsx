@@ -22,6 +22,7 @@ export default function LoginPage() {
 
     try {
       await authApi.login(email, password);
+      window.dispatchEvent(new Event('auth-change'));
       navigate(from, { replace: true });
     } catch {
       setMessage('로그인에 실패했습니다. 이메일/비밀번호를 확인해 주세요.');
@@ -34,11 +35,11 @@ export default function LoginPage() {
     <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-5 py-14 sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(248,250,252,0.96),rgba(248,250,252,0.88)),url('/Main.png')] bg-cover bg-center" />
       <div className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-7xl items-center justify-center">
-        <article className="w-full max-w-lg rounded-[2rem] border border-border/80 bg-white p-6 shadow-card sm:p-8 md:p-10">
+        <article className="w-full max-w-lg rounded-[2rem] border border-border/80 bg-card p-6 shadow-card sm:p-8 md:p-10">
           <div className="grid grid-cols-2 rounded-xl bg-secondary p-1">
             <Link
               to="/signup"
-              className="inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-foreground transition hover:bg-white"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-foreground transition hover:bg-card"
             >
               Sign up
             </Link>
@@ -109,7 +110,11 @@ export default function LoginPage() {
               disabled={loading}
               className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-4 text-base font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:opacity-60"
             >
-              {loading ? <Spinner label="로그인 중..." className="justify-center text-primary-foreground" /> : 'Log in'}
+              {loading ? (
+                <Spinner label="로그인 중..." className="justify-center text-primary-foreground" />
+              ) : (
+                'Log in'
+              )}
             </button>
           </form>
 

@@ -33,7 +33,7 @@ export default function SignupPage() {
     <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-5 py-14 sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(248,250,252,0.96),rgba(248,250,252,0.88)),url('/Main.png')] bg-cover bg-center" />
       <div className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-7xl items-center justify-center">
-        <article className="w-full max-w-xl rounded-[2rem] border border-border/80 bg-white p-6 shadow-card sm:p-8 md:p-10">
+        <article className="w-full max-w-xl rounded-[2rem] border border-border/80 bg-card p-6 shadow-card sm:p-8 md:p-10">
           <div className="grid grid-cols-2 rounded-xl bg-secondary p-1">
             <Link
               to="/signup"
@@ -43,7 +43,7 @@ export default function SignupPage() {
             </Link>
             <Link
               to="/login"
-              className="inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-foreground transition hover:bg-white"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-bold text-foreground transition hover:bg-card"
             >
               Log in
             </Link>
@@ -116,7 +116,11 @@ export default function SignupPage() {
               disabled={loading}
               className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-4 text-base font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:opacity-60"
             >
-              {loading ? <Spinner label="가입 처리 중..." className="justify-center text-primary-foreground" /> : 'Sign up'}
+              {loading ? (
+                <Spinner label="가입 처리 중..." className="justify-center text-primary-foreground" />
+              ) : (
+                'Sign up'
+              )}
             </button>
           </form>
 

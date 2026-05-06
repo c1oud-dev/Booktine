@@ -10,7 +10,7 @@ const resolveToken = (payload: AuthTokenPayload) => payload.accessToken ?? paylo
 
 export const authApi = {
   signup: async (email: string, password: string) => {
-    return http.post('/auth/signup', { email, password });
+    return http.post('/users/signup', { email, password });
   },
 
   login: async (email: string, password: string) => {
