@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
-@Table(name = "monthly_goals")
+@Table(name = "monthly_goals", indexes = {
+        @Index(name = "idx_monthly_goals_user_year_month", columnList = "user_id, goal_year, goal_month", unique = true)
+})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MonthlyGoal extends BaseEntity {
 

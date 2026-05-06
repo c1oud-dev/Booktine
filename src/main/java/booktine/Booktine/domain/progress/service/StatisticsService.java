@@ -1,6 +1,5 @@
 package booktine.Booktine.domain.progress.service;
 
-import booktine.Booktine.domain.post.entity.Post;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.domain.progress.dto.BasicStatsResponse;
@@ -11,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -47,27 +43,24 @@ public class StatisticsService {
 
     /** 완독 게시물을 장르별로 집계하여 비율 통계를 반환한다. */
     public List<GenreStatsResponse> getGenreStats(Long userId, Integer year, Integer month) {
-        List<Post> posts;
+        LocalDate from = null;
+        LocalDate to = null;
 
         if (year != null) {
-            LocalDate from = month == null ? getYearStart(year) : LocalDate.of(year, month, 1);
-            LocalDate to = month == null ? getYearEnd(year) : getMonthEnd(from);
-            posts = postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(
-                    userId, ReadingStatus.COMPLETED, from, to);
-        } else {
-            posts = postRepository.findAllByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
+            from = month == null ? getYearStart(year) : LocalDate.of(year, month, 1);
+            to = month == null ? getYearEnd(year) : getMonthEnd(from);
         }
 
-        long total = posts.size();
+        List<GenreStatsResponse> genreCounts = postRepository.countCompletedGenres(userId, ReadingStatus.COMPLETED, from, to);
+        long total = genreCounts.stream()
+                .mapToLong(GenreStatsResponse::count)
+                .sum();
 
-        return posts.stream()
-                .collect(Collectors.groupingBy(Post::getGenre, Collectors.counting()))
-                .entrySet().stream()
-                .sorted(Map.Entry.<String, Long>comparingByValue(Comparator.reverseOrder()))
-                .map(e -> new GenreStatsResponse(
-                        e.getKey(),
-                        e.getValue(),
-                        total == 0 ? 0.0 : Math.round((double) e.getValue() / total * 1000) / 10.0
+        return genreCounts.stream()
+                .map(genre -> new GenreStatsResponse(
+                        genre.genre(),
+                        genre.count(),
+                        total == 0 ? 0.0 : Math.round((double) genre.count() / total * 1000) / 10.0
                 ))
                 .toList();
     }
@@ -81,15 +74,21 @@ public class StatisticsService {
     public List<MonthlyReadCountResponse> getAnnualCompletedCounts(Long userId, Integer year) {
         LocalDate yearStart = getYearStart(year);
         LocalDate yearEnd = getYearEnd(year);
-        List<Post> posts = postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(
+        List<MonthlyReadCountResponse> completedCounts = postRepository.countCompletedMonths(
                 userId, ReadingStatus.COMPLETED, yearStart, yearEnd);
 
-        Map<Integer, Long> countByMonth = posts.stream()
-                .collect(Collectors.groupingBy(p -> p.getCompletedDate().getMonthValue(), Collectors.counting()));
-
         return IntStream.rangeClosed(1, 12)
-                .mapToObj(month -> new MonthlyReadCountResponse(month, countByMonth.getOrDefault(month, 0L)))
+                .mapToObj(month -> new MonthlyReadCountResponse(month, getCountForMonth(completedCounts, month)))
                 .toList();
+    }
+
+    /** 집계 결과에서 특정 월의 완독 권수를 반환한다. */
+    private long getCountForMonth(List<MonthlyReadCountResponse> completedCounts, int month) {
+        return completedCounts.stream()
+                .filter(count -> count.month() == month)
+                .mapToLong(MonthlyReadCountResponse::count)
+                .findFirst()
+                .orElse(0L);
     }
 
     /** 전달받은 연도의 시작일(1월 1일)을 반환한다. */

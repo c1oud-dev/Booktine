@@ -33,7 +33,7 @@ public class PostService {
     /** 사용자 ID 기준으로 게시물을 생성하고 응답 DTO로 반환한다. */
     @Transactional
     public PostResponse createPost(Long userId, PostCreateRequest request) {
-        User user = getUserById(userId);
+        User user = userRepository.getReferenceById(userId);
         validatePageRange(request.currentPage(), request.totalPage());
         Post post = buildPost(request, user);
 
@@ -48,7 +48,7 @@ public class PostService {
 
     /** 게시물 ID 기준으로 상세 정보를 조회한다. */
     public PostResponse getPost(Long postId) {
-        return PostResponse.from(getPostById(postId));
+        return PostResponse.from(getPostWithUserById(postId));
     }
 
     /** 게시물 소유권을 검증한 뒤 수정 요청 내용을 반영한다. */
@@ -111,31 +111,23 @@ public class PostService {
         }
     }
 
-    /** 사용자 ID로 사용자 엔티티를 조회하고 없으면 예외를 발생시킨다. */
-    private User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-    }
-
     /** 게시물 ID로 게시물 엔티티를 조회하고 없으면 예외를 발생시킨다. */
-    private Post getPostById(Long postId) {
-        return postRepository.findById(postId)
+    private Post getPostWithUserById(Long postId) {
+        return postRepository.findWithUserById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
 
-    /** 사용자 소유 게시물을 조회하고 소유권이 없으면 예외를 발생시킨다. */
+    /** 사용자 소유 게시물을 한 번의 조회로 검증하고 반환한다. */
     private Post getOwnedPost(Long userId, Long postId) {
-        Post post = getPostById(postId);
-        validatePostOwner(userId, post);
-        return post;
+        return postRepository.findWithUserByIdAndUserId(postId, userId)
+                .orElseThrow(() -> resolveMissingOwnedPost(postId));
     }
 
-    /**
-     * 요청 사용자와 게시물 소유자를 비교해 접근 권한을 검증한다.
-     */
-    private void validatePostOwner(Long userId, Post post) {
-        if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
+    /** 게시물 미존재와 권한 부족을 구분해 기존 API 오류 의미를 유지한다. */
+    private CustomException resolveMissingOwnedPost(Long postId) {
+        if (postRepository.existsById(postId)) {
+            return new CustomException(ErrorCode.FORBIDDEN);
         }
+        return new CustomException(ErrorCode.POST_NOT_FOUND);
     }
 }

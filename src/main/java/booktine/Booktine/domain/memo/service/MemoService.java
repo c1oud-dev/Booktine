@@ -58,7 +58,7 @@ public class MemoService {
      * @return 메모 응답 페이지
      */
     public Page<MemoResponse> getMemos(Long userId, Long postId, Pageable pageable) {
-        findOwnedPost(userId, postId);
+        validatePostOwnership(userId, postId);
         return memoRepository.findAllByPostId(postId, pageable)
                 .map(MemoResponse::from);
     }
@@ -74,8 +74,7 @@ public class MemoService {
      */
     @Transactional
     public MemoResponse updateMemo(Long userId, Long postId, Long memoId, MemoUpdateRequest request) {
-        Memo memo = findMemoById(memoId);
-        validateMemoOwnership(userId, postId, memo);
+        Memo memo = findOwnedMemo(userId, postId, memoId);
 
         memo.update(request.content(), request.page());
         return MemoResponse.from(memo);
@@ -90,20 +89,8 @@ public class MemoService {
      */
     @Transactional
     public void deleteMemo(Long userId, Long postId, Long memoId) {
-        Memo memo = findMemoById(memoId);
-        validateMemoOwnership(userId, postId, memo);
+        Memo memo = findOwnedMemo(userId, postId, memoId);
         memoRepository.delete(memo);
-    }
-
-    /**
-     * 메모 ID로 메모 엔티티를 조회한다.
-     *
-     * @param memoId 조회할 메모 ID
-     * @return 조회된 메모 엔티티
-     * */
-    private Memo findMemoById(Long memoId) {
-        return memoRepository.findById(memoId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMO_NOT_FOUND));
     }
 
     /**
@@ -114,29 +101,33 @@ public class MemoService {
      * @return 소유권이 확인된 게시물 엔티티
      */
     private Post findOwnedPost(Long userId, Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        if (!post.getUser().getId().equals(userId)) {
-            throw new CustomException(ErrorCode.FORBIDDEN);
-        }
-
-        return post;
+        return postRepository.findWithUserByIdAndUserId(postId, userId)
+                .orElseThrow(() -> resolveMissingOwnedPost(postId));
     }
 
-    /**
-     * 메모가 요청 게시물에 속하고 요청 사용자 소유인지 검증한다.
-     *
-     * @param userId 요청 사용자 ID
-     * @param postId 요청 게시물 ID
-     * @param memo 검증할 메모 엔티티
-     */
-    private void validateMemoOwnership(Long userId, Long postId, Memo memo) {
-        if (!memo.getPost().getId().equals(postId)) {
-            throw new CustomException(ErrorCode.MEMO_NOT_FOUND);
+    /** 게시물 소유권을 존재 여부 조회 없이 인덱스 기반 exists 쿼리로 검증한다. */
+    private void validatePostOwnership(Long userId, Long postId) {
+        if (!postRepository.existsByIdAndUserId(postId, userId)) {
+            throw resolveMissingOwnedPost(postId);
         }
+    }
+
+    /** 게시물 미존재와 권한 부족을 구분해 기존 API 오류 의미를 유지한다. */
+    private CustomException resolveMissingOwnedPost(Long postId) {
+        if (postRepository.existsById(postId)) {
+            return new CustomException(ErrorCode.FORBIDDEN);
+        }
+        return new CustomException(ErrorCode.POST_NOT_FOUND);
+    }
+
+    /** 메모와 게시물/사용자를 한 번에 조회한 뒤 소유권을 검증한다. */
+    private Memo findOwnedMemo(Long userId, Long postId, Long memoId) {
+        Memo memo = memoRepository.findWithPostAndUserByIdAndPostId(memoId, postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMO_NOT_FOUND));
 
         if (!memo.getPost().getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
+        return memo;
     }
 }

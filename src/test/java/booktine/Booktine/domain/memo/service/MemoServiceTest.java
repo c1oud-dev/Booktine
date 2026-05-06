@@ -54,7 +54,7 @@ class MemoServiceTest {
         Memo memo = Memo.builder().post(post).content("내용").page(12).build();
         ReflectionTestUtils.setField(memo, "id", 10L);
 
-        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserByIdAndUserId(1L, 1L)).willReturn(Optional.of(post));
         given(memoRepository.save(any())).willReturn(memo);
 
         // when
@@ -72,7 +72,7 @@ class MemoServiceTest {
         Memo memo = Memo.builder().post(post).content("내용").page(1).build();
         ReflectionTestUtils.setField(memo, "id", 2L);
 
-        given(postRepository.findById(1L)).willReturn(Optional.of(post));
+        given(postRepository.existsByIdAndUserId(1L, 1L)).willReturn(true);
         PageRequest pageable = PageRequest.of(0, 10);
         given(memoRepository.findAllByPostId(1L, pageable)).willReturn(new PageImpl<>(List.of(memo)));
 
@@ -88,7 +88,7 @@ class MemoServiceTest {
     void updateMemo_success() {
         // given
         Memo memo = createMemo(3L, 1L, 1L);
-        given(memoRepository.findById(3L)).willReturn(Optional.of(memo));
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.of(memo));
 
         // when
         MemoResponse res = memoService.updateMemo(1L, 1L, 3L, new MemoUpdateRequest("수정", 7));
@@ -102,7 +102,7 @@ class MemoServiceTest {
     void deleteMemo_success() {
         // given
         Memo memo = createMemo(3L, 1L, 1L);
-        given(memoRepository.findById(3L)).willReturn(Optional.of(memo));
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.of(memo));
 
         // when
         memoService.deleteMemo(1L, 1L, 3L);
@@ -116,7 +116,7 @@ class MemoServiceTest {
     void updateMemo_forbidden() {
         // given
         Memo memo = createMemo(3L, 1L, 2L);
-        given(memoRepository.findById(3L)).willReturn(Optional.of(memo));
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.of(memo));
 
         // when & then
         assertThatThrownBy(() -> memoService.updateMemo(1L, 1L, 3L, new MemoUpdateRequest("x", 1)))
@@ -129,7 +129,7 @@ class MemoServiceTest {
     void deleteMemo_forbidden() {
         // given
         Memo memo = createMemo(3L, 1L, 2L);
-        given(memoRepository.findById(3L)).willReturn(Optional.of(memo));
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.of(memo));
 
         // when & then
         assertThatThrownBy(() -> memoService.deleteMemo(1L, 1L, 3L))

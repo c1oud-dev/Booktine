@@ -4,10 +4,15 @@ import { createReminder, deleteReminder, getReminders, type Reminder } from '@/a
 import EmptyState from '@/components/common/EmptyState';
 import Spinner from '@/components/common/Spinner';
 
+const DEFAULT_REMINDER_TIME = '21:00';
+const DEFAULT_REMINDER_MESSAGE = '오늘의 독서 시간을 시작해 볼까요?';
+const sortRemindersByTime = (items: Reminder[]) => [...items].sort((a, b) => a.reminderTime.localeCompare(b.reminderTime));
+
+
 export default function ReminderPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [reminderTime, setReminderTime] = useState('21:00');
-  const [message, setMessage] = useState('오늘의 독서 시간을 시작해 볼까요?');
+  const [reminderTime, setReminderTime] = useState(DEFAULT_REMINDER_TIME);
+  const [message, setMessage] = useState(DEFAULT_REMINDER_MESSAGE);
   const [statusMessage, setStatusMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -16,7 +21,7 @@ export default function ReminderPage() {
     setLoading(true);
     try {
       const data = await getReminders();
-      setReminders(data.sort((a, b) => a.reminderTime.localeCompare(b.reminderTime)));
+      setReminders(sortRemindersByTime(data));
     } catch {
       setStatusMessage('리마인더 목록을 불러오지 못했습니다.');
     } finally {
@@ -34,10 +39,10 @@ export default function ReminderPage() {
     setStatusMessage('');
 
     try {
-      await createReminder({ reminderTime, message });
-      setMessage('오늘의 독서 시간을 시작해 볼까요?');
+      const createdReminder = await createReminder({ reminderTime, message });
+      setReminders((current) => sortRemindersByTime([...current, createdReminder]));
+      setMessage(DEFAULT_REMINDER_MESSAGE);
       setStatusMessage('리마인더를 생성했습니다. 설정한 시각에 화면 알림을 보내드릴게요.');
-      await loadReminders();
     } catch {
       setStatusMessage('리마인더 생성에 실패했습니다. 입력값을 확인해 주세요.');
     } finally {
@@ -48,8 +53,8 @@ export default function ReminderPage() {
   const handleDelete = async (id: number) => {
     try {
       await deleteReminder(id);
+      setReminders((current) => current.filter((reminder) => reminder.id !== id));
       setStatusMessage('리마인더를 삭제했습니다.');
-      await loadReminders();
     } catch {
       setStatusMessage('리마인더 삭제에 실패했습니다.');
     }

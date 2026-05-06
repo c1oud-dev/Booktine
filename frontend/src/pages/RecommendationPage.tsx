@@ -13,6 +13,8 @@ import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
 
 const genres = ['소설', '인문', '자기계발', '경제경영', '역사', '과학', '에세이', '예술'];
+const SAVED_RECOMMENDATION_PAGE_SIZE = 20;
+const SEARCH_RESULT_PAGE_SIZE = 10;
 
 export default function RecommendationPage() {
   const [selectedGenre, setSelectedGenre] = useState(genres[0]);
@@ -23,7 +25,7 @@ export default function RecommendationPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const loadSaved = async () => {
-    const page = await getSavedRecommendations(0, 20);
+    const page = await getSavedRecommendations(0, SAVED_RECOMMENDATION_PAGE_SIZE);
     setSavedItems(page.content);
   };
 
@@ -51,7 +53,7 @@ export default function RecommendationPage() {
     setLoading(true);
     setMessage('');
     try {
-      const page = await searchRecommendationBooks(query.trim(), 0, 10);
+      const page = await searchRecommendationBooks(query.trim(), 0, SEARCH_RESULT_PAGE_SIZE);
       setSearchItems(page.content);
     } catch {
       setMessage('도서 검색에 실패했습니다.');
@@ -63,7 +65,7 @@ export default function RecommendationPage() {
   const onSave = async (book: RecommendationBook | SearchBook) => {
     setMessage('');
     try {
-      await saveRecommendation({
+      const savedRecommendation = await saveRecommendation({
         title: book.title,
         author: book.author,
         publisher: book.publisher,
@@ -72,7 +74,7 @@ export default function RecommendationPage() {
         description: book.description,
         isbn: 'isbn' in book ? book.isbn : book.isbn13,
       });
-      await loadSaved();
+      setSavedItems((current) => [savedRecommendation, ...current.filter((item) => item.id !== savedRecommendation.id)]);
       setMessage('추천 도서를 저장했습니다.');
     } catch {
       setMessage('저장에 실패했습니다.');
@@ -250,7 +252,7 @@ export default function RecommendationPage() {
                   secondaryAction
                   onAction={async () => {
                     await deleteRecommendation(item.id);
-                    await loadSaved();
+                    setSavedItems((current) => current.filter((savedItem) => savedItem.id !== item.id));
                   }}
                 />
               </li>

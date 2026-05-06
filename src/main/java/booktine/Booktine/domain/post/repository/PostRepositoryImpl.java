@@ -24,6 +24,7 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
         QPost post = QPost.post;
         return queryFactory
                 .selectFrom(post)
+                .join(post.user).fetchJoin()
                 .where(buildSearchConditions(post, userId, keyword, status))
                 .orderBy(post.createdAt.desc())
                 .fetch();

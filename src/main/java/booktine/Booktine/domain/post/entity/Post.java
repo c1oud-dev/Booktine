@@ -19,7 +19,9 @@ import java.time.LocalDate;
 @Table(name = "posts", indexes = {
         @Index(name = "idx_posts_user_id", columnList = "user_id"),
         @Index(name = "idx_posts_reading_status", columnList = "reading_status"),
-        @Index(name = "idx_posts_completed_date", columnList = "completed_date")
+        @Index(name = "idx_posts_completed_date", columnList = "completed_date"),
+        @Index(name = "idx_posts_user_status_completed", columnList = "user_id, reading_status, completed_date"),
+        @Index(name = "idx_posts_user_created", columnList = "user_id, created_at")
 })
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Post extends BaseEntity {

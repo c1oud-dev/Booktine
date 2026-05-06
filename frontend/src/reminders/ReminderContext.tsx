@@ -37,14 +37,14 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
     };
 
     eventSource.onmessage = handleReminder;
-    eventSource.addEventListener('reminder', handleReminder as EventListener);
+    eventSource.addEventListener('reminder', handleReminder);
 
     eventSource.onerror = () => {
       eventSource.close();
     };
 
     return () => {
-      eventSource.removeEventListener('reminder', handleReminder as EventListener);
+      eventSource.removeEventListener('reminder', handleReminder);
       eventSource.close();
     };
   }, [initializing, isAuthenticated]);

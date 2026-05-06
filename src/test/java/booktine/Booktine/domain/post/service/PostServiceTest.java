@@ -23,7 +23,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -56,7 +55,7 @@ class PostServiceTest {
         User user = createUser(1L);
         PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
                 LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 12, 320);
-        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(userRepository.getReferenceById(1L)).willReturn(user);
 
         Post post = Post.builder()
                 .title(request.title()).author(request.author()).genre(request.genre()).publisher(request.publisher())
@@ -105,7 +104,7 @@ class PostServiceTest {
         // given
         User user = createUser(1L);
         Post post = createPost(21L, user, "상세제목");
-        given(postRepository.findById(21L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserById(21L)).willReturn(java.util.Optional.of(post));
 
         // when
         PostResponse response = postService.getPost(21L);
@@ -126,7 +125,7 @@ class PostServiceTest {
         Post post = createPost(31L, user, "수정전");
         PostUpdateRequest request = new PostUpdateRequest("수정후", "새저자", "새장르", "새출판사",
                 LocalDate.of(2025, 1, 1), "새요약", ReadingStatus.COMPLETED, LocalDate.of(2025, 2, 2), 320, 320);
-        given(postRepository.findById(31L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserByIdAndUserId(31L, 1L)).willReturn(java.util.Optional.of(post));
 
         // when
         PostResponse response = postService.updatePost(1L, 31L, request);
@@ -147,7 +146,7 @@ class PostServiceTest {
         // given
         User user = createUser(1L);
         Post post = createPost(41L, user, "삭제대상");
-        given(postRepository.findById(41L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserByIdAndUserId(41L, 1L)).willReturn(java.util.Optional.of(post));
 
         // when
         postService.deletePost(1L, 41L);
@@ -167,7 +166,8 @@ class PostServiceTest {
         Post post = createPost(51L, owner, "권한게시물");
         PostUpdateRequest request = new PostUpdateRequest("수정시도", "저자", "장르", "출판사",
                 LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 12, 320);
-        given(postRepository.findById(51L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserByIdAndUserId(51L, 2L)).willReturn(java.util.Optional.empty());
+        given(postRepository.existsById(51L)).willReturn(true);
 
         // when // then
         assertThatThrownBy(() -> postService.updatePost(2L, 51L, request))
@@ -183,7 +183,7 @@ class PostServiceTest {
         Post post = createPost(61L, user, "페이지검증");
         PostUpdateRequest request = new PostUpdateRequest("수정", "저자", "장르", "출판사",
                 LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 101, 100);
-        given(postRepository.findById(61L)).willReturn(Optional.of(post));
+        given(postRepository.findWithUserByIdAndUserId(61L, 1L)).willReturn(java.util.Optional.of(post));
 
         // when // then
         assertThatThrownBy(() -> postService.updatePost(1L, 61L, request))
