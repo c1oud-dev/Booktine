@@ -34,6 +34,7 @@ public class PostService {
     @Transactional
     public PostResponse createPost(Long userId, PostCreateRequest request) {
         User user = getUserById(userId);
+        validatePageRange(request.currentPage(), request.totalPage());
         Post post = buildPost(request, user);
 
         return PostResponse.from(postRepository.save(post));
@@ -54,6 +55,7 @@ public class PostService {
     @Transactional
     public PostResponse updatePost(Long userId, Long postId, PostUpdateRequest request) {
         Post post = getOwnedPost(userId, postId);
+        validatePageRange(request.currentPage(), request.totalPage());
         post.updateDetails(
                 request.title(),
                 request.author(),
@@ -62,7 +64,9 @@ public class PostService {
                 request.publishedDate(),
                 request.summary(),
                 request.readingStatus(),
-                request.completedDate()
+                request.completedDate(),
+                request.currentPage(),
+                request.totalPage()
         );
         return PostResponse.from(post);
     }
@@ -94,8 +98,17 @@ public class PostService {
                 .summary(request.summary())
                 .readingStatus(request.readingStatus())
                 .completedDate(request.completedDate())
+                .currentPage(request.currentPage())
+                .totalPage(request.totalPage())
                 .user(user)
                 .build();
+    }
+
+    /** 현재 페이지가 전체 페이지를 초과하면 잘못된 입력 예외를 발생시킨다. */
+    private void validatePageRange(Integer currentPage, Integer totalPage) {
+        if (currentPage != null && totalPage != null && currentPage > totalPage) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
     }
 
     /** 사용자 ID로 사용자 엔티티를 조회하고 없으면 예외를 발생시킨다. */

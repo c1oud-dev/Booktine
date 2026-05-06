@@ -8,9 +8,11 @@ import lombok.Getter;
  */
 @Getter
 public enum ReadingStatus {
+    WISHLIST("읽고 싶은 책"),
+    WANT_TO_READ("읽고 싶은 책"),
     READING("읽는 중"),
     COMPLETED("완독"),
-    WANT_TO_READ("읽고 싶은");
+    PAUSED("중단");
 
     private final String label;
 

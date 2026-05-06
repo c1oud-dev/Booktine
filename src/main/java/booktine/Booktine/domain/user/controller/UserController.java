@@ -30,7 +30,7 @@ public class UserController {
 
     /** 회원가입 요청을 처리한다. */
     @Operation(summary = "회원가입", description = "이메일과 비밀번호로 신규 계정을 생성합니다.")
-    @PostMapping("/auth/signup")
+    @PostMapping({"/auth/signup", "/users/signup"})
     public ApiResponse<UserResponse> signUp(@Valid @RequestBody SignUpRequest request) {
         return ApiResponse.ok(userService.signUp(request));
     }

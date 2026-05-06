@@ -48,6 +48,13 @@ public class StatisticsController {
         return ApiResponse.ok(statisticsService.getAnnualTrend(getCurrentUserId(), year));
     }
 
+    /** 연간 월별 완독 권수를 조회한다. */
+    @Operation(summary = "연간 월별 완독 권수 조회", description = "지정한 연도의 월별 완독 권수 통계를 조회합니다.")
+    @GetMapping("/annual/completed-counts")
+    public ApiResponse<List<MonthlyReadCountResponse>> getAnnualCompletedCounts(@RequestParam Integer year) {
+        return ApiResponse.ok(statisticsService.getAnnualCompletedCounts(getCurrentUserId(), year));
+    }
+
     /** 인증 컨텍스트에서 현재 사용자 ID를 조회한다. */
     private Long getCurrentUserId() {
         return SecurityUtils.getCurrentUserId();

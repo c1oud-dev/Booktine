@@ -77,6 +77,34 @@ class UserServiceTest {
         verify(userRepository, times(1)).save(any(User.class));
     }
 
+    @Test
+    @DisplayName("회원가입 닉네임 미전달 시 이메일 로컬 파트를 기본 닉네임으로 사용")
+    void signUp_withoutNickname_usesEmailLocalPart() {
+        // given
+        SignUpRequest request = new SignUpRequest("test@test.com", null, "password123!");
+        given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
+        given(userRepository.existsByNickname("test")).willReturn(false);
+        given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
+
+        User savedUser = User.builder()
+                .email(request.email())
+                .nickname("test")
+                .password("encodedPassword")
+                .emailVerified(false)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId(null)
+                .build();
+        ReflectionTestUtils.setField(savedUser, "id", 2L);
+        given(userRepository.save(any(User.class))).willReturn(savedUser);
+
+        // when
+        UserResponse response = userService.signUp(request);
+
+        // then
+        assertThat(response.nickname()).isEqualTo("test");
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
     /**
      * 회원가입 시 로컬 계정 이메일이 중복되면 예외가 발생하는지 검증한다.
      */
@@ -92,6 +120,7 @@ class UserServiceTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_EMAIL);
     }
+
     /**
      * 회원가입 시 닉네임이 중복되면 예외가 발생하는지 검증한다.
      */

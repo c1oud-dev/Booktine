@@ -88,6 +88,24 @@ class StatisticsServiceTest {
     }
 
     @Test
+    @DisplayName("연간 월별 완독 권수 조회 - 12개월 데이터 반환")
+    void getAnnualCompletedCounts_returns12Months() {
+        // given
+        given(postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(
+                eq(1L), eq(ReadingStatus.COMPLETED), any(), any())).willReturn(List.of(
+                post("소설", LocalDate.of(2026, 4, 1)),
+                post("소설", LocalDate.of(2026, 4, 20))
+        ));
+
+        // when
+        List<MonthlyReadCountResponse> res = statisticsService.getAnnualCompletedCounts(1L, 2026);
+
+        // then
+        assertThat(res).hasSize(12);
+        assertThat(res.get(3).count()).isEqualTo(2); // 4월
+    }
+
+    @Test
     @DisplayName("완독 기록이 없을 때 통계 조회 시 빈 결과 반환")
     void getGenreStats_empty() {
         // given

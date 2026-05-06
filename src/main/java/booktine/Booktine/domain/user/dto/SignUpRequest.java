@@ -13,7 +13,6 @@ public record SignUpRequest(
         @Email(message = "유효한 이메일 형식이 아닙니다.")
         String email,
 
-        @NotBlank(message = "닉네임은 필수입니다.")
         @Size(max = 30, message = "닉네임은 30자 이하여야 합니다.")
         String nickname,
 

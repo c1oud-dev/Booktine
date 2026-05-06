@@ -54,6 +54,10 @@ public class Post extends BaseEntity {
 
     private LocalDate completedDate;
 
+    private Integer currentPage;
+
+    private Integer totalPage;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;
@@ -62,7 +66,7 @@ public class Post extends BaseEntity {
     @Builder
     public Post(String title, String coverImageUrl, String author, String genre, String publisher,
                 LocalDate publishedDate, String summary, ReadingStatus readingStatus,
-                LocalDate completedDate, User user) {
+                LocalDate completedDate, Integer currentPage, Integer totalPage, User user) {
         this.title = title;
         this.coverImageUrl = coverImageUrl;
         this.author = author;
@@ -72,13 +76,15 @@ public class Post extends BaseEntity {
         this.summary = summary;
         this.readingStatus = readingStatus;
         this.completedDate = completedDate;
+        this.currentPage = currentPage;
+        this.totalPage = totalPage;
         this.user = user;
     }
 
     /** 게시물 수정 요청의 변경 가능한 정보를 반영한다 */
     public void updateDetails(String title, String author, String genre, String publisher,
                               LocalDate publishedDate, String summary, ReadingStatus readingStatus,
-                              LocalDate completedDate) {
+                              LocalDate completedDate, Integer currentPage, Integer totalPage) {
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -87,5 +93,7 @@ public class Post extends BaseEntity {
         this.summary = summary;
         this.readingStatus = readingStatus;
         this.completedDate = completedDate;
+        this.currentPage = currentPage;
+        this.totalPage = totalPage;
     }
 }

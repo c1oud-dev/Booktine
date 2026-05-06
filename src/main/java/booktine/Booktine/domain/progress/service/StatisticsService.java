@@ -64,6 +64,11 @@ public class StatisticsService {
 
     /** 특정 연도의 1~12월 완독 건수를 집계한 월별 추이를 반환한다. */
     public List<MonthlyReadCountResponse> getAnnualTrend(Long userId, Integer year) {
+        return getAnnualCompletedCounts(userId, year);
+    }
+
+    /** 특정 연도의 1~12월 완독 권수를 집계해 반환한다. */
+    public List<MonthlyReadCountResponse> getAnnualCompletedCounts(Long userId, Integer year) {
         LocalDate yearStart = getYearStart(year);
         LocalDate yearEnd = getYearEnd(year);
         List<Post> posts = postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(

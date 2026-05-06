@@ -22,6 +22,8 @@ public record PostResponse(
         String summary,
         ReadingStatus readingStatus,
         LocalDate completedDate,
+        Integer currentPage,
+        Integer totalPage,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -41,6 +43,8 @@ public record PostResponse(
                 post.getSummary(),
                 post.getReadingStatus(),
                 post.getCompletedDate(),
+                post.getCurrentPage(),
+                post.getTotalPage(),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );

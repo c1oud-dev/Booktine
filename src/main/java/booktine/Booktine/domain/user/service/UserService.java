@@ -36,11 +36,12 @@ public class UserService {
     @Transactional
     public UserResponse signUp(SignUpRequest request) {
         validateEmailDuplication(request.email());
-        validateNicknameDuplication(request.nickname());
+        String nickname = resolveNickname(request);
+        validateNicknameDuplication(nickname);
 
         User user = User.builder()
                 .email(request.email())
-                .nickname(request.nickname())
+                .nickname(nickname)
                 .password(passwordEncoder.encode(request.password()))
                 .emailVerified(false)
                 .authProvider(UserAuthProvider.LOCAL)
@@ -126,6 +127,18 @@ public class UserService {
         user.updateProfileImageUrl(null);
         return UserResponse.from(user);
     }
+
+    /**
+     * 닉네임이 비어 있는 회원가입 요청은 이메일 로컬 파트를 기본 닉네임으로 사용한다.
+     */
+    private String resolveNickname(SignUpRequest request) {
+        if (request.nickname() != null && !request.nickname().isBlank()) {
+            return request.nickname();
+        }
+        String emailLocalPart = request.email().split("@", 2)[0];
+        return emailLocalPart.length() <= 30 ? emailLocalPart : emailLocalPart.substring(0, 30);
+    }
+
 
     /**
      * 이메일이 이미 사용 중이면 DUPLICATE_EMAIL 예외를 발생시킨다.

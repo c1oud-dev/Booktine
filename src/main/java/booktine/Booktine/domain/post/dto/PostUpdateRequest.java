@@ -1,6 +1,7 @@
 package booktine.Booktine.domain.post.dto;
 
 import booktine.Booktine.domain.post.entity.ReadingStatus;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -37,6 +38,8 @@ public record PostUpdateRequest(
 
         @NotNull(message = "독서 상태는 필수입니다.")
         ReadingStatus readingStatus,
-        LocalDate completedDate
+        LocalDate completedDate,
+        @Min(value = 0, message = "현재 페이지는 0 이상이어야 합니다.") Integer currentPage,
+        @Min(value = 1, message = "전체 페이지는 1 이상이어야 합니다.") Integer totalPage
 ) {
 }
