@@ -213,6 +213,8 @@ class PostServiceTest {
                 .summary("요약")
                 .readingStatus(ReadingStatus.READING)
                 .completedDate(null)
+                .currentPage(30)
+                .totalPage(300)
                 .user(user)
                 .build();
         ReflectionTestUtils.setField(post, "id", id);

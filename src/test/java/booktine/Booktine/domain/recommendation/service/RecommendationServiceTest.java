@@ -3,6 +3,7 @@ package booktine.Booktine.domain.recommendation.service;
 import booktine.Booktine.domain.recommendation.client.AladinApiClient;
 import booktine.Booktine.domain.recommendation.dto.AladinBookResponse;
 import booktine.Booktine.domain.recommendation.dto.RecommendationResponse;
+import booktine.Booktine.domain.recommendation.dto.RecommendationSaveRequest;
 import booktine.Booktine.domain.recommendation.entity.Recommendation;
 import booktine.Booktine.domain.recommendation.repository.RecommendationRepository;
 import booktine.Booktine.domain.user.entity.User;
@@ -81,7 +82,7 @@ class RecommendationServiceTest {
     void saveRecommendation_success() {
         // given
         User user = createUser(1L);
-        RecommendationResponse request = new RecommendationResponse(null, 1L, "제목", "저자", "출판사", "cover", "장르", "설명", "isbn");
+        RecommendationSaveRequest request = new RecommendationSaveRequest("제목", "저자", "출판사", "cover", "장르", "설명", "isbn");
         Recommendation saved = Recommendation.builder()
                 .user(user)
                 .title("제목")

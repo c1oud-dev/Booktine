@@ -153,6 +153,8 @@ class MemoServiceTest {
                 .publishedDate(LocalDate.now())
                 .summary("s")
                 .readingStatus(ReadingStatus.READING)
+                .currentPage(25)
+                .totalPage(200)
                 .user(user)
                 .build();
         ReflectionTestUtils.setField(post, "id", postId);

@@ -104,6 +104,8 @@ class AdminServiceTest {
                 .publishedDate(LocalDate.of(2026, 1, 1))
                 .summary("요약")
                 .readingStatus(ReadingStatus.READING)
+                .currentPage(20)
+                .totalPage(300)
                 .user(user)
                 .build();
         ReflectionTestUtils.setField(post, "id", id);

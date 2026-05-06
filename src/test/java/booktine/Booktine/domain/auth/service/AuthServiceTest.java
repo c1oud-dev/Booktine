@@ -115,6 +115,7 @@ class AuthServiceTest {
         // given
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get("EMAIL_CODE:SIGNUP:test@test.com")).willReturn("123456");
+        given(valueOperations.get("EMAIL_VERIFY_ATTEMPT:SIGNUP:test@test.com")).willReturn(null);
 
         // when
         authService.verifyEmailCode(new EmailVerifyRequest("test@test.com", "SIGNUP", "123456"));
