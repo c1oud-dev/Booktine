@@ -2,24 +2,11 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, NotebookPen, Plus } from 'lucide-react';
 import { createMemo, getBookNote, getMemos } from '../api/bookNoteApi';
-import type { BookNote, Memo, ReadingStatus } from '../types/bookNote';
+import type { BookNote, Memo } from '../types/bookNote';
+import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
 import { cn } from '@/lib/utils';
-
-const statusLabel: Record<ReadingStatus, string> = {
-  WISHLIST: '읽고 싶은 책',
-  READING: '읽는 중',
-  COMPLETED: '완독',
-  PAUSED: '중단',
-};
-
-const statusClassName: Record<ReadingStatus, string> = {
-  WISHLIST: 'bg-secondary text-secondary-foreground',
-  READING: 'bg-primary text-primary-foreground',
-  COMPLETED: 'bg-emerald-50 text-emerald-700',
-  PAUSED: 'bg-amber-50 text-amber-700',
-};
 
 export default function BookDetailPage() {
   const { id } = useParams();
@@ -113,8 +100,13 @@ export default function BookDetailPage() {
           </div>
 
           <div className="flex flex-col justify-center">
-            <span className={cn('w-fit rounded-full px-3 py-1 text-xs font-black', statusClassName[book.readingStatus])}>
-              {statusLabel[book.readingStatus]}
+            <span
+              className={cn(
+                'w-fit rounded-full px-3 py-1 text-xs font-black',
+                STATUS_CLASS_NAME[book.readingStatus],
+              )}
+            >
+              {STATUS_LABEL[book.readingStatus]}
             </span>
             <h1 className="mt-5 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
               {book.title}

@@ -2,26 +2,14 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, CalendarCheck, Edit3, Plus, Trash2, X } from 'lucide-react';
 import { createBookNote, deleteBookNote, getBookNotes, updateBookNote } from '../api/bookNoteApi';
+import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import type { BookNote, ReadingStatus } from '../types/bookNote';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
 import { cn } from '@/lib/utils';
 
 const defaultStatus: ReadingStatus = 'READING';
-
-const statusLabel: Record<ReadingStatus, string> = {
-  WISHLIST: '읽고 싶은 책',
-  READING: '읽는 중',
-  COMPLETED: '완독',
-  PAUSED: '중단',
-};
-
-const statusClassName: Record<ReadingStatus, string> = {
-  WISHLIST: 'bg-secondary text-secondary-foreground',
-  READING: 'bg-primary text-primary-foreground',
-  COMPLETED: 'bg-emerald-50 text-emerald-700',
-  PAUSED: 'bg-amber-50 text-amber-700',
-};
+const pageSize = 20;
 
 export default function BooksPage() {
   const [items, setItems] = useState<BookNote[]>([]);
@@ -36,19 +24,41 @@ export default function BooksPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
-  const load = async () => {
+  const totalPageCount = Math.max(totalPages, 1);
+  const isFirstPage = currentPage === 0;
+  const isLastPage = currentPage >= totalPageCount - 1;
+
+  const resetForm = () => {
+    setTitle('');
+    setSummary('');
+    setAuthor('');
+    setGenre('');
+    setPublisher('');
+    setPublishedDate('');
+    setReadingStatus(defaultStatus);
+    setCompletedDate('');
+    setEditingId(null);
+  };
+
+  const load = async (pageNumber = currentPage) => {
     setLoading(true);
     try {
-      setItems(await getBookNotes());
+      const page = await getBookNotes(pageNumber, pageSize);
+      setItems(page.content);
+      setTotalPages(page.totalPages);
+      setTotalElements(page.totalElements);
     } finally {
       setLoading(false);
     }
   };
   
   useEffect(() => {
-    load();
-  }, []);
+    load(currentPage);
+  }, [currentPage]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -65,21 +75,31 @@ export default function BooksPage() {
 
     if (editingId) {
       await updateBookNote(editingId, payload);
+      await load(currentPage);
     } else {
       await createBookNote(payload);
+      if (currentPage === 0) {
+        await load(0);
+      } else {
+        setCurrentPage(0);
+      }
     }
 
-    setTitle('');
-    setSummary('');
-    setAuthor('');
-    setGenre('');
-    setPublisher('');
-    setPublishedDate('');
-    setReadingStatus(defaultStatus);
-    setCompletedDate('');
-    setEditingId(null);
+    resetForm();
     setIsFormOpen(false);
-    await load();
+    };
+
+  const handleDelete = async (bookId: number) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return;
+
+    await deleteBookNote(bookId);
+
+    if (items.length === 1 && currentPage > 0) {
+      setCurrentPage((page) => page - 1);
+      return;
+    }
+
+    await load(currentPage);
   };
 
   return (
@@ -99,13 +119,13 @@ export default function BooksPage() {
         <div className="flex items-center gap-3">
           <div className="inline-flex items-center gap-3 rounded-2xl bg-secondary px-5 py-4 text-sm font-bold text-secondary-foreground">
             <BookOpen className="h-5 w-5" aria-hidden="true" />
-            총 {items.length}권 기록
+            총 {totalElements}권 기록
           </div>
           <button
             type="button"
             onClick={() => {
+              resetForm();
               setIsFormOpen(true);
-              setEditingId(null);
             }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
           >
@@ -120,7 +140,7 @@ export default function BooksPage() {
           className="grid gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-2"
           onSubmit={onSubmit}
         >
-          <div className="lg:col-span-2 flex items-center justify-between">
+          <div className="flex items-center justify-between lg:col-span-2">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
                 {editingId ? 'Edit note' : 'Create note'}
@@ -132,8 +152,8 @@ export default function BooksPage() {
             <button
               type="button"
               onClick={() => {
+                resetForm();
                 setIsFormOpen(false);
-                setEditingId(null);
               }}
               className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:bg-secondary"
             >
@@ -141,128 +161,122 @@ export default function BooksPage() {
             </button>
           </div>
 
-        <label className="block text-sm font-bold text-foreground">
-          제목
-          <input
-            className="mt-2"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="책 제목을 입력하세요."
-            required
-          />
-        </label>
+          <label className="block text-sm font-bold text-foreground">
+            제목
+            <input
+              className="mt-2"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="책 제목을 입력하세요."
+              required
+            />
+          </label>
 
-        <label className="block text-sm font-bold text-foreground">
-          저자
-          <input
-            className="mt-2"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="저자명"
-            required
-          />
-        </label>
+          <label className="block text-sm font-bold text-foreground">
+            저자
+            <input
+              className="mt-2"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="저자명"
+              required
+            />
+          </label>
 
-        <label className="block text-sm font-bold text-foreground">
-          장르
-          <input
-            className="mt-2"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-            placeholder="예: 소설, 인문, 과학"
-            required
-          />
-        </label>
+          <label className="block text-sm font-bold text-foreground">
+            장르
+            <input
+              className="mt-2"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              placeholder="장르"
+              required
+            />
+          </label>
 
-        <label className="block text-sm font-bold text-foreground">
-          출판사
-          <input
-            className="mt-2"
-            value={publisher}
-            onChange={(e) => setPublisher(e.target.value)}
-            placeholder="출판사"
-            required
-          />
-        </label>
+          <label className="block text-sm font-bold text-foreground">
+            출판사
+            <input
+              className="mt-2"
+              value={publisher}
+              onChange={(e) => setPublisher(e.target.value)}
+              placeholder="출판사"
+              required
+            />
+          </label>
 
-        <label className="block text-sm font-bold text-foreground">
-          출간일
-          <input
-            className="mt-2"
-            type="date"
-            value={publishedDate}
-            onChange={(e) => setPublishedDate(e.target.value)}
-            required
-          />
-        </label>
+          <label className="block text-sm font-bold text-foreground">
+            출간일
+            <input
+              className="mt-2"
+              type="date"
+              value={publishedDate}
+              onChange={(e) => setPublishedDate(e.target.value)}
+              required
+            />
+          </label>
 
-        <label className="block text-sm font-bold text-foreground">
-          독서 상태
-          <select
-            className="mt-2"
-            value={readingStatus}
-            onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
-          >
-            <option value="WISHLIST">읽고 싶은 책</option>
-            <option value="READING">읽는 중</option>
-            <option value="COMPLETED">완독</option>
-            <option value="PAUSED">중단</option>
-          </select>
-        </label>
-
-        <label className="block text-sm font-bold text-foreground">
-          완독일
-          <input
-            className="mt-2"
-            type="date"
-            value={completedDate}
-            onChange={(e) => setCompletedDate(e.target.value)}
-            placeholder="완독일"
-          />
-        </label>
-
-        <label className="block text-sm font-bold text-foreground lg:col-span-2">
-          요약
-          <textarea
-            className="mt-2 min-h-28 resize-y"
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            placeholder="책의 핵심 내용이나 읽고 싶은 이유를 적어보세요."
-            required
-          />
-        </label>
-
-        <div className="flex flex-col gap-3 sm:flex-row lg:col-span-2">
-          <button
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
-            type="submit"
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            {editingId ? '노트 수정' : '새 노트 추가'}
-          </button>
-          {editingId ? (
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
-              onClick={() => {
-                setTitle('');
-                setSummary('');
-                setAuthor('');
-                setGenre('');
-                setPublisher('');
-                setPublishedDate('');
-                setReadingStatus(defaultStatus);
-                setCompletedDate('');
-                setEditingId(null);
-                setIsFormOpen(false);
-              }}
+          <label className="block text-sm font-bold text-foreground">
+            독서 상태
+            <select
+              className="mt-2"
+              value={readingStatus}
+              onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
             >
-              편집 취소
+              {Object.entries(STATUS_LABEL).map(([status, label]) => (
+                <option key={status} value={status}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm font-bold text-foreground">
+            완독일
+            <input
+              className="mt-2"
+              type="date"
+              value={completedDate}
+              onChange={(e) => setCompletedDate(e.target.value)}
+              placeholder="완독일"
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-foreground lg:col-span-2">
+            요약
+            <textarea
+              className="mt-2 min-h-28 resize-y"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+              placeholder="책의 핵심 내용이나 읽고 싶은 이유를 적어보세요."
+              required
+            />
+          </label>
+
+          <div className="flex flex-col gap-3 sm:flex-row lg:col-span-2">
+            <button
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
+              type="submit"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              {editingId ? '노트 수정' : '새 노트 추가'}
             </button>
-          ) : null}
-        </div>
-      </form>
-    )}
+
+            {editingId ? (
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+                onClick={() => {
+                  resetForm();
+                  setIsFormOpen(false);
+                }}
+              >
+                편집 취소
+              </button>
+            ) : null}
+          </div>
+        </form>
+      )}
 
       {loading ? (
         <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
@@ -274,82 +288,109 @@ export default function BooksPage() {
           description="첫 책을 기록해 오늘의 독서를 시작해 보세요."
         />
       ) : (
-        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((book) => (
-            <li
-              key={book.id}
-              className="group flex min-h-72 flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span className={cn('rounded-full px-3 py-1 text-xs font-black', statusClassName[book.readingStatus])}>
-                  {statusLabel[book.readingStatus]}
-                </span>
-                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
-                  <BookOpen className="h-5 w-5" aria-hidden="true" />
-                </span>
-              </div>
-
-              <Link
-                to={`/books/${book.id}`}
-                className="mt-5 line-clamp-2 text-xl font-black tracking-tight text-foreground underline-offset-4 group-hover:underline"
+        <>
+          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((book) => (
+              <li
+                key={book.id}
+                className="group flex min-h-72 flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
               >
-                {book.title}
-              </Link>
-              <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                {book.author} · {book.genre}
-              </p>
-              <p className="mt-4 line-clamp-4 flex-1 text-sm leading-6 text-muted-foreground">
-                {book.summary}
-              </p>
+                <div className="flex items-start justify-between gap-3">
+                  <span
+                    className={cn(
+                      'rounded-full px-3 py-1 text-xs font-black',
+                      STATUS_CLASS_NAME[book.readingStatus],
+                    )}
+                  >
+                    {STATUS_LABEL[book.readingStatus]}
+                  </span>
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+                    <BookOpen className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                </div>
 
-              <div className="mt-5 flex items-center gap-2 text-xs font-bold text-muted-foreground">
-                <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                {book.completedDate ? `${book.completedDate} 완독` : `${book.publishedDate} 출간`}
-              </div>
-
-              <div className="mt-5 flex gap-2 border-t border-border pt-4">
                 <Link
                   to={`/books/${book.id}`}
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:shadow-soft"
+                  className="mt-5 line-clamp-2 text-xl font-black tracking-tight text-foreground underline-offset-4 group-hover:underline"
                 >
-                  <BookOpen className="h-4 w-4" />
-                  상세 보기
+                  {book.title}
                 </Link>
-                <button
-                  type="button"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                  onClick={() => {
-                    setEditingId(book.id);
-                    setTitle(book.title);
-                    setSummary(book.summary);
-                    setAuthor(book.author);
-                    setGenre(book.genre);
-                    setPublisher(book.publisher);
-                    setPublishedDate(book.publishedDate);
-                    setReadingStatus(book.readingStatus);
-                    setCompletedDate(book.completedDate ?? '');
-                    setIsFormOpen(true);
-                  }}
-                >
-                  <Edit3 className="h-4 w-4" aria-hidden="true" />
-                  편집
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                  onClick={async () => {
-                    if (!confirm('정말 삭제하시겠습니까?')) return;
-                    await deleteBookNote(book.id);
-                    await load();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  삭제
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <p className="mt-2 text-sm font-semibold text-muted-foreground">
+                  {book.author} · {book.genre}
+                </p>
+                <p className="mt-4 line-clamp-4 flex-1 text-sm leading-6 text-muted-foreground">
+                  {book.summary}
+                </p>
+
+                <div className="mt-5 flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                  <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                  {book.completedDate ? `${book.completedDate} 완독` : `${book.publishedDate} 출간`}
+                </div>
+
+                <div className="mt-5 flex gap-2 border-t border-border pt-4">
+                  <Link
+                    to={`/books/${book.id}`}
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:shadow-soft"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    상세 보기
+                  </Link>
+                  <button
+                    type="button"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                    onClick={() => {
+                      setEditingId(book.id);
+                      setTitle(book.title);
+                      setSummary(book.summary);
+                      setAuthor(book.author);
+                      setGenre(book.genre);
+                      setPublisher(book.publisher);
+                      setPublishedDate(book.publishedDate);
+                      setReadingStatus(book.readingStatus);
+                      setCompletedDate(book.completedDate ?? '');
+                      setIsFormOpen(true);
+                    }}
+                  >
+                    <Edit3 className="h-4 w-4" aria-hidden="true" />
+                    편집
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                    onClick={() => handleDelete(book.id)}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    삭제
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="flex flex-col items-center justify-between gap-4 rounded-[1.25rem] border border-border bg-card px-5 py-4 shadow-soft sm:flex-row">
+            <p className="text-sm font-bold text-muted-foreground">
+              총 {totalElements}권 · {currentPage + 1} / {totalPageCount} 페이지
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isFirstPage || loading}
+                onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-2.5 text-sm font-bold text-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                이전
+              </button>
+              <button
+                type="button"
+                disabled={isLastPage || loading}
+                onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPageCount - 1))}
+                className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-2.5 text-sm font-bold text-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                다음
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </section>
   );

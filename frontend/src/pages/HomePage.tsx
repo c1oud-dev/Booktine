@@ -5,14 +5,7 @@ import { getAccessToken } from '../api/http';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
-
-const statusLabel: Record<string, string> = {
-  COMPLETED: '완독',
-  READING: '읽는 중',
-  WISHLIST: '읽고 싶은 책',
-  WANT_TO_READ: '읽고 싶은 책',
-  PAUSED: '중단',
-};
+import { STATUS_LABEL } from '../constants/readingStatus';
 
 const featureItems = [
   {
@@ -260,7 +253,8 @@ export default function HomePage() {
                           {post.title}
                         </p>
                         <p className="mt-2 text-sm font-medium text-muted-foreground">
-                          {post.author || '저자 미입력'} · {statusLabel[post.readingStatus] ?? post.readingStatus}
+                          {post.author || '저자 미입력'} ·{' '}
+                          {STATUS_LABEL[post.readingStatus as keyof typeof STATUS_LABEL] ?? post.readingStatus}
                         </p>
                       </Link>
                     </li>

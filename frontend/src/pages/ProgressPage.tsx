@@ -122,27 +122,6 @@ export default function ProgressPage() {
             완독 추이와 장르 분포, 월간·연간 목표를 함께 보며 꾸준한 독서 리듬을 조정하세요.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <select
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => (
-              <option key={y} value={y}>{y}년</option>
-            ))}
-          </select>
-          <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-            className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={m}>{m}월</option>
-            ))}
-          </select>
-        </div>
       </div>
 
       {loading ? (
@@ -181,6 +160,169 @@ export default function ProgressPage() {
             })}
           </div>
 
+          <div className="grid gap-5 md:grid-cols-2">
+            <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Monthly goal
+              </p>
+              <h3 className="mt-2 text-2xl font-black text-foreground">월간 목표</h3>
+
+              {isMonthlyEditing ? (
+                <form
+                  onSubmit={async (e) => {
+                    await submitMonthlyGoal(e);
+                    setIsMonthlyEditing(false);
+                  }}
+                  className="mt-5 space-y-3"
+                >
+                  <input
+                    type="number"
+                    min={1}
+                    value={monthlyGoalCount || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setMonthlyGoalCount(val === '' ? 0 : Number(val));
+                    }}
+                    placeholder="목표 권수를 입력하세요"
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsMonthlyEditing(false)}
+                      className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mt-5 flex items-center justify-between">
+                  <p className="text-4xl font-black text-foreground">
+                    {monthlyGoal ? monthlyGoal.goalCount : '-'}
+                    {monthlyGoal && (
+                      <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMonthlyGoalCount(monthlyGoal?.goalCount ?? 1);
+                      setIsMonthlyEditing(true);
+                    }}
+                    className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                  >
+                    {monthlyGoal ? '목표 수정' : '목표 설정'}
+                  </button>
+                </div>
+              )}
+            </article>
+
+            <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Annual goal
+              </p>
+              <h3 className="mt-2 text-2xl font-black text-foreground">연간 목표</h3>
+
+              {isAnnualEditing ? (
+                <form
+                  onSubmit={async (e) => {
+                    await submitAnnualGoal(e);
+                    setIsAnnualEditing(false);
+                  }}
+                  className="mt-5 space-y-3"
+                >
+                  <input
+                    type="number"
+                    min={1}
+                    value={annualGoalCount || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAnnualGoalCount(val === '' ? 0 : Number(val));
+                    }}
+                    placeholder="목표 권수를 입력하세요"
+                    required
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
+                    >
+                      저장
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAnnualEditing(false)}
+                      className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="mt-5 flex items-center justify-between">
+                  <p className="text-4xl font-black text-foreground">
+                    {annualGoal ? annualGoal.goalCount : '-'}
+                    {annualGoal && (
+                      <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAnnualGoalCount(annualGoal?.goalCount ?? 1);
+                      setIsAnnualEditing(true);
+                    }}
+                    className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                  >
+                    {annualGoal ? '목표 수정' : '목표 설정'}
+                  </button>
+                </div>
+              )}
+            </article>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-soft">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  Period filter
+                </p>
+                <h2 className="mt-2 text-2xl font-black text-foreground">기간 선택</h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => (
+                    <option key={y} value={y}>
+                      {y}년
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <option key={m} value={m}>
+                      {m}월
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
           <div className="grid gap-6">
             <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
               <div className="flex items-center gap-3">
@@ -195,7 +337,10 @@ export default function ProgressPage() {
 
               {genres.length === 0 ? (
                 <div className="mt-6">
-                  <EmptyState title="장르 통계가 없어요" description="독서 노트에 장르를 기록하면 취향 분포를 볼 수 있어요." />
+                  <EmptyState
+                    title="장르 통계가 없어요"
+                    description="독서 노트에 장르를 기록하면 취향 분포를 볼 수 있어요."
+                  />
                 </div>
               ) : (
                 <ul className="mt-6 space-y-4">
@@ -232,7 +377,10 @@ export default function ProgressPage() {
 
               {trend.length === 0 ? (
                 <div className="mt-6">
-                  <EmptyState title="독서 데이터가 없어요" description="책을 완독하면 월별 독서량이 표시돼요." />
+                  <EmptyState
+                    title="독서 데이터가 없어요"
+                    description="책을 완독하면 월별 독서량이 표시돼요."
+                  />
                 </div>
               ) : (
                 <div className="mt-6">
@@ -253,11 +401,20 @@ export default function ProgressPage() {
                               </span>
                               <div className="w-full rounded-t-lg bg-muted" style={{ height: '8rem' }}>
                                 <div
-                                  className={`w-full rounded-t-lg transition-all ${isCurrentMonth ? 'bg-primary' : 'bg-primary/40'}`}
-                                  style={{ height: `${heightPercent}%`, marginTop: `${100 - heightPercent}%` }}
+                                  className={`w-full rounded-t-lg transition-all ${
+                                    isCurrentMonth ? 'bg-primary' : 'bg-primary/40'
+                                  }`}
+                                  style={{
+                                    height: `${heightPercent}%`,
+                                    marginTop: `${100 - heightPercent}%`,
+                                  }}
                                 />
                               </div>
-                              <span className={`text-xs font-bold ${isCurrentMonth ? 'text-primary' : 'text-muted-foreground'}`}>
+                              <span
+                                className={`text-xs font-bold ${
+                                  isCurrentMonth ? 'text-primary' : 'text-muted-foreground'
+                                }`}
+                              >
                                 {i + 1}월
                               </span>
                             </div>
@@ -266,118 +423,6 @@ export default function ProgressPage() {
                       </div>
                     );
                   })()}
-                </div>
-              )}
-            </article>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                Monthly goal
-              </p>
-              <h3 className="mt-2 text-2xl font-black text-foreground">월간 목표</h3>
-
-              {isMonthlyEditing ? (
-                <form onSubmit={async (e) => { await submitMonthlyGoal(e); setIsMonthlyEditing(false); }} className="mt-5 space-y-3">
-                  <input
-                    type="number"
-                    min={1}
-                    value={monthlyGoalCount || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setMonthlyGoalCount(val === '' ? 0 : Number(val));
-                    }}
-                    placeholder="목표 권수를 입력하세요"
-                    required
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
-                    >
-                      저장
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsMonthlyEditing(false)}
-                      className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
-                    >
-                      취소
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="mt-5 flex items-center justify-between">
-                  <p className="text-4xl font-black text-foreground">
-                    {monthlyGoal ? monthlyGoal.goalCount : '-'}
-                    {monthlyGoal && <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMonthlyGoalCount(monthlyGoal?.goalCount ?? 1);
-                      setIsMonthlyEditing(true);
-                    }}
-                    className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                  >
-                    {monthlyGoal ? '목표 수정' : '목표 설정'}
-                  </button>
-                </div>
-              )}
-            </article>
-
-            <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                Annual goal
-              </p>
-              <h3 className="mt-2 text-2xl font-black text-foreground">연간 목표</h3>
-
-              {isAnnualEditing ? (
-                <form onSubmit={async (e) => { await submitAnnualGoal(e); setIsAnnualEditing(false); }} className="mt-5 space-y-3">
-                  <input
-                    type="number"
-                    min={1}
-                    value={annualGoalCount || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setAnnualGoalCount(val === '' ? 0 : Number(val));
-                    }}
-                    placeholder="목표 권수를 입력하세요"
-                    required
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="submit"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
-                    >
-                      저장
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setIsAnnualEditing(false)}
-                      className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
-                    >
-                      취소
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="mt-5 flex items-center justify-between">
-                  <p className="text-4xl font-black text-foreground">
-                    {annualGoal ? annualGoal.goalCount : '-'}
-                    {annualGoal && <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAnnualGoalCount(annualGoal?.goalCount ?? 1);
-                      setIsAnnualEditing(true);
-                    }}
-                    className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                  >
-                    {annualGoal ? '목표 수정' : '목표 설정'}
-                  </button>
                 </div>
               )}
             </article>

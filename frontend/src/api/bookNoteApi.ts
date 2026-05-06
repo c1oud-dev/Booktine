@@ -4,7 +4,7 @@ import type { BookNote, BookNotePayload, Memo, MemoPayload } from '../types/book
 
 export async function getBookNotes(page = 0, size = 20) {
   const res = await http.get<ApiResponse<PageResponse<BookNote>>>('/posts', { params: { page, size } });
-  return res.data.data.content;
+  return res.data.data;
 }
 
 export async function getBookNote(id: number) {

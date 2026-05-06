@@ -1,5 +1,4 @@
-export type ReadingStatus = 'WISHLIST' | 'READING' | 'COMPLETED' | 'PAUSED';
-
+export type ReadingStatus = 'WISHLIST' | 'WANT_TO_READ' | 'READING' | 'COMPLETED' | 'PAUSED';
 export interface BookNote {
   id: number;
   userId: number;
