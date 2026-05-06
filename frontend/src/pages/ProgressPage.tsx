@@ -162,10 +162,27 @@ export default function ProgressPage() {
 
           <div className="grid gap-5 md:grid-cols-2">
             <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                Monthly goal
-              </p>
-              <h3 className="mt-2 text-2xl font-black text-foreground">월간 목표</h3>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    Monthly goal
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black text-foreground">
+                    월간 목표
+                  </h3>
+                </div>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(Number(e.target.value))}
+                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                    <option key={m} value={m}>
+                      {m}월
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {isMonthlyEditing ? (
                 <form
@@ -225,10 +242,27 @@ export default function ProgressPage() {
             </article>
 
             <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                Annual goal
-              </p>
-              <h3 className="mt-2 text-2xl font-black text-foreground">연간 목표</h3>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    Annual goal
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black text-foreground">
+                    연간 목표
+                  </h3>
+                </div>
+                <select
+                  value={year}
+                  onChange={(e) => setYear(Number(e.target.value))}
+                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => (
+                    <option key={y} value={y}>
+                      {y}년
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               {isAnnualEditing ? (
                 <form
@@ -286,41 +320,6 @@ export default function ProgressPage() {
                 </div>
               )}
             </article>
-          </div>
-
-          <div className="rounded-[1.5rem] border border-border bg-card p-5 shadow-soft">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                  Period filter
-                </p>
-                <h2 className="mt-2 text-2xl font-black text-foreground">기간 선택</h2>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={year}
-                  onChange={(e) => setYear(Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => (
-                    <option key={y} value={y}>
-                      {y}년
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={month}
-                  onChange={(e) => setMonth(Number(e.target.value))}
-                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      {m}월
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </div>
 
           <div className="grid gap-6">
@@ -399,7 +398,10 @@ export default function ProgressPage() {
                               <span className="text-xs font-bold text-muted-foreground">
                                 {count > 0 ? count : ''}
                               </span>
-                              <div className="w-full rounded-t-lg bg-muted" style={{ height: '8rem' }}>
+                              <div
+                                className="w-full rounded-t-lg bg-muted"
+                                style={{ height: '8rem' }}
+                              >
                                 <div
                                   className={`w-full rounded-t-lg transition-all ${
                                     isCurrentMonth ? 'bg-primary' : 'bg-primary/40'
