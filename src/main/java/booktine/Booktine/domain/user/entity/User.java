@@ -43,6 +43,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private boolean emailVerified;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private UserRole role = UserRole.ROLE_USER;
+
     @Column(columnDefinition = "TEXT")
     private String aboutMe;
 
@@ -62,6 +66,7 @@ public class User extends BaseEntity {
         this.profileImageUrl = profileImageUrl;
         this.authProvider = authProvider;
         this.providerId = providerId;
+        this.role = UserRole.ROLE_USER;
     }
 
     /**
@@ -91,5 +96,12 @@ public class User extends BaseEntity {
      * */
     public void verifyEmail() {
         this.emailVerified = true;
+    }
+
+    /**
+     * 관리자 계정 시드/운영 도구에서 사용자 권한을 변경한다.
+     */
+    public void updateRole(UserRole role) {
+        this.role = role;
     }
 }

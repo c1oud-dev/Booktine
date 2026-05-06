@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { LogIn, LogOut, UserRound } from 'lucide-react';
-import { getAccessToken } from '@/api/http';
-import { getMyProfile, type UserProfile } from '@/api/userApi';
+import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -10,40 +9,12 @@ const navItems = [
   { to: '/books', label: 'Book Note' },
   { to: '/progress', label: 'Progress' },
   { to: '/recommendations', label: 'Recommend' },
+  { to: '/reminders', label: 'Reminder' },
 ];
 
 export default function AppHeader() {
-  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(getAccessToken()));
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<UserProfile | null>(null);
-
-  useEffect(() => {
-    const handleAuthChange = () => {
-      const hasToken = Boolean(getAccessToken());
-      setIsLoggedIn(hasToken);
-      if (!hasToken) {
-        setUser(null);
-      }
-    };
-
-    window.addEventListener('storage', handleAuthChange);
-    window.addEventListener('auth-change', handleAuthChange);
-
-    return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('auth-change', handleAuthChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      return;
-    }
-
-    getMyProfile()
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, [isLoggedIn]);
+  const { user, isAuthenticated, isAdmin } = useAuth();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -65,7 +36,7 @@ export default function AppHeader() {
         </Link>
 
         <nav className="hidden items-center justify-center gap-1 rounded-full border border-border/70 bg-card px-1 py-1 shadow-soft md:flex" aria-label="주요 메뉴">
-          {navItems.map((item) => (
+          {[...navItems, ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : [])].map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -85,7 +56,7 @@ export default function AppHeader() {
         </nav>
 
         <div className="flex items-center justify-end gap-3">
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <>
               <div className="relative hidden sm:block">
                 <button

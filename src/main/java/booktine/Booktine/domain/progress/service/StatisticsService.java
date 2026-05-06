@@ -46,8 +46,18 @@ public class StatisticsService {
     }
 
     /** 완독 게시물을 장르별로 집계하여 비율 통계를 반환한다. */
-    public List<GenreStatsResponse> getGenreStats(Long userId) {
-        List<Post> posts = postRepository.findAllByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
+    public List<GenreStatsResponse> getGenreStats(Long userId, Integer year, Integer month) {
+        List<Post> posts;
+
+        if (year != null) {
+            LocalDate from = month == null ? getYearStart(year) : LocalDate.of(year, month, 1);
+            LocalDate to = month == null ? getYearEnd(year) : getMonthEnd(from);
+            posts = postRepository.findAllByUserIdAndReadingStatusAndCompletedDateBetween(
+                    userId, ReadingStatus.COMPLETED, from, to);
+        } else {
+            posts = postRepository.findAllByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
+        }
+
         long total = posts.size();
 
         return posts.stream()

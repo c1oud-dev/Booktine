@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { LogOut, ShieldCheck } from 'lucide-react';
-import { authApi } from '../auth/authApi';
+import { useAuth } from '@/auth/AuthContext';
 import Spinner from '@/components/common/Spinner';
 
 export default function LogoutPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     setLoading(true);
     setMessage('');
 
     try {
-      await authApi.logout();
-      window.dispatchEvent(new Event('auth-change'));
+      await logout();
       setMessage('로그아웃 되었습니다. 로그인 페이지로 이동합니다.');
       navigate('/login', { replace: true });
     } catch {

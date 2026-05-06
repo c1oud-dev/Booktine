@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { authApi } from '../auth/authApi';
+import { useAuth } from '@/auth/AuthContext';
 import Spinner from '@/components/common/Spinner';
 
 export default function LoginPage() {
@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
 
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/';
 
@@ -22,8 +23,7 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      await authApi.login(email, password, keepLogin);
-      window.dispatchEvent(new Event('auth-change'));
+      await login(email, password, keepLogin);
       navigate(from, { replace: true });
     } catch {
       setMessage('로그인에 실패했습니다. 이메일/비밀번호를 확인해 주세요.');

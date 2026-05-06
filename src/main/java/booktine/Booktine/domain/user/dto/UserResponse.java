@@ -1,6 +1,7 @@
 package booktine.Booktine.domain.user.dto;
 
 import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.entity.UserRole;
 
 /**
  * 사용자 정보를 클라이언트에 응답할 때 사용하는 DTO.
@@ -12,6 +13,7 @@ public record UserResponse(
         String nickname,
         String aboutMe,
         String profileImageUrl,
+        UserRole role,
         long readingCount,
         long completedCount
 ) {
@@ -32,6 +34,7 @@ public record UserResponse(
                 user.getNickname(),
                 user.getAboutMe(),
                 user.getProfileImageUrl(),
+                user.getRole(),
                 readingCount,
                 completedCount
         );

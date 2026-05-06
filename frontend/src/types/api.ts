@@ -11,3 +11,4 @@ export interface PageResponse<T> {
   number: number;
   size: number;
 }
+export type UserRole = 'ROLE_USER' | 'ROLE_ADMIN';

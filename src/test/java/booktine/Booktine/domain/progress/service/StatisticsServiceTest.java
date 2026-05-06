@@ -59,7 +59,7 @@ class StatisticsServiceTest {
         ));
 
         // when
-        List<GenreStatsResponse> res = statisticsService.getGenreStats(1L);
+        List<GenreStatsResponse> res = statisticsService.getGenreStats(1L, null, null);
 
         // then
         assertThat(res).hasSize(2);
@@ -112,7 +112,7 @@ class StatisticsServiceTest {
         given(postRepository.findAllByUserIdAndReadingStatus(1L, ReadingStatus.COMPLETED)).willReturn(List.of());
 
         // when
-        List<GenreStatsResponse> res = statisticsService.getGenreStats(1L);
+        List<GenreStatsResponse> res = statisticsService.getGenreStats(1L, null, null);
 
         // then
         assertThat(res).isEmpty();

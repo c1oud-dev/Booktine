@@ -16,9 +16,8 @@ export const http = axios.create({
   },
 });
 
-export const setAccessToken = (token: string | null, persist = false) => {
-
-  accessTokenStore.set(token, persist);
+export const setAccessToken = (token: string | null) => {
+  accessTokenStore.set(token);
 
   if (token) {
     http.defaults.headers.common.Authorization = `Bearer ${token}`;

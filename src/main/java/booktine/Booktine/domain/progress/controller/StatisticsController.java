@@ -37,8 +37,9 @@ public class StatisticsController {
     /** 장르별 독서 비율을 조회한다. */
     @Operation(summary = "장르별 독서 통계 조회", description = "로그인한 사용자의 장르별 독서 통계를 조회합니다.")
     @GetMapping("/genre")
-    public ApiResponse<List<GenreStatsResponse>> getGenreStats() {
-        return ApiResponse.ok(statisticsService.getGenreStats(getCurrentUserId()));
+    public ApiResponse<List<GenreStatsResponse>> getGenreStats(@RequestParam(required = false) Integer year,
+                                                               @RequestParam(required = false) Integer month) {
+        return ApiResponse.ok(statisticsService.getGenreStats(getCurrentUserId(), year, month));
     }
 
     /** 연간 월별 독서량 추이를 조회한다. */

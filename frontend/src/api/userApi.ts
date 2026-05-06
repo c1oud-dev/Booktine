@@ -1,5 +1,5 @@
 import { http } from './http';
-import type { ApiResponse } from '../types/api';
+import type { ApiResponse, UserRole } from '../types/api';
 
 export interface UserProfile {
   id: number;
@@ -7,6 +7,7 @@ export interface UserProfile {
   nickname: string;
   aboutMe: string | null;
   profileImageUrl: string | null;
+  role: UserRole;
   readingCount: number;
   completedCount: number;
 }

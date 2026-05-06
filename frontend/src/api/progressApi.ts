@@ -34,13 +34,18 @@ export interface MonthlyGoalPayload extends GoalPayload {
   month: number;
 }
 
-export async function getGenreStats() {
-  const res = await http.get<ApiResponse<GenreStats[]>>('/stats/genre');
+export async function getGenreStats(year?: number, month?: number) {
+  const res = await http.get<ApiResponse<GenreStats[]>>('/stats/genre', { params: { year, month } });
   return res.data.data;
 }
 
 export async function getAnnualTrend(year: number) {
   const res = await http.get<ApiResponse<MonthlyReadCount[]>>('/stats/annual', { params: { year } });
+  return res.data.data;
+}
+
+export async function getAnnualCompletedCounts(year: number) {
+  const res = await http.get<ApiResponse<MonthlyReadCount[]>>('/stats/annual/completed-counts', { params: { year } });
   return res.data.data;
 }
 

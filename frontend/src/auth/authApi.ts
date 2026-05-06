@@ -27,7 +27,7 @@ export const authApi = {
     const token = resolveToken(response.data.data);
 
     if (token) {
-      setAccessToken(token, keepLogin);
+      setAccessToken(token);
     }
 
     return response;

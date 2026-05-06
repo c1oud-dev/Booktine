@@ -54,7 +54,7 @@ export default function BookDetailPage() {
     if (book.readingStatus === 'COMPLETED') {
       return 100;
     }
-    if (book.readingStatus === 'WISHLIST' || book.readingStatus === 'WANT_TO_READ') {
+    if (book.readingStatus === 'WISHLIST') {
       return 0;
     }
     return Math.min(95, memos.length * 12);

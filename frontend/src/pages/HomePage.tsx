@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, CheckCircle2, PenLine, TrendingUp } from 'lucide-react';
-import { getAccessToken } from '../api/http';
+import { useAuth } from '@/auth/AuthContext';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
@@ -26,7 +26,7 @@ const featureItems = [
 ];
 
 export default function HomePage() {
-  const isLoggedIn = useMemo(() => Boolean(getAccessToken()), []);
+  const { isAuthenticated: isLoggedIn, initializing } = useAuth();
   const [stats, setStats] = useState<BasicStats | null>(null);
   const [recentPosts, setRecentPosts] = useState<HomePost[]>([]);
   const [bestsellers, setBestsellers] = useState<BestsellerBook[]>([]);
@@ -35,7 +35,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const loadHome = async () => {
-      if (!isLoggedIn) {
+      if (initializing || !isLoggedIn) {
         setLoading(false);
         return;
       }
@@ -61,9 +61,9 @@ export default function HomePage() {
     };
 
     loadHome();
-  }, [isLoggedIn]);
+  }, [initializing, isLoggedIn]);
 
-  if (!isLoggedIn) {
+  if (!initializing && !isLoggedIn) {
     return (
       <section className="bg-card">
         <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-12 px-5 py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">

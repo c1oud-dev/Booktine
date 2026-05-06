@@ -9,6 +9,7 @@ import booktine.Booktine.domain.progress.entity.MonthlyGoal;
 import booktine.Booktine.domain.progress.repository.MonthlyGoalRepository;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.entity.UserAuthProvider;
+import booktine.Booktine.domain.user.entity.UserRole;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,17 @@ public class InitData {
                 .aboutMe("로컬 개발용 기본 사용자")
                 .build());
 
+        User admin = userRepository.save(User.builder()
+                .email("admin@booktine.com")
+                .password(passwordEncoder.encode("admin1234!"))
+                .nickname("booktine-admin")
+                .emailVerified(true)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId("local-admin-user")
+                .aboutMe("로컬 개발용 관리자")
+                .build());
+        admin.updateRole(UserRole.ROLE_ADMIN);
+
         Post readingPost = postRepository.save(Post.builder()
                 .user(user)
                 .title("클린 코드")
@@ -82,7 +94,7 @@ public class InitData {
                 .publisher("민음사")
                 .publishedDate(LocalDate.of(2000, 12, 20))
                 .summary("자아를 찾아가는 성장의 여정을 다룬 작품")
-                .readingStatus(ReadingStatus.WANT_TO_READ)
+                .readingStatus(ReadingStatus.WISHLIST)
                 .build());
 
         memoRepository.save(Memo.builder()

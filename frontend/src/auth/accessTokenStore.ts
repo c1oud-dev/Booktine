@@ -1,21 +1,13 @@
-const ACCESS_TOKEN_KEY = 'booktine.accessToken';
-
-let accessToken: string | null = window.localStorage.getItem(ACCESS_TOKEN_KEY);
+let accessToken: string | null = null;
 
 export const accessTokenStore = {
   get: () => accessToken,
-  set: (token: string | null, persist = false) => {
+  set: (token: string | null) => {
     accessToken = token;
-
-    if (token && persist) {
-      window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
-      return;
-    }
-
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.dispatchEvent(new Event('auth-change'));
   },
   clear: () => {
     accessToken = null;
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.dispatchEvent(new Event('auth-change'));
   },
 };

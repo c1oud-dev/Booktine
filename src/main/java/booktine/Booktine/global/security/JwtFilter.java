@@ -1,5 +1,7 @@
 package booktine.Booktine.global.security;
 
+import booktine.Booktine.domain.user.entity.User;
+import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
 import booktine.Booktine.global.jwt.JwtProvider;
@@ -31,13 +33,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final StringRedisTemplate redisTemplate;
+    private final UserRepository userRepository;
 
     /**
      * JWT 파싱/검증과 블랙리스트 확인을 위해 JwtProvider, Redis 템플릿을 주입받는다.
      */
-    public JwtFilter(JwtProvider jwtProvider, StringRedisTemplate redisTemplate) {
+    public JwtFilter(JwtProvider jwtProvider, StringRedisTemplate redisTemplate, UserRepository userRepository) {
         this.jwtProvider = jwtProvider;
         this.redisTemplate = redisTemplate;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -52,12 +56,13 @@ public class JwtFilter extends OncePerRequestFilter {
             jwtProvider.validateToken(token);
             validateBlacklistedToken(token);
             Long userId = jwtProvider.getUserId(token);
+            User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             AuthUser authUser = new AuthUser(userId);
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                     authUser,
                     null,
-                    List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                    List.of(new SimpleGrantedAuthority(user.getRole().name()))
             );
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
@@ -82,6 +87,11 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             return bearerToken.substring(BEARER_PREFIX.length());
+        }
+
+        String queryToken = request.getParameter("access_token");
+        if (StringUtils.hasText(queryToken) && request.getRequestURI().equals("/reminders/connect")) {
+            return queryToken;
         }
 
         return null;
