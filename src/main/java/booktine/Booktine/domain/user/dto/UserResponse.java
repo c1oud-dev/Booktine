@@ -11,18 +11,29 @@ public record UserResponse(
         String email,
         String nickname,
         String aboutMe,
-        String profileImageUrl
+        String profileImageUrl,
+        long readingCount,
+        long completedCount
 ) {
     /**
      * User 엔티티를 UserResponse DTO로 변환하는 정적 팩토리 메서드
      */
     public static UserResponse from(User user) {
+        return from(user, 0, 0);
+    }
+
+    /**
+     * User 엔티티와 독서 현황 집계를 UserResponse DTO로 변환하는 정적 팩토리 메서드
+     */
+    public static UserResponse from(User user, long readingCount, long completedCount) {
         return new UserResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
                 user.getAboutMe(),
-                user.getProfileImageUrl()
+                user.getProfileImageUrl(),
+                readingCount,
+                completedCount
         );
     }
 }

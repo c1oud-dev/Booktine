@@ -8,22 +8,71 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleSendCode = async () => {
+    if (!email) {
+      setMessage('이메일을 먼저 입력해 주세요.');
+      return;
+    }
+
+    setSendingCode(true);
+    setMessage('');
+
+    try {
+      await authApi.sendSignupEmailCode(email);
+      setMessage('인증 코드가 발송되었습니다. 이메일을 확인해 주세요.');
+    } catch {
+      setMessage('인증 코드 발송에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!email || !emailCode) {
+      setMessage('이메일과 인증 코드를 입력해 주세요.');
+      return;
+    }
+
+    setVerifyingCode(true);
+    setMessage('');
+
+    try {
+      await authApi.verifySignupEmailCode(email, emailCode);
+      setEmailVerified(true);
+      setMessage('이메일 인증이 완료되었습니다. 회원가입을 진행해 주세요.');
+    } catch {
+      setMessage('인증 코드가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setVerifyingCode(false);
+    }
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!emailVerified) {
+      setMessage('이메일 인증을 먼저 완료해 주세요.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
 
     try {
-      await authApi.signup(email, password);
+      await authApi.signup(email, password, nickname);
       setMessage('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
       navigate('/login');
     } catch {
-      setMessage('회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      setMessage('회원가입에 실패했습니다. 입력 정보를 확인해 주세요.');
     } finally {
       setLoading(false);
     }
@@ -72,14 +121,49 @@ export default function SignupPage() {
 
             <label className="block text-sm font-bold text-foreground">
               Email address
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="이메일을 입력해주세요."
-                required
-                className="mt-2"
-              />
+              <span className="mt-2 flex gap-2">
+                <input
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailVerified(false);
+                  }}
+                  type="email"
+                  placeholder="이메일을 입력해주세요."
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={sendingCode || emailVerified}
+                  className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground hover:bg-secondary disabled:opacity-60"
+                >
+                  {sendingCode ? '발송 중' : '인증 코드'}
+                </button>
+              </span>
+            </label>
+
+            <label className="block text-sm font-bold text-foreground">
+              Email verification code
+              <span className="mt-2 flex gap-2">
+                <input
+                  value={emailCode}
+                  onChange={(e) => setEmailCode(e.target.value)}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  placeholder="6자리 인증 코드"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyCode}
+                  disabled={verifyingCode || emailVerified}
+                  className="shrink-0 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground shadow-soft disabled:opacity-60"
+                >
+                  {emailVerified ? '인증 완료' : verifyingCode ? '확인 중' : '확인'}
+                </button>
+              </span>
             </label>
 
             <label className="block text-sm font-bold text-foreground">
@@ -113,7 +197,7 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !emailVerified}
               className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-4 text-base font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:opacity-60"
             >
               {loading ? (

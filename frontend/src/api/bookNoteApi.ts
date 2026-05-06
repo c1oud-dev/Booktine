@@ -1,9 +1,19 @@
 import { http } from './http';
 import type { ApiResponse, PageResponse } from '../types/api';
-import type { BookNote, BookNotePayload, Memo, MemoPayload } from '../types/bookNote';
+import type { BookNote, BookNotePayload, Memo, MemoPayload, ReadingStatus } from '../types/bookNote';
 
 export async function getBookNotes(page = 0, size = 20) {
   const res = await http.get<ApiResponse<PageResponse<BookNote>>>('/posts', { params: { page, size } });
+  return res.data.data;
+}
+
+export async function searchBookNotes(keyword?: string, status?: ReadingStatus | '') {
+  const res = await http.get<ApiResponse<BookNote[]>>('/posts/search', {
+    params: {
+      keyword: keyword || undefined,
+      status: status || undefined,
+    },
+  });
   return res.data.data;
 }
 

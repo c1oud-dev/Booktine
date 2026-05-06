@@ -5,6 +5,7 @@ import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.service.UserService;
 import booktine.Booktine.global.response.ApiResponse;
+import booktine.Booktine.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -58,42 +59,43 @@ public class UserController {
         return ApiResponse.ok(userService.isNicknameDuplicated(nickname));
     }
 
-    /** 사용자 ID 기준으로 내 정보를 조회한다. */
-    @Operation(summary = "내 정보 조회", description = "사용자 ID 기준으로 내 프로필 정보를 조회합니다.")
+    /** 인증 컨텍스트 기준으로 내 정보를 조회한다. */
+    @Operation(summary = "내 정보 조회", description = "로그인한 사용자의 내 프로필 정보를 조회합니다.")
     @GetMapping("/users/me")
-    public ApiResponse<UserResponse> getMyInfo(@RequestParam Long userId) {
-        return ApiResponse.ok(userService.getMyInfo(userId));
+    public ApiResponse<UserResponse> getMyInfo() {
+        return ApiResponse.ok(userService.getMyInfo(getCurrentUserId()));
     }
 
-    /** 사용자 ID 기준으로 내 프로필을 수정한다. */
-    @Operation(summary = "내 정보 수정", description = "사용자 ID 기준으로 내 프로필 정보를 수정합니다.")
+    /** 인증 컨텍스트 기준으로 내 프로필을 수정한다. */
+    @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 내 프로필 정보를 수정합니다.")
     @PutMapping("/users/me")
-    public ApiResponse<UserResponse> updateMyProfile(
-            @RequestParam Long userId,
-            @Valid @RequestBody UpdateProfileRequest request
-    ) {
-        return ApiResponse.ok(userService.updateMyProfile(userId, request));
+    public ApiResponse<UserResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
+        return ApiResponse.ok(userService.updateMyProfile(getCurrentUserId(), request));
     }
 
-    /** 사용자 ID 기준으로 회원탈퇴를 수행한다. */
-    @Operation(summary = "회원 탈퇴", description = "사용자 ID 기준으로 계정을 삭제합니다.")
+    /** 인증 컨텍스트 기준으로 회원탈퇴를 수행한다. */
+    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다.")
     @DeleteMapping("/users/me")
-    public ApiResponse<Void> deleteMyAccount(@RequestParam Long userId) {
-        userService.deleteMyAccount(userId);
+    public ApiResponse<Void> deleteMyAccount() {
+        userService.deleteMyAccount(getCurrentUserId());
         return ApiResponse.ok();
     }
 
-    /** 사용자 ID 기준으로 프로필 이미지를 업로드한다. */
-    @Operation(summary = "프로필 이미지 업로드", description = "사용자 ID 기준으로 프로필 이미지를 업로드합니다.")
+    /** 인증 컨텍스트 기준으로 프로필 이미지를 업로드한다. */
+    @Operation(summary = "프로필 이미지 업로드", description = "로그인한 사용자의 프로필 이미지를 업로드합니다.")
     @PostMapping("/users/me/image")
-    public ApiResponse<UserResponse> uploadMyImage(@RequestParam Long userId, @RequestParam MultipartFile image) {
-        return ApiResponse.ok(userService.uploadMyImage(userId, image));
+    public ApiResponse<UserResponse> uploadMyImage(@RequestParam MultipartFile image) {
+        return ApiResponse.ok(userService.uploadMyImage(getCurrentUserId(), image));
     }
 
-    /** 사용자 ID 기준으로 프로필 이미지를 삭제한다. */
-    @Operation(summary = "프로필 이미지 삭제", description = "사용자 ID 기준으로 프로필 이미지를 삭제합니다.")
+    /** 인증 컨텍스트 기준으로 프로필 이미지를 삭제한다. */
+    @Operation(summary = "프로필 이미지 삭제", description = "로그인한 사용자의 프로필 이미지를 삭제합니다.")
     @DeleteMapping("/users/me/image")
-    public ApiResponse<UserResponse> deleteMyImage(@RequestParam Long userId) {
-        return ApiResponse.ok(userService.deleteMyImage(userId));
+    public ApiResponse<UserResponse> deleteMyImage() {
+        return ApiResponse.ok(userService.deleteMyImage(getCurrentUserId()));
+    }
+
+    private Long getCurrentUserId() {
+        return SecurityUtils.getCurrentUserId();
     }
 }

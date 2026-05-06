@@ -31,7 +31,7 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<TokenResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthService.LoginResult result = authService.login(request);
-        response.addCookie(buildRefreshTokenCookie(result.refreshToken()));
+        response.addCookie(buildRefreshTokenCookie(result.refreshToken(), result.refreshTokenTtlMillis()));
         return ApiResponse.ok(result.tokenResponse());
     }
 
@@ -100,10 +100,11 @@ public class AuthController {
     }
 
     /** refreshToken HttpOnly 쿠키를 생성한다. */
-    private Cookie buildRefreshTokenCookie(String refreshToken) {
+    private Cookie buildRefreshTokenCookie(String refreshToken, long maxAgeMillis) {
         Cookie cookie = new Cookie("refreshToken", refreshToken);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
+        cookie.setMaxAge((int) Math.min(maxAgeMillis / 1000, Integer.MAX_VALUE));
         return cookie;
     }
 

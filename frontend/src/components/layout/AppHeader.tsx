@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { LogIn, LogOut, UserRound } from 'lucide-react';
 import { getAccessToken } from '@/api/http';
+import { getMyProfile, type UserProfile } from '@/api/userApi';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -14,10 +15,15 @@ const navItems = [
 export default function AppHeader() {
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(getAccessToken()));
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     const handleAuthChange = () => {
-      setIsLoggedIn(Boolean(getAccessToken()));
+      const hasToken = Boolean(getAccessToken());
+      setIsLoggedIn(hasToken);
+      if (!hasToken) {
+        setUser(null);
+      }
     };
 
     window.addEventListener('storage', handleAuthChange);
@@ -28,6 +34,16 @@ export default function AppHeader() {
       window.removeEventListener('auth-change', handleAuthChange);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    getMyProfile()
+      .then(setUser)
+      .catch(() => setUser(null));
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -78,11 +94,11 @@ export default function AppHeader() {
                   className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-2.5 py-1.5 shadow-soft"
                 >
                   <img
-                    src="/default_avatar.png"
+                    src={user?.profileImageUrl ?? "/default_avatar.png"}
                     alt="사용자 프로필"
                     className="h-8 w-8 rounded-full border object-cover"
                   />
-                  <span className="text-sm font-bold text-foreground">Reader</span>
+                  <span className="text-sm font-bold text-foreground">{user?.nickname ?? 'Reader'}</span>
                 </button>
 
                 {isDropdownOpen && (

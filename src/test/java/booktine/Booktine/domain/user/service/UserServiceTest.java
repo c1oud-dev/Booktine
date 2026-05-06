@@ -1,5 +1,7 @@
 package booktine.Booktine.domain.user.service;
 
+import booktine.Booktine.domain.auth.service.AuthService;
+import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
@@ -40,6 +42,12 @@ class UserServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private AuthService authService;
+
+    @Mock
     private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
@@ -54,6 +62,7 @@ class UserServiceTest {
         // given
         SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
         given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
+        given(authService.isSignupEmailVerified(request.email())).willReturn(true);
         given(userRepository.existsByNickname(request.nickname())).willReturn(false);
         given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
 
@@ -61,7 +70,7 @@ class UserServiceTest {
                 .email(request.email())
                 .nickname(request.nickname())
                 .password("encodedPassword")
-                .emailVerified(false)
+                .emailVerified(true)
                 .authProvider(UserAuthProvider.LOCAL)
                 .providerId(null)
                 .build();
@@ -78,31 +87,17 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원가입 닉네임 미전달 시 이메일 로컬 파트를 기본 닉네임으로 사용")
-    void signUp_withoutNickname_usesEmailLocalPart() {
+    @DisplayName("회원가입 전 이메일 미인증 시 예외 발생")
+    void signUp_unverifiedEmail_throwsException() {
         // given
-        SignUpRequest request = new SignUpRequest("test@test.com", null, "password123!");
+        SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
         given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
-        given(userRepository.existsByNickname("test")).willReturn(false);
-        given(passwordEncoder.encode(request.password())).willReturn("encodedPassword");
+        given(authService.isSignupEmailVerified(request.email())).willReturn(false);
 
-        User savedUser = User.builder()
-                .email(request.email())
-                .nickname("test")
-                .password("encodedPassword")
-                .emailVerified(false)
-                .authProvider(UserAuthProvider.LOCAL)
-                .providerId(null)
-                .build();
-        ReflectionTestUtils.setField(savedUser, "id", 2L);
-        given(userRepository.save(any(User.class))).willReturn(savedUser);
-
-        // when
-        UserResponse response = userService.signUp(request);
-
-        // then
-        assertThat(response.nickname()).isEqualTo("test");
-        verify(userRepository, times(1)).save(any(User.class));
+        // when & then
+        assertThatThrownBy(() -> userService.signUp(request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_VERIFIED);
     }
 
     /**
@@ -130,6 +125,7 @@ class UserServiceTest {
         // given
         SignUpRequest request = new SignUpRequest("test@test.com", "테스터", "password123!");
         given(userRepository.existsByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(false);
+        given(authService.isSignupEmailVerified(request.email())).willReturn(true);
         given(userRepository.existsByNickname(request.nickname())).willReturn(true);
 
         // when & then

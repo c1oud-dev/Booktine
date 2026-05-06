@@ -11,6 +11,8 @@ export interface BookNote {
   summary: string;
   readingStatus: ReadingStatus;
   completedDate: string | null;
+  currentPage: number | null;
+  totalPage: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +35,8 @@ export interface BookNotePayload {
   summary: string;
   readingStatus: ReadingStatus;
   completedDate?: string | null;
+  currentPage?: number | null;
+  totalPage?: number | null;
 }
 
 export interface MemoPayload {

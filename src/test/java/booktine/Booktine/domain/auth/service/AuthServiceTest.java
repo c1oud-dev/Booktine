@@ -50,7 +50,7 @@ class AuthServiceTest {
     @DisplayName("로그인 성공")
     void login_success() {
         // given
-        LoginRequest request = new LoginRequest("test@test.com", "pw");
+        LoginRequest request = new LoginRequest("test@test.com", "pw", false);
         User user = User.builder().email("test@test.com").password("encoded").nickname("n")
                 .emailVerified(true).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
         ReflectionTestUtils.setField(user, "id", 1L);
@@ -75,7 +75,7 @@ class AuthServiceTest {
     @DisplayName("이메일 미인증 사용자 로그인 차단")
     void login_fail_unverified_user() {
         // given
-        LoginRequest request = new LoginRequest("test@test.com", "pw");
+        LoginRequest request = new LoginRequest("test@test.com", "pw", false);
         User user = User.builder().email("test@test.com").password("encoded").nickname("n")
                 .emailVerified(false).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
         given(userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL)).willReturn(Optional.of(user));
@@ -113,16 +113,13 @@ class AuthServiceTest {
     @DisplayName("회원가입 이메일 인증 코드 검증 시 계정 활성화")
     void verifyEmailCode_signup_success() {
         // given
-        User user = User.builder().email("test@test.com").password("encoded").nickname("n")
-                .emailVerified(false).authProvider(UserAuthProvider.LOCAL).providerId(null).build();
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get("EMAIL_CODE:SIGNUP:test@test.com")).willReturn("123456");
-        given(userRepository.findByEmailAndAuthProvider("test@test.com", UserAuthProvider.LOCAL)).willReturn(Optional.of(user));
 
         // when
         authService.verifyEmailCode(new EmailVerifyRequest("test@test.com", "SIGNUP", "123456"));
 
         // then
-        assertThat(user.isEmailVerified()).isTrue();
+        org.mockito.Mockito.verify(valueOperations).set("EMAIL_VERIFIED:SIGNUP:test@test.com", "true", 10L, java.util.concurrent.TimeUnit.MINUTES);
     }
 }

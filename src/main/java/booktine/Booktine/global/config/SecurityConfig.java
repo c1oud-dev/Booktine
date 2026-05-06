@@ -73,8 +73,10 @@ public class SecurityConfig {
                                 "/auth/password/reset",
                                 "/auth/reissue",
                                 "/users/signup",
-                                "/users/check-email",
-                                "/users/check-nickname").permitAll()
+                                "/auth/signup").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/users/check/email",
+                                "/users/check/nickname").permitAll()
                         .requestMatchers("/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()

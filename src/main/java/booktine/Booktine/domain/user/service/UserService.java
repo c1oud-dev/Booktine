@@ -1,5 +1,8 @@
 package booktine.Booktine.domain.user.service;
 
+import booktine.Booktine.domain.auth.service.AuthService;
+import booktine.Booktine.domain.post.entity.ReadingStatus;
+import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
@@ -26,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final AuthService authService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final S3Service s3Service;
 
@@ -36,19 +41,21 @@ public class UserService {
     @Transactional
     public UserResponse signUp(SignUpRequest request) {
         validateEmailDuplication(request.email());
-        String nickname = resolveNickname(request);
-        validateNicknameDuplication(nickname);
+        validateSignupEmailVerification(request.email());
+        validateNicknameDuplication(request.nickname());
 
         User user = User.builder()
                 .email(request.email())
-                .nickname(nickname)
+                .nickname(request.nickname())
                 .password(passwordEncoder.encode(request.password()))
-                .emailVerified(false)
+                .emailVerified(true)
                 .authProvider(UserAuthProvider.LOCAL)
                 .providerId(null)
                 .build();
 
-        return UserResponse.from(userRepository.save(user));
+        UserResponse response = toUserResponse(userRepository.save(user));
+        authService.consumeSignupEmailVerification(request.email());
+        return response;
     }
 
     /**
@@ -72,7 +79,7 @@ public class UserService {
      * 사용자가 존재하지 않으면 USER_NOT_FOUND 예외를 발생시킨다.
      */
     public UserResponse getMyInfo(Long userId) {
-        return UserResponse.from(getUserById(userId));
+        return toUserResponse(getUserById(userId));
     }
 
     /**
@@ -87,7 +94,7 @@ public class UserService {
         validateNicknameDuplicationOnUpdate(user, request.nickname());
 
         user.updateProfile(request.nickname(), request.aboutMe());
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
@@ -113,7 +120,7 @@ public class UserService {
         String uploadedImageUrl = s3Service.uploadImage(image);
         user.updateProfileImageUrl(uploadedImageUrl);
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
@@ -125,20 +132,26 @@ public class UserService {
         User user = getUserById(userId);
         deleteProfileImageIfExists(user);
         user.updateProfileImageUrl(null);
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
-     * 닉네임이 비어 있는 회원가입 요청은 이메일 로컬 파트를 기본 닉네임으로 사용한다.
+     * 회원가입 전 이메일 인증 완료 여부를 검증한다.
      */
-    private String resolveNickname(SignUpRequest request) {
-        if (request.nickname() != null && !request.nickname().isBlank()) {
-            return request.nickname();
+    private void validateSignupEmailVerification(String email) {
+        if (!authService.isSignupEmailVerified(email)) {
+            throw new CustomException(ErrorCode.USER_NOT_VERIFIED);
         }
-        String emailLocalPart = request.email().split("@", 2)[0];
-        return emailLocalPart.length() <= 30 ? emailLocalPart : emailLocalPart.substring(0, 30);
     }
 
+    /**
+     * 사용자 응답에 프로필과 독서 현황 집계를 함께 담는다.
+     */
+    private UserResponse toUserResponse(User user) {
+        long readingCount = postRepository.countByUserIdAndReadingStatus(user.getId(), ReadingStatus.READING);
+        long completedCount = postRepository.countByUserIdAndReadingStatus(user.getId(), ReadingStatus.COMPLETED);
+        return UserResponse.from(user, readingCount, completedCount);
+    }
 
     /**
      * 이메일이 이미 사용 중이면 DUPLICATE_EMAIL 예외를 발생시킨다.

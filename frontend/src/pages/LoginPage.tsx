@@ -8,6 +8,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [keepLogin, setKeepLogin] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function LoginPage() {
     setMessage('');
 
     try {
-      await authApi.login(email, password);
+      await authApi.login(email, password, keepLogin);
       window.dispatchEvent(new Event('auth-change'));
       navigate(from, { replace: true });
     } catch {
@@ -97,7 +98,7 @@ export default function LoginPage() {
 
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <label className="inline-flex w-auto items-center gap-2 font-medium">
-                <input type="checkbox" className="h-4 w-4 rounded border-input p-0" />
+                <input type="checkbox" checked={keepLogin} onChange={(e) => setKeepLogin(e.target.checked)} className="h-4 w-4 rounded border-input p-0" />
                 로그인 유지
               </label>
               <Link to="/signup" className="font-bold text-foreground underline-offset-4 hover:underline">

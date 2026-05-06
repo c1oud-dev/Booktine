@@ -1,8 +1,8 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, CalendarCheck, Edit3, Plus, Trash2, X } from 'lucide-react';
-import { createBookNote, deleteBookNote, getBookNotes, updateBookNote } from '../api/bookNoteApi';
-import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
+import { createBookNote, deleteBookNote, getBookNotes, searchBookNotes, updateBookNote } from '../api/bookNoteApi';
+import { READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import type { BookNote, ReadingStatus } from '../types/bookNote';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
@@ -21,12 +21,16 @@ export default function BooksPage() {
   const [publishedDate, setPublishedDate] = useState('');
   const [readingStatus, setReadingStatus] = useState<ReadingStatus>(defaultStatus);
   const [completedDate, setCompletedDate] = useState('');
+  const [bookCurrentPage, setBookCurrentPage] = useState('');
+  const [bookTotalPage, setBookTotalPage] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
+  const [keyword, setKeyword] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ReadingStatus | ''>('');
 
   const totalPageCount = Math.max(totalPages, 1);
   const isFirstPage = currentPage === 0;
@@ -41,12 +45,22 @@ export default function BooksPage() {
     setPublishedDate('');
     setReadingStatus(defaultStatus);
     setCompletedDate('');
+    setBookCurrentPage('');
+    setBookTotalPage('');
     setEditingId(null);
   };
 
   const load = async (pageNumber = currentPage) => {
     setLoading(true);
     try {
+      if (keyword.trim() || statusFilter) {
+        const results = await searchBookNotes(keyword.trim(), statusFilter);
+        setItems(results);
+        setTotalPages(1);
+        setTotalElements(results.length);
+        return;
+      }
+
       const page = await getBookNotes(pageNumber, pageSize);
       setItems(page.content);
       setTotalPages(page.totalPages);
@@ -58,7 +72,7 @@ export default function BooksPage() {
   
   useEffect(() => {
     load(currentPage);
-  }, [currentPage]);
+  }, [currentPage, keyword, statusFilter]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -71,6 +85,8 @@ export default function BooksPage() {
       publishedDate,
       readingStatus,
       completedDate: completedDate || null,
+      currentPage: bookCurrentPage === '' ? null : Number(bookCurrentPage),
+      totalPage: bookTotalPage === '' ? null : Number(bookTotalPage),
     };
 
     if (editingId) {
@@ -133,6 +149,32 @@ export default function BooksPage() {
             새 노트 추가
           </button>
         </div>
+      </div>
+
+      <div className="grid gap-3 rounded-[1.25rem] border border-border bg-card p-4 shadow-soft md:grid-cols-[1fr_14rem]">
+        <input
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            setCurrentPage(0);
+          }}
+          placeholder="제목 또는 저자로 검색"
+          aria-label="도서 검색"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value as ReadingStatus | '');
+            setCurrentPage(0);
+          }}
+        >
+          <option value="">전체 상태</option>
+          {READING_STATUS_OPTIONS.map((status) => (
+            <option key={status} value={status}>
+              {STATUS_LABEL[status]}
+            </option>
+          ))}
+        </select>
       </div>
 
       {isFormOpen && (
@@ -223,9 +265,9 @@ export default function BooksPage() {
               value={readingStatus}
               onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
             >
-              {Object.entries(STATUS_LABEL).map(([status, label]) => (
+              {READING_STATUS_OPTIONS.map((status) => (
                 <option key={status} value={status}>
-                  {label}
+                  {STATUS_LABEL[status]}
                 </option>
               ))}
             </select>
@@ -239,6 +281,30 @@ export default function BooksPage() {
               value={completedDate}
               onChange={(e) => setCompletedDate(e.target.value)}
               placeholder="완독일"
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-foreground">
+            현재 페이지
+            <input
+              className="mt-2"
+              type="number"
+              min={0}
+              value={bookCurrentPage}
+              onChange={(e) => setBookCurrentPage(e.target.value)}
+              placeholder="예: 120"
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-foreground">
+            전체 페이지
+            <input
+              className="mt-2"
+              type="number"
+              min={1}
+              value={bookTotalPage}
+              onChange={(e) => setBookTotalPage(e.target.value)}
+              placeholder="예: 360"
             />
           </label>
 
@@ -348,6 +414,8 @@ export default function BooksPage() {
                       setPublishedDate(book.publishedDate);
                       setReadingStatus(book.readingStatus);
                       setCompletedDate(book.completedDate ?? '');
+                      setBookCurrentPage(book.currentPage?.toString() ?? '');
+                      setBookTotalPage(book.totalPage?.toString() ?? '');
                       setIsFormOpen(true);
                     }}
                   >

@@ -43,14 +43,27 @@ export default function BookDetailPage() {
   };
 
   const progressPercent = useMemo(() => {
-    if (book?.readingStatus === 'COMPLETED') {
+    if (!book) {
+      return 0;
+    }
+
+    if (book.totalPage && book.totalPage > 0) {
+      return Math.min(100, Math.round(((book.currentPage ?? 0) / book.totalPage) * 100));
+    }
+
+    if (book.readingStatus === 'COMPLETED') {
       return 100;
     }
-    if (book?.readingStatus === 'WISHLIST') {
+    if (book.readingStatus === 'WISHLIST' || book.readingStatus === 'WANT_TO_READ') {
       return 0;
     }
     return Math.min(95, memos.length * 12);
   }, [book, memos]);
+
+  const progressLabel = book?.totalPage
+    ? `${book.currentPage ?? 0} / ${book.totalPage}쪽`
+    : `${progressPercent}%`;
+
 
   if (loading) {
     return (
@@ -121,7 +134,7 @@ export default function BookDetailPage() {
         <div className="mt-7 space-y-3">
               <div className="flex items-center justify-between text-sm font-bold">
                 <p className="text-foreground">독서 진행률</p>
-                <p className="text-muted-foreground">{progressPercent}%</p>
+                <p className="text-muted-foreground">{progressLabel}</p>
               </div>
               <div className="h-3 overflow-hidden rounded-full bg-muted">
                 <div

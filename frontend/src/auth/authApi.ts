@@ -6,19 +6,28 @@ type AuthTokenPayload = {
   token?: string;
 };
 
+const SIGNUP_PURPOSE = 'SIGNUP';
 const resolveToken = (payload: AuthTokenPayload) => payload.accessToken ?? payload.token ?? null;
 
 export const authApi = {
-  signup: async (email: string, password: string) => {
-    return http.post('/users/signup', { email, password });
+  sendSignupEmailCode: async (email: string) => {
+    return http.post('/auth/email/send', { email, purpose: SIGNUP_PURPOSE });
   },
 
-  login: async (email: string, password: string) => {
-    const response = await http.post<ApiResponse<AuthTokenPayload>>('/auth/login', { email, password });
+  verifySignupEmailCode: async (email: string, code: string) => {
+    return http.post('/auth/email/verify', { email, code, purpose: SIGNUP_PURPOSE });
+  },
+
+  signup: async (email: string, password: string, nickname: string) => {
+    return http.post('/users/signup', { email, password, nickname });
+  },
+
+  login: async (email: string, password: string, keepLogin = false) => {
+    const response = await http.post<ApiResponse<AuthTokenPayload>>('/auth/login', { email, password, keepLogin });
     const token = resolveToken(response.data.data);
 
     if (token) {
-      setAccessToken(token);
+      setAccessToken(token, keepLogin);
     }
 
     return response;

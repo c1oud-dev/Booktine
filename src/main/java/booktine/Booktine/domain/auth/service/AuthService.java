@@ -39,6 +39,7 @@ public class AuthService {
     private static final long EMAIL_CODE_TTL_MINUTES = 5L;
     private static final long EMAIL_VERIFY_ATTEMPT_TTL_MINUTES = 10L;
     private static final int EMAIL_VERIFY_MAX_ATTEMPTS = 5;
+    private static final String EMAIL_VERIFIED_PREFIX = "EMAIL_VERIFIED:";
     private static final int LOGIN_MAX_ATTEMPTS = 5;
     private static final long LOGIN_LOCK_MINUTES = 15L;
     private static final String SIGNUP_PURPOSE = "SIGNUP";
@@ -68,8 +69,9 @@ public class AuthService {
 
         String accessToken = jwtProvider.generateAccessToken(user.getId());
         String refreshToken = jwtProvider.generateRefreshToken(user.getId());
-        redisTemplate.opsForValue().set(RT_PREFIX + user.getId(), refreshToken, jwtProperties.refreshTokenExpiration(), TimeUnit.MILLISECONDS);
-        return new LoginResult(new TokenResponse(accessToken), refreshToken);
+        long refreshTokenTtl = resolveRefreshTokenTtl(request.keepLogin());
+        redisTemplate.opsForValue().set(RT_PREFIX + user.getId(), refreshToken, refreshTokenTtl, TimeUnit.MILLISECONDS);
+        return new LoginResult(new TokenResponse(accessToken), refreshToken, refreshTokenTtl);
     }
 
     /** 이메일 인증 코드를 생성해 Redis에 저장하고 메일로 발송한다. */
@@ -95,6 +97,8 @@ public class AuthService {
         resetEmailVerifyAttempt(request.email(), request.purpose());
 
         if (SIGNUP_PURPOSE.equalsIgnoreCase(request.purpose())) {
+            markEmailVerified(request.email(), request.purpose());
+        } else {
             User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             user.verifyEmail();
         }
@@ -158,6 +162,34 @@ public class AuthService {
     /** 로그인 잠금 Key를 생성한다. */
     private String buildLoginLockKey(String email) {
         return LOGIN_LOCK_PREFIX + email;
+    }
+
+    /** 회원가입용 이메일 인증 완료 여부를 반환한다. */
+    public boolean isSignupEmailVerified(String email) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(buildEmailVerifiedKey(email, SIGNUP_PURPOSE)));
+    }
+
+    /** 회원가입 완료 후 이메일 인증 완료 마커를 제거한다. */
+    public void consumeSignupEmailVerification(String email) {
+        redisTemplate.delete(buildEmailVerifiedKey(email, SIGNUP_PURPOSE));
+    }
+
+    /** 로그인 유지 여부에 따라 refresh token 저장 기간을 결정한다. */
+    private long resolveRefreshTokenTtl(Boolean keepLogin) {
+        if (Boolean.TRUE.equals(keepLogin)) {
+            return jwtProperties.refreshTokenExpiration();
+        }
+        return Math.min(jwtProperties.refreshTokenExpiration(), TimeUnit.HOURS.toMillis(12));
+    }
+
+    /** 이메일 인증 완료 마커를 Redis에 저장한다. */
+    private void markEmailVerified(String email, String purpose) {
+        redisTemplate.opsForValue().set(buildEmailVerifiedKey(email, purpose), "true", EMAIL_VERIFY_ATTEMPT_TTL_MINUTES, TimeUnit.MINUTES);
+    }
+
+    /** 이메일 인증 완료 Redis 키를 생성한다. */
+    private String buildEmailVerifiedKey(String email, String purpose) {
+        return EMAIL_VERIFIED_PREFIX + purpose.toUpperCase() + ":" + email;
     }
 
     /** 이메일 인증 코드를 Redis에 저장한다. */
@@ -241,5 +273,5 @@ public class AuthService {
     }
 
     /** 로그인 결과를 반환하기 위한 record 타입. */
-    public record LoginResult(TokenResponse tokenResponse, String refreshToken) {}
+    public record LoginResult(TokenResponse tokenResponse, String refreshToken, long refreshTokenTtlMillis) {}
 }

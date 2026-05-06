@@ -15,3 +15,4 @@ export const STATUS_CLASS_NAME: Record<ReadingStatus, string> = {
   COMPLETED: 'bg-emerald-50 text-emerald-700',
   PAUSED: 'bg-amber-50 text-amber-700',
 };
+export const READING_STATUS_OPTIONS: ReadingStatus[] = ['WISHLIST', 'WANT_TO_READ', 'READING', 'COMPLETED', 'PAUSED'];
