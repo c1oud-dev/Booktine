@@ -1,28 +1,30 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 210 20% 99%;
-  --foreground: 222 26% 12%;
+  --background: 210 24% 98%;
+  --foreground: 222 28% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 222 26% 12%;
+  --card-foreground: 222 28% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 26% 12%;
-  --primary: 221 83% 53%;
+  --popover-foreground: 222 28% 10%;
+  --primary: 222 39% 10%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 20% 96%;
-  --secondary-foreground: 222 26% 16%;
-  --muted: 220 18% 96%;
-  --muted-foreground: 220 10% 42%;
-  --accent: 220 18% 96%;
-  --accent-foreground: 222 26% 16%;
-  --border: 220 14% 88%;
-  --input: 220 14% 88%;
-  --ring: 221 83% 53%;
-  --radius: 0.875rem;
+  --secondary: 220 18% 94%;
+  --secondary-foreground: 222 28% 12%;
+  --muted: 220 20% 96%;
+  --muted-foreground: 220 9% 42%;
+  --accent: 216 26% 92%;
+  --accent-foreground: 222 28% 12%;
+  --border: 220 18% 88%;
+  --input: 220 18% 84%;
+  --ring: 222 39% 10%;
+  --ink: 222 39% 10%;
+  --ink-soft: 222 18% 22%;
+  --radius: 0.75rem;
 }
 
 * {
@@ -30,14 +32,22 @@
   border-color: hsl(var(--border));
 }
 
+html {
+  min-height: 100%;
+  background: hsl(var(--background));
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Inter', 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
-  background: hsl(var(--background));
+  background:
+    radial-gradient(circle at top left, rgba(226, 232, 240, 0.55), transparent 34rem),
+    hsl(var(--background));
   color: hsl(var(--foreground));
-  line-height: 1.5;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
@@ -47,7 +57,12 @@ h4,
 h5,
 h6 {
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+p {
+  margin: 0;
 }
 
 a {
@@ -60,24 +75,38 @@ textarea,
 select {
   width: 100%;
   border: 1px solid hsl(var(--input));
-  border-radius: 0.75rem;
+  border-radius: 0.9rem;
   background: hsl(var(--card));
   color: hsl(var(--foreground));
-  padding: 0.625rem 0.875rem;
-  font-size: 0.925rem;
+  padding: 0.875rem 1rem;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: hsl(var(--muted-foreground) / 0.62);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid hsl(var(--ring) / 0.3);
-  outline-offset: 1px;
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 4px hsl(var(--ring) / 0.08);
 }
 
 button {
-  border-radius: 0.75rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .app-shell {
@@ -85,7 +114,6 @@ button {
 }
 
 .app-main {
-  max-width: 80rem;
-  margin: 0 auto;
-  padding: 2rem 1.25rem 4rem;
+  width: 100%;
+  flex: 1;
 }

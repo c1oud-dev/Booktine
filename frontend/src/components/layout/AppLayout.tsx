@@ -6,7 +6,7 @@ export default function AppLayout() {
   return (
     <div className="app-shell flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader />
-      <main className="app-main w-full flex-1">
+      <main className="app-main">
         <Outlet />
       </main>
       <AppFooter />
