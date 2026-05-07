@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { BookOpen, CalendarCheck, Edit3, Plus, Star, Trash2, X } from 'lucide-react';
 import { createBookNote, deleteBookNote, getBookNotes, searchBookNotes, updateBookNote } from '../api/bookNoteApi';
 import { DEFAULT_GENRES, getGenres } from '@/api/genreApi';
-import { READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
+import { CARD_STATUS_CLASS_NAME, READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import type { BookNote, ReadingStatus } from '../types/bookNote';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
@@ -58,7 +58,7 @@ function RatingInput({ value, onChange }: RatingInputProps) {
       {value ? (
         <button
           type="button"
-          className="rounded-full border border-border px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-secondary"
+          className="rounded-full border border-border rounded-full px-4 py-1.5 text-sm font-black font-bold text-muted-foreground hover:bg-secondary"
           onClick={() => onChange(null)}
         >
           초기화
@@ -495,12 +495,15 @@ export default function BooksPage() {
                     navigate(`/books/${book.id}`);
                   }
                 }}
-                className="group flex min-h-72 cursor-pointer flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
+                className={cn(
+                  'group flex min-h-72 cursor-pointer flex-col rounded-[1.5rem] border p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float',
+                  CARD_STATUS_CLASS_NAME[book.readingStatus],
+                )}
               >
                 <div className="flex items-start justify-between gap-3">
                   <span
                     className={cn(
-                      'rounded-full px-3 py-1 text-xs font-black',
+                      'rounded-full rounded-full px-4 py-1.5 text-sm font-black font-black',
                       STATUS_CLASS_NAME[book.readingStatus],
                     )}
                   >

@@ -143,7 +143,7 @@ export default function BookDetailPage() {
           <div className="flex flex-col justify-center">
             <span
               className={cn(
-                'w-fit rounded-full px-3 py-1 text-xs font-black',
+                'w-fit rounded-full rounded-full px-4 py-1.5 text-sm font-black font-black',
                 STATUS_CLASS_NAME[book.readingStatus],
               )}
             >

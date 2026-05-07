@@ -22,6 +22,12 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     @EntityGraph(attributePaths = {"user", "post", "parent"})
     Optional<CommunityComment> findWithRelationsByIdAndUserId(Long id, Long userId);
 
+    /** 게시글에 달린 댓글/대댓글 개수를 조회한다. */
+    long countByPostId(Long postId);
+
+    /** 특정 댓글에 달린 대댓글 존재 여부를 조회한다. */
+    boolean existsByParentId(Long parentId);
+
     /** 게시글에 달린 대댓글을 일괄 삭제한다. */
     void deleteAllByParentPostId(Long postId);
 

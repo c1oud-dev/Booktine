@@ -9,6 +9,9 @@ import { cn } from '@/lib/utils';
 import { formatCommunityDate, getLikedPostIds, saveLikedPostIds } from './communityUtils';
 
 const pageSize = 10;
+const defaultAvatar = '/default_avatar.png';
+
+const getAuthorName = (post: CommunityPost) => post.authorNickname || `작성자 #${post.userId}`;
 
 export default function CommunityListPage() {
   const { user } = useAuth();
@@ -126,30 +129,40 @@ export default function CommunityListPage() {
           {posts.map((post) => {
             const isLiked = likedIds.has(post.id);
             return (
-              <article key={post.id} className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-4 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <Link to={`/community/${post.id}`} className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                      작성자 #{post.userId} · {formatCommunityDate(post.createdAt)}
-                    </p>
-                    <h2 className="mt-2 line-clamp-2 text-2xl font-black tracking-tight text-foreground">{post.title}</h2>
-                    <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{post.content}</p>
+                    <div className="flex items-center gap-2.5">
+                      <img
+                        src={post.authorProfileImageUrl || defaultAvatar}
+                        alt=""
+                        className="h-9 w-9 rounded-full border border-border object-cover"
+                      />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-foreground">{getAuthorName(post)}</p>
+                        <p className="text-xs font-semibold text-muted-foreground">
+                          {formatCommunityDate(post.createdAt)} {post.isEdited && !post.isDeleted ? '· 수정됨' : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <h2 className={cn('mt-3 line-clamp-2 text-xl font-black tracking-tight sm:text-2xl', post.isDeleted ? 'text-muted-foreground' : 'text-foreground')}>{post.title}</h2>
+                    <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{post.isDeleted ? '삭제된 게시글입니다' : post.content}</p>
                   </Link>
                   <Link
                     to={`/community/${post.id}`}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-border px-3.5 py-2 text-sm font-bold text-foreground hover:bg-secondary"
                   >
                     <PenLine className="h-4 w-4" />읽기
                   </Link>
                 </div>
-                <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
+                <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-border/70 pt-3">
                   <button
                     type="button"
                     onClick={() => toggleLike(post)}
-                    disabled={pendingLikeId === post.id}
+                    disabled={pendingLikeId === post.id || post.isDeleted}
                     className={cn(
                       'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
-                      isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
+                      post.isDeleted ? 'cursor-not-allowed bg-secondary text-muted-foreground' : isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
                     )}
                   >
                     <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />{post.likeCount}

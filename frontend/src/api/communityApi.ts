@@ -4,9 +4,13 @@ import type { ApiResponse, PageResponse } from '../types/api';
 export interface CommunityPost {
   id: number;
   userId: number;
+  authorNickname: string;
+  authorProfileImageUrl: string | null;
   title: string;
   content: string;
   likeCount: number;
+  isDeleted: boolean;
+  isEdited: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -15,9 +19,13 @@ export interface CommunityComment {
   id: number;
   postId: number;
   userId: number;
+  authorNickname: string;
+  authorProfileImageUrl: string | null;
   content: string;
   parentId: number | null;
   depth: 1 | 2;
+  isDeleted: boolean;
+  isEdited: boolean;
   createdAt: string;
   updatedAt: string;
 }

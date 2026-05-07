@@ -63,6 +63,9 @@ public class CommunityService {
     @Transactional
     public CommunityPostResponse updatePost(Long postId, CommunityPostUpdateRequest request) {
         CommunityPost post = getOwnedPost(getCurrentUserId(), postId);
+        if (post.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_POST_NOT_FOUND);
+        }
         post.updateDetails(request.title(), request.content());
         return CommunityPostResponse.from(post);
     }
@@ -72,8 +75,10 @@ public class CommunityService {
     public void deletePost(Long postId) {
         CommunityPost post = getOwnedPost(getCurrentUserId(), postId);
         likeRepository.deleteAllByPostId(postId);
-        commentRepository.deleteAllByParentPostId(postId);
-        commentRepository.deleteAllByPostId(postId);
+        if (commentRepository.countByPostId(postId) > 0) {
+            post.markDeleted();
+            return;
+        }
         postRepository.delete(post);
     }
 
@@ -92,6 +97,9 @@ public class CommunityService {
     public CommunityCommentResponse createComment(Long postId, CommunityCommentCreateRequest request) {
         User user = userRepository.getReferenceById(getCurrentUserId());
         CommunityPost post = getPostWithUserById(postId);
+        if (post.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_POST_NOT_FOUND);
+        }
         CommunityComment parent = resolveParent(postId, request.parentId());
         CommunityComment comment = CommunityComment.builder()
                 .post(post)
@@ -107,6 +115,9 @@ public class CommunityService {
     @Transactional
     public CommunityCommentResponse updateComment(Long commentId, CommunityCommentUpdateRequest request) {
         CommunityComment comment = getOwnedComment(getCurrentUserId(), commentId);
+        if (comment.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_COMMENT_NOT_FOUND);
+        }
         comment.updateContent(request.content());
         return CommunityCommentResponse.from(comment);
     }
@@ -115,7 +126,10 @@ public class CommunityService {
     @Transactional
     public void deleteComment(Long commentId) {
         CommunityComment comment = getOwnedComment(getCurrentUserId(), commentId);
-        commentRepository.deleteAllByParentId(commentId);
+        if (commentRepository.existsByParentId(commentId)) {
+            comment.markDeleted();
+            return;
+        }
         commentRepository.delete(comment);
     }
 
@@ -129,6 +143,11 @@ public class CommunityService {
 
         User user = userRepository.getReferenceById(userId);
         CommunityPost post = getPostWithUserById(postId);
+
+        if (post.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_POST_NOT_FOUND);
+        }
+
         try {
             likeRepository.save(CommunityLike.builder().post(post).user(user).build());
         } catch (DataIntegrityViolationException e) {
@@ -143,6 +162,9 @@ public class CommunityService {
     public CommunityPostResponse unlikePost(Long postId) {
         Long userId = getCurrentUserId();
         CommunityPost post = getPostWithUserById(postId);
+        if (post.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_POST_NOT_FOUND);
+        }
         CommunityLike like = likeRepository.findByPostIdAndUserId(postId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMUNITY_LIKE_NOT_FOUND));
 
@@ -161,6 +183,9 @@ public class CommunityService {
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMUNITY_COMMENT_NOT_FOUND));
         if (!parent.getPost().getId().equals(postId)) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+        if (parent.isDeleted()) {
+            throw new CustomException(ErrorCode.COMMUNITY_COMMENT_NOT_FOUND);
         }
         if (parent.isReply()) {
             throw new CustomException(ErrorCode.COMMUNITY_REPLY_DEPTH_EXCEEDED);

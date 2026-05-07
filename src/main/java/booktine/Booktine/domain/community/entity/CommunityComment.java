@@ -37,6 +37,9 @@ public class CommunityComment extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(nullable = false)
+    private boolean isDeleted;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private CommunityComment parent;
@@ -47,11 +50,18 @@ public class CommunityComment extends BaseEntity {
         this.user = user;
         this.content = content;
         this.parent = parent;
+        this.isDeleted = false;
     }
 
     /** 댓글/대댓글 내용을 수정한다. */
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    /** 대댓글이 남아 있는 댓글을 소프트 삭제 상태로 변경한다. */
+    public void markDeleted() {
+        this.content = "삭제된 댓글입니다";
+        this.isDeleted = true;
     }
 
     /** 대댓글 여부를 반환한다. */
