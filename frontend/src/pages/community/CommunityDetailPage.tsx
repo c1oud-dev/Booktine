@@ -7,7 +7,7 @@ import Spinner from '@/components/common/Spinner';
 import { createCommunityComment, deleteCommunityComment, deleteCommunityPost, getCommunityComments, getCommunityPost, likeCommunityPost, unlikeCommunityPost, updateCommunityComment, type CommunityComment, type CommunityPost } from '@/api/communityApi';
 import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
-import { formatCommunityDate, getLikedPostIds, nestComments, saveLikedPostIds } from './communityUtils';
+import { formatCommunityDate, nestComments } from './communityUtils';
 import { panelSpring } from '@/lib/motion';
 
 const defaultAvatar = '/default_avatar.png';
@@ -27,25 +27,15 @@ export default function CommunityDetailPage() {
   const [replyContent, setReplyContent] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState('');
-  const [likedIds, setLikedIds] = useState<Set<number>>(() => getLikedPostIds(user?.id));
   const [pendingLike, setPendingLike] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 
-  const likedKey = useMemo(() => [...likedIds].join(','), [likedIds]);
   const commentTree = useMemo(() => nestComments(comments), [comments]);
   const isOwner = Boolean(user && post && user.id === post.userId);
-  const isLiked = post ? likedIds.has(post.id) : false;
+  const isLiked = post?.isLiked ?? false;
   const authorName = post?.authorNickname || (post ? `작성자 #${post.userId}` : '작성자');
-
-  useEffect(() => {
-    setLikedIds(getLikedPostIds(user?.id));
-  }, [user?.id]);
-
-  useEffect(() => {
-    saveLikedPostIds(user?.id, likedIds);
-  }, [likedKey, user?.id]);
 
   const load = async () => {
     if (!Number.isFinite(numericPostId)) {
@@ -77,26 +67,16 @@ export default function CommunityDetailPage() {
   const toggleLike = async () => {
     if (!post || pendingLike) return;
 
-    const wasLiked = likedIds.has(post.id);
+    const wasLiked = post.isLiked;
     const previousPost = post;
-    const previousLikedIds = new Set(likedIds);
-    const nextLikedIds = new Set(likedIds);
-
-    if (wasLiked) {
-      nextLikedIds.delete(post.id);
-    } else {
-      nextLikedIds.add(post.id);
-    }
 
     setPendingLike(true);
-    setLikedIds(nextLikedIds);
-    setPost({ ...post, likeCount: Math.max(0, post.likeCount + (wasLiked ? -1 : 1)) });
+    setPost({ ...post, isLiked: !wasLiked, likeCount: Math.max(0, post.likeCount + (wasLiked ? -1 : 1)) });
 
     try {
       const updated = wasLiked ? await unlikeCommunityPost(post.id) : await likeCommunityPost(post.id);
       setPost(updated);
     } catch {
-      setLikedIds(previousLikedIds);
       setPost(previousPost);
       alert('좋아요 처리에 실패했습니다. 현재 좋아요 상태를 확인한 뒤 다시 시도해주세요.');
     } finally {
@@ -286,7 +266,7 @@ export default function CommunityDetailPage() {
                 </p>
               </div>
             </div>
-            <h1 className={cn("mt-4 text-3xl font-black tracking-tight sm:text-4xl", post.isDeleted ? "text-muted-foreground" : "text-foreground")}>{post.title}</h1>
+            <h1 className={cn("mt-4 text-2xl font-black tracking-tight sm:text-3xl", post.isDeleted ? "text-muted-foreground" : "text-foreground")}>{post.title}</h1>
           </div>
           {isOwner && !post.isDeleted ? (
             <div className="flex shrink-0 items-center gap-2">
@@ -317,7 +297,7 @@ export default function CommunityDetailPage() {
 
       <section className="space-y-5 rounded-[2rem] border border-border bg-card p-5 shadow-card sm:p-6">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-foreground">댓글 {comments.length}</h2>
+          <h2 className="text-lg font-black tracking-tight text-foreground">댓글 {comments.length}개</h2>
           <p className="mt-1 text-sm text-muted-foreground">자유롭게 의견을 나눠보세요.</p>
         </div>
           

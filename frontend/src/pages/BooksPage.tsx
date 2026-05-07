@@ -201,7 +201,7 @@ export default function BooksPage() {
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
             Book note studio
           </p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">
             독서 노트
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">

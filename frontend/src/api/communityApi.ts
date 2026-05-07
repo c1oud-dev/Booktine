@@ -9,6 +9,7 @@ export interface CommunityPost {
   title: string;
   content: string;
   likeCount: number;
+  isLiked: boolean;
   isDeleted: boolean;
   isEdited: boolean;
   createdAt: string;

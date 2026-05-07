@@ -19,7 +19,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 커뮤니티 도메인의 핵심 비즈니스 로직을 처리하는 서비스.
@@ -50,13 +52,23 @@ public class CommunityService {
 
     /** 커뮤니티 게시글 목록을 페이지 단위로 조회한다. */
     public Page<CommunityPostResponse> getPosts(Pageable pageable) {
-        return postRepository.findAll(pageable)
-                .map(CommunityPostResponse::from);
+        Long userId = getCurrentUserId();
+        Page<CommunityPost> posts = postRepository.findAll(pageable);
+        List<Long> postIds = posts.getContent().stream()
+                .map(CommunityPost::getId)
+                .toList();
+        Set<Long> likedPostIds = postIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(likeRepository.findPostIdsByUserId(userId, postIds));
+
+        return posts.map(post -> CommunityPostResponse.from(post, likedPostIds.contains(post.getId())));
     }
 
     /** 커뮤니티 게시글 단건을 조회한다. */
     public CommunityPostResponse getPost(Long postId) {
-        return CommunityPostResponse.from(getPostWithUserById(postId));
+        Long userId = getCurrentUserId();
+        CommunityPost post = getPostWithUserById(postId);
+        return CommunityPostResponse.from(post, likeRepository.existsByPostIdAndUserId(postId, userId));
     }
 
     /** 인증 컨텍스트의 사용자가 작성한 커뮤니티 게시글을 수정한다. */
@@ -154,7 +166,7 @@ public class CommunityService {
             throw new CustomException(ErrorCode.COMMUNITY_LIKE_ALREADY_EXISTS);
         }
         post.increaseLikeCount();
-        return CommunityPostResponse.from(post);
+        return CommunityPostResponse.from(post, true);
     }
 
     /** 인증 컨텍스트의 사용자가 게시글 좋아요를 취소한다. */
@@ -170,7 +182,7 @@ public class CommunityService {
 
         likeRepository.delete(like);
         post.decreaseLikeCount();
-        return CommunityPostResponse.from(post);
+        return CommunityPostResponse.from(post, false);
     }
 
     /** 대댓글 생성 대상 부모 댓글을 조회하고 depth 2 제한을 검증한다. */

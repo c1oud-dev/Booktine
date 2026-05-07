@@ -13,6 +13,7 @@ public record CommunityPostResponse(
         String title,
         String content,
         int likeCount,
+        boolean isLiked,
         boolean isDeleted,
         boolean isEdited,
         LocalDateTime createdAt,
@@ -28,6 +29,25 @@ public record CommunityPostResponse(
                 post.getTitle(),
                 post.getContent(),
                 post.getLikeCount(),
+                false,
+                post.isDeleted(),
+                post.getContentUpdatedAt() != null,
+                post.getCreatedAt(),
+                post.getUpdatedAt()
+        );
+    }
+
+    /** CommunityPost 엔티티와 현재 사용자 좋아요 여부를 응답 DTO로 변환한다. */
+    public static CommunityPostResponse from(CommunityPost post, boolean isLiked) {
+        return new CommunityPostResponse(
+                post.getId(),
+                post.getUser().getId(),
+                post.getUser().getNickname(),
+                post.getUser().getProfileImageUrl(),
+                post.getTitle(),
+                post.getContent(),
+                post.getLikeCount(),
+                isLiked,
                 post.isDeleted(),
                 post.getContentUpdatedAt() != null,
                 post.getCreatedAt(),

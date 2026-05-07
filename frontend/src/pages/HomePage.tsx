@@ -150,7 +150,7 @@ export default function HomePage() {
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
             Reading dashboard
           </p>
-          <h1 className="mt-4 text-4xl font-black tracking-tight text-foreground break-keep sm:text-5xl">
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-foreground break-keep sm:text-4xl">
             오늘의 독서 흐름을 확인하세요.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">

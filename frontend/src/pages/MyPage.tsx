@@ -143,7 +143,7 @@ export default function MyPage() {
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
       <div className="rounded-[2rem] border border-border bg-card p-6 shadow-card lg:p-8">
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reader profile</p>
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">마이 페이지</h1>
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">마이 페이지</h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
           독서 프로필을 정리하고, 나만의 소개 문구로 오늘의 읽기 분위기를 기록하세요.
         </p>

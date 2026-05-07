@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, MessageSquareText, PenLine, Plus, UsersRound } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
 import Spinner from '@/components/common/Spinner';
 import { getCommunityComments, getCommunityPosts, likeCommunityPost, unlikeCommunityPost, type CommunityPost } from '@/api/communityApi';
-import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
-import { formatCommunityDate, getLikedPostIds, saveLikedPostIds } from './communityUtils';
+import { formatCommunityDate } from './communityUtils';
 
 const pageSize = 10;
 const defaultAvatar = '/default_avatar.png';
@@ -14,10 +13,8 @@ const defaultAvatar = '/default_avatar.png';
 const getAuthorName = (post: CommunityPost) => post.authorNickname || `작성자 #${post.userId}`;
 
 export default function CommunityListPage() {
-  const { user } = useAuth();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [commentCounts, setCommentCounts] = useState<Record<number, number>>({});
-  const [likedIds, setLikedIds] = useState<Set<number>>(() => getLikedPostIds(user?.id));
   const [pendingLikeId, setPendingLikeId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -28,15 +25,6 @@ export default function CommunityListPage() {
   const totalPageCount = Math.max(totalPages, 1);
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage >= totalPageCount - 1;
-  const likedKey = useMemo(() => [...likedIds].join(','), [likedIds]);
-
-  useEffect(() => {
-    setLikedIds(getLikedPostIds(user?.id));
-  }, [user?.id]);
-
-  useEffect(() => {
-    saveLikedPostIds(user?.id, likedIds);
-  }, [likedKey, user?.id]);
 
   const loadPosts = async (page = currentPage) => {
     setLoading(true);
@@ -65,27 +53,17 @@ export default function CommunityListPage() {
   const toggleLike = async (post: CommunityPost) => {
     if (pendingLikeId) return;
 
-    const wasLiked = likedIds.has(post.id);
+    const wasLiked = post.isLiked;
     const previousPosts = posts;
-    const previousLikedIds = new Set(likedIds);
-    const nextLikedIds = new Set(likedIds);
     const nextLikeCount = Math.max(0, post.likeCount + (wasLiked ? -1 : 1));
 
-    if (wasLiked) {
-      nextLikedIds.delete(post.id);
-    } else {
-      nextLikedIds.add(post.id);
-    }
-
     setPendingLikeId(post.id);
-    setLikedIds(nextLikedIds);
-    setPosts((items) => items.map((item) => (item.id === post.id ? { ...item, likeCount: nextLikeCount } : item)));
+    setPosts((items) => items.map((item) => (item.id === post.id ? { ...item, isLiked: !wasLiked, likeCount: nextLikeCount } : item)));
 
     try {
       const updated = wasLiked ? await unlikeCommunityPost(post.id) : await likeCommunityPost(post.id);
       setPosts((items) => items.map((item) => (item.id === post.id ? updated : item)));
     } catch {
-      setLikedIds(previousLikedIds);
       setPosts(previousPosts);
       alert('좋아요 처리에 실패했습니다. 현재 좋아요 상태를 확인한 뒤 다시 시도해주세요.');
     } finally {
@@ -98,7 +76,7 @@ export default function CommunityListPage() {
       <div className="grid gap-6 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[1fr_auto] lg:items-end lg:p-8">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reader community</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">커뮤니티</h1>
+          <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">커뮤니티</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
             책을 읽으며 떠오른 생각, 질문, 추천을 다른 독자와 나눠보세요.
           </p>
@@ -127,7 +105,7 @@ export default function CommunityListPage() {
       ) : (
         <div className="space-y-4">
           {posts.map((post) => {
-            const isLiked = likedIds.has(post.id);
+            const isLiked = post.isLiked;
             return (
               <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-4 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -145,7 +123,7 @@ export default function CommunityListPage() {
                         </p>
                       </div>
                     </div>
-                    <h2 className={cn('mt-3 line-clamp-2 text-xl font-black tracking-tight sm:text-2xl', post.isDeleted ? 'text-muted-foreground' : 'text-foreground')}>{post.title}</h2>
+                    <h2 className={cn('mt-3 line-clamp-2 text-base font-black tracking-tight sm:text-lg', post.isDeleted ? 'text-muted-foreground' : 'text-foreground')}>{post.title}</h2>
                     <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{post.isDeleted ? '삭제된 게시글입니다' : post.content}</p>
                   </Link>
                   <Link
@@ -161,14 +139,14 @@ export default function CommunityListPage() {
                     onClick={() => toggleLike(post)}
                     disabled={pendingLikeId === post.id || post.isDeleted}
                     className={cn(
-                      'inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition',
+                      'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold transition',
                       post.isDeleted ? 'cursor-not-allowed bg-secondary text-muted-foreground' : isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
                     )}
                   >
-                    <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />{post.likeCount}
+                    <Heart className={cn('h-3.5 w-3.5', isLiked && 'fill-current')} />{post.likeCount}
                   </button>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground">
-                    <MessageSquareText className="h-4 w-4" />댓글 {commentCounts[post.id] ?? 0}
+                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-sm font-bold text-secondary-foreground">
+                    <MessageSquareText className="h-3.5 w-3.5" />댓글 {commentCounts[post.id] ?? 0}
                   </span>
                 </div>
               </article>

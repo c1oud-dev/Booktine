@@ -97,6 +97,7 @@ class CommunityServiceTest {
         CommunityPost post = createPost(11L, user, "목록제목");
         PageRequest pageable = PageRequest.of(0, 10);
         given(postRepository.findAll(pageable)).willReturn(new PageImpl<>(List.of(post)));
+        given(likeRepository.findPostIdsByUserId(1L, List.of(11L))).willReturn(List.of(11L));
 
         // when
         Page<CommunityPostResponse> responses = communityService.getPosts(pageable);
@@ -104,6 +105,23 @@ class CommunityServiceTest {
         // then
         assertThat(responses.getContent()).hasSize(1);
         assertThat(responses.getContent().get(0).title()).isEqualTo("목록제목");
+        assertThat(responses.getContent().get(0).isLiked()).isTrue();
+        verify(likeRepository, times(1)).findPostIdsByUserId(1L, List.of(11L));
+    }
+
+    @Test
+    @DisplayName("커뮤니티 게시글 목록이 비어 있으면 좋아요 목록 조회 생략")
+    void getPosts_empty_skipsLikedPostLookup() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10);
+        given(postRepository.findAll(pageable)).willReturn(Page.empty(pageable));
+
+        // when
+        Page<CommunityPostResponse> responses = communityService.getPosts(pageable);
+
+        // then
+        assertThat(responses.getContent()).isEmpty();
+        verify(likeRepository, never()).findPostIdsByUserId(anyLong(), anyList());
     }
 
     @Test
@@ -113,6 +131,7 @@ class CommunityServiceTest {
         User user = createUser(1L);
         CommunityPost post = createPost(12L, user, "상세제목");
         given(postRepository.findWithUserById(12L)).willReturn(Optional.of(post));
+        given(likeRepository.existsByPostIdAndUserId(12L, 1L)).willReturn(true);
 
         // when
         CommunityPostResponse response = communityService.getPost(12L);
@@ -120,6 +139,7 @@ class CommunityServiceTest {
         // then
         assertThat(response.id()).isEqualTo(12L);
         assertThat(response.title()).isEqualTo("상세제목");
+        assertThat(response.isLiked()).isTrue();
     }
 
     @Test
@@ -253,6 +273,7 @@ class CommunityServiceTest {
         // then
         verify(likeRepository, times(1)).save(any(CommunityLike.class));
         assertThat(response.likeCount()).isEqualTo(1);
+        assertThat(response.isLiked()).isTrue();
     }
 
     @Test
@@ -284,6 +305,7 @@ class CommunityServiceTest {
         // then
         verify(likeRepository, times(1)).delete(like);
         assertThat(response.likeCount()).isZero();
+        assertThat(response.isLiked()).isFalse();
     }
 
     /** 테스트용 사용자 엔티티를 생성한다. */

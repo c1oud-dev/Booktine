@@ -64,7 +64,7 @@ export default function ReminderPage() {
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
       <div className="rounded-[2rem] border border-border bg-card p-6 shadow-card lg:p-8">
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reading reminders</p>
-        <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-5xl">리마인더</h1>
+        <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">리마인더</h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
           원하는 시간과 메시지를 등록하면 브라우저 SSE 연결로 실시간 독서 알림을 받아볼 수 있어요.
         </p>
