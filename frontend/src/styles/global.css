@@ -5,25 +5,25 @@
 @tailwind utilities;
 
 :root {
-  --background: 135 22% 96%;
+  --background: 210 24% 98%;
   --foreground: 145 23% 13%;
-  --card: 120 29% 99%;
+  --card: 0 0% 100%;
   --card-foreground: 145 23% 13%;
-  --popover: 120 29% 99%;
+  --popover: 0 0% 100%;
   --popover-foreground: 145 23% 13%;
   --primary: 138 26% 58%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 104 31% 90%;
-  --secondary-foreground: 143 25% 20%;
-  --muted: 125 24% 93%;
-  --muted-foreground: 139 12% 42%;
-  --accent: 105 34% 81%;
-  --accent-foreground: 143 25% 19%;
-  --border: 125 22% 84%;
-  --input: 126 20% 78%;
+  --secondary: 210 20% 96%;
+  --secondary-foreground: 145 23% 18%;
+  --muted: 210 18% 95%;
+  --muted-foreground: 215 12% 42%;
+  --accent: 138 26% 58%;
+  --accent-foreground: 0 0% 100%;
+  --border: 214 20% 90%;
+  --input: 214 18% 84%;
   --ring: 138 26% 58%;
   --ink: 145 25% 16%;
-  --ink-soft: 145 15% 28%;
+  --ink-soft: 215 12% 32%;
   --radius: 0.75rem;
 }
 
@@ -42,9 +42,7 @@ body {
   min-height: 100vh;
   font-family: 'Inter', 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(200, 223, 192, 0.5), transparent 34rem),
-    linear-gradient(135deg, rgba(244, 248, 245, 0.96), rgba(232, 242, 229, 0.9)),
-    hsl(var(--background));
+    linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%);
   color: hsl(var(--foreground));
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -122,7 +120,7 @@ button:not(:disabled):active {
   article[class*="bg-card"]:hover,
   div[class*="shadow-card"]:hover {
     transform: translateY(-3px);
-    box-shadow: 0 18px 48px rgba(75, 111, 83, 0.13);
+    box-shadow: 0 18px 48px rgba(15, 23, 42, 0.10);
   }
 }
 

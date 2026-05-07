@@ -31,7 +31,8 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-xl">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-6 lg:px-8">
-        <Link to="/" className="text-xl font-black tracking-tight text-foreground">
+        <Link to="/" className="flex items-center gap-2 text-xl font-black tracking-tight text-foreground">
+          <img src="/favicon.png" alt="Booktine 로고" className="h-8 w-8" />
           Booktine
         </Link>
 
