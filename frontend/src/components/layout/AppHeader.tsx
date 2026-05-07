@@ -10,6 +10,7 @@ const navItems = [
   { to: '/', label: 'Home' },
   { to: '/books', label: 'Book Note' },
   { to: '/progress', label: 'Progress' },
+  { to: '/community', label: 'Community' },
   { to: '/recommendations', label: 'Recommend' },
   { to: '/reminders', label: 'Reminder' },
 ];

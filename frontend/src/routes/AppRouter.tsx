@@ -5,6 +5,9 @@ import AdminPage from '../pages/AdminPage';
 import BookDetailPage from '../pages/BookDetailPage';
 import BooksPage from '../pages/BooksPage';
 import HomePage from '../pages/HomePage';
+import CommunityDetailPage from '../pages/community/CommunityDetailPage';
+import CommunityFormPage from '../pages/community/CommunityFormPage';
+import CommunityListPage from '../pages/community/CommunityListPage';
 import LoginPage from '../pages/LoginPage';
 import LogoutPage from '../pages/LogoutPage';
 import MyPage from '../pages/MyPage';
@@ -39,6 +42,10 @@ export function AppRouter() {
             <Route element={<PrivateRoute />}>
               <Route path="/books" element={<BooksPage />} />
               <Route path="/books/:id" element={<BookDetailPage />} />
+              <Route path="/community" element={<CommunityListPage />} />
+              <Route path="/community/new" element={<CommunityFormPage mode="create" />} />
+              <Route path="/community/:postId" element={<CommunityDetailPage />} />
+              <Route path="/community/:postId/edit" element={<CommunityFormPage mode="edit" />} />
               <Route path="/mypage" element={<MyPage />} />
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/recommendations" element={<RecommendationPage />} />
