@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink } from 'react-router-dom';
 import { LogIn, LogOut, UserRound } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { panelSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -73,8 +75,15 @@ export default function AppHeader() {
                   <span className="text-sm font-bold text-foreground">{user?.nickname ?? 'Reader'}</span>
                 </button>
 
-                {isDropdownOpen && (
-                  <div className="absolute right-0 top-12 z-50 w-48 rounded-2xl border border-border bg-card p-2 shadow-card">
+                <AnimatePresence>
+                  {isDropdownOpen ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.96 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                      transition={panelSpring}
+                      className="absolute right-0 top-12 z-50 w-48 origin-top-right rounded-2xl border border-border bg-card p-2 shadow-card"
+                    >
                     <Link
                       to="/mypage"
                       onClick={() => setIsDropdownOpen(false)}
@@ -91,8 +100,9 @@ export default function AppHeader() {
                       <LogOut className="h-4 w-4" />
                       로그아웃
                     </Link>
-                  </div>
-                )}
+                  </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
               <Link
                 to="/logout"

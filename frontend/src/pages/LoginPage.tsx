@@ -1,9 +1,11 @@
 import { FormEvent, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, LockKeyhole, Mail, MessageCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '@/auth/authApi';
 import { useAuth } from '@/auth/AuthContext';
 import Spinner from '@/components/common/Spinner';
+import { panelSpring } from '@/lib/motion';
 
 const OAUTH_PROVIDERS = [
   { id: 'google', label: 'Google', className: 'bg-card text-foreground border border-border hover:bg-secondary' },
@@ -158,7 +160,9 @@ export default function LoginPage() {
         </article>
       </div>
 
-      {resetOpen ? <PasswordResetDialog onClose={() => setResetOpen(false)} /> : null}
+      <AnimatePresence>
+        {resetOpen ? <PasswordResetDialog onClose={() => setResetOpen(false)} /> : null}
+      </AnimatePresence>
     </section>
   );
 }
@@ -223,8 +227,19 @@ function PasswordResetDialog({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-5">
-      <article className="w-full max-w-lg rounded-[1.75rem] border border-border bg-card p-6 shadow-card">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-5"
+    >
+      <motion.article
+        initial={{ opacity: 0, y: 24, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 16, scale: 0.96 }}
+        transition={panelSpring}
+        className="w-full max-w-lg rounded-[1.75rem] border border-border bg-card p-6 shadow-card"
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-muted-foreground">Password reset</p>
@@ -270,7 +285,7 @@ function PasswordResetDialog({ onClose }: { onClose: () => void }) {
         </div>
 
         {message ? <p className="mt-5 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground">{message}</p> : null}
-      </article>
-    </div>
+      </motion.article>
+    </motion.div>
   );
 }

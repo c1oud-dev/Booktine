@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { panelSpring } from '@/lib/motion';
 
 export default function AppFooter() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -41,15 +43,23 @@ export default function AppFooter() {
         </div>
       </footer>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm"
-          onClick={() => setIsModalOpen(false)}
-        >
-          <div
-            className="relative mx-4 w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-card"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {isModalOpen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm"
+            onClick={() => setIsModalOpen(false)}
           >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={panelSpring}
+              className="relative mx-4 w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-card"
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+            >
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
@@ -93,9 +103,10 @@ export default function AppFooter() {
             >
               지금 시작하기
             </Link>
-          </div>
-        </div>
-      )}
+          </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </>
   );
 }

@@ -14,13 +14,8 @@ import ReminderPage from '../pages/ReminderPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import SignupPage from '../pages/SignupPage';
+import { pageSpring } from '@/lib/motion';
 import PrivateRoute from './PrivateRoute';
-
-const pageTransition = {
-  duration: 0.24,
-  ease: [0.22, 1, 0.36, 1],
-} as const;
-
 
 export function AppRouter() {
   const location = useLocation();
@@ -29,10 +24,10 @@ export function AppRouter() {
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={location.pathname}
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={pageTransition}
+        initial={{ opacity: 0, y: 18, scale: 0.992 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -14, scale: 0.996 }}
+        transition={pageSpring}
       >
         <Routes location={location}>
           <Route element={<AppLayout />}>

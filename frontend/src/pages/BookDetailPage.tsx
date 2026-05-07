@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, BookOpen, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react';
 import { createMemo, deleteMemo, getBookNote, getMemos, updateMemo } from '../api/bookNoteApi';
@@ -6,6 +7,7 @@ import type { BookNote, Memo } from '../types/bookNote';
 import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
+import { softSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 export default function BookDetailPage() {
@@ -136,7 +138,11 @@ export default function BookDetailPage() {
         독서 노트 목록
       </Link>
 
-      <article className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-card">
+      <motion.article
+        layoutId={`book-note-card-${postId}`}
+        transition={softSpring}
+        className="overflow-hidden rounded-[2rem] border border-border bg-card shadow-card"
+      >
         <div className="grid gap-8 p-6 lg:grid-cols-[17rem_1fr] lg:p-8">
           <div className="flex min-h-80 items-center justify-center rounded-[1.5rem] bg-secondary p-6 text-secondary-foreground">
             <div className="text-center">
@@ -159,9 +165,13 @@ export default function BookDetailPage() {
             >
               {STATUS_LABEL[book.readingStatus]}
             </span>
-            <h1 className="mt-5 text-4xl font-black tracking-tight text-foreground sm:text-5xl">
+            <motion.h1
+              layoutId={`book-note-title-${postId}`}
+              transition={softSpring}
+              className="mt-5 text-4xl font-black tracking-tight text-foreground sm:text-5xl"
+            >
               {book.title}
-            </h1>
+            </motion.h1>
             <p className="mt-4 text-base font-semibold text-muted-foreground">
               {book.author || '-'} · {book.publisher || '-'} · {book.genre || '장르 미입력'}
             </p>
@@ -169,7 +179,7 @@ export default function BookDetailPage() {
               {book.summary}
             </p>
 
-        <div className="mt-7 space-y-3">
+          <div className="mt-7 space-y-3">
               <div className="flex items-center justify-between text-sm font-bold">
                 <p className="text-foreground">독서 진행률</p>
                 <p className="text-muted-foreground">{progressLabel}</p>
@@ -182,8 +192,8 @@ export default function BookDetailPage() {
               </div>
             </div>
           </div>
-          </div>
-      </article>
+        </div>
+      </motion.article>
 
       <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

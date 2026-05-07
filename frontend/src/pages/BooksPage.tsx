@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { BookOpen, CalendarCheck, Edit3, Plus, Trash2, X } from 'lucide-react';
 import { createBookNote, deleteBookNote, getBookNotes, searchBookNotes, updateBookNote } from '../api/bookNoteApi';
@@ -6,6 +7,7 @@ import { READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../cons
 import type { BookNote, ReadingStatus } from '../types/bookNote';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
+import { panelSpring, softSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 const defaultStatus: ReadingStatus = 'READING';
@@ -177,11 +179,16 @@ export default function BooksPage() {
         </select>
       </div>
 
-      {isFormOpen && (
-        <form
-          className="grid gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-2"
-          onSubmit={onSubmit}
-        >
+      <AnimatePresence initial={false}>
+        {isFormOpen ? (
+          <motion.form
+            initial={{ opacity: 0, y: -16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.985 }}
+            transition={panelSpring}
+            className="grid origin-top gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-2"
+            onSubmit={onSubmit}
+          >
           <div className="flex items-center justify-between lg:col-span-2">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
@@ -341,8 +348,9 @@ export default function BooksPage() {
               </button>
             ) : null}
           </div>
-        </form>
-      )}
+        </motion.form>
+        ) : null}
+      </AnimatePresence>
 
       {loading ? (
         <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
@@ -357,8 +365,10 @@ export default function BooksPage() {
         <>
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {items.map((book) => (
-              <li
+              <motion.li
                 key={book.id}
+                layoutId={`book-note-card-${book.id}`}
+                transition={softSpring}
                 className="group flex min-h-72 flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
               >
                 <div className="flex items-start justify-between gap-3">
@@ -379,7 +389,9 @@ export default function BooksPage() {
                   to={`/books/${book.id}`}
                   className="mt-5 line-clamp-2 text-xl font-black tracking-tight text-foreground underline-offset-4 group-hover:underline"
                 >
-                  {book.title}
+                  <motion.span layoutId={`book-note-title-${book.id}`} transition={softSpring}>
+                    {book.title}
+                  </motion.span>
                 </Link>
                 <p className="mt-2 text-sm font-semibold text-muted-foreground">
                   {book.author} · {book.genre}
@@ -431,7 +443,7 @@ export default function BooksPage() {
                     삭제
                   </button>
                 </div>
-              </li>
+              </motion.li>
             ))}
           </ul>
 

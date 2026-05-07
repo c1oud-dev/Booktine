@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, X } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
+import { panelSpring } from '@/lib/motion';
 import { createReminderEventSource, type Reminder } from '@/api/reminderApi';
 
 type ReminderNotice = {
@@ -117,7 +118,7 @@ function ReminderToasts({ notices, onDismiss }: { notices: ReminderNotice[]; onD
             initial={{ opacity: 0, x: 48, y: -8, scale: 0.98 }}
             animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: 56, scale: 0.96 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            transition={panelSpring}
             className="pointer-events-auto rounded-[1.25rem] border border-border bg-card p-4 shadow-card"
           >
             <div className="flex items-start gap-3">
