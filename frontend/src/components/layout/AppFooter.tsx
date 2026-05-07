@@ -1,11 +1,41 @@
-import { useState, type MouseEvent } from 'react';
+import { useState, type FormEvent, type MouseEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { MessageSquareText, X } from 'lucide-react';
 import { panelSpring } from '@/lib/motion';
+import { createInquiry } from '@/api/inquiryApi';
+import { useAuth } from '@/auth/AuthContext';
 
 export default function AppFooter() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isInquiryOpen, setIsInquiryOpen] = useState(false);
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const { isAuthenticated } = useAuth();
+
+  const submitInquiry = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitMessage('');
+
+    if (!isAuthenticated) {
+      setSubmitMessage('로그인 후 문의/제안을 보낼 수 있습니다.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await createInquiry({ subject, message });
+      setSubject('');
+      setMessage('');
+      setSubmitMessage('문의/제안이 관리자에게 전달되었습니다.');
+    } catch {
+      setSubmitMessage('문의/제안을 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -31,6 +61,16 @@ export default function AppFooter() {
             <Link to="/books" className="hover:text-foreground">
               독서노트
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setSubmitMessage('');
+                setIsInquiryOpen(true);
+              }}
+              className="hover:text-foreground"
+            >
+              문의/제안
+            </button>
             <Link to="/progress" className="hover:text-foreground">
               진도 관리
             </Link>
@@ -104,6 +144,77 @@ export default function AppFooter() {
               지금 시작하기
             </Link>
           </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isInquiryOpen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 px-4 backdrop-blur-sm"
+            onClick={() => setIsInquiryOpen(false)}
+          >
+            <motion.form
+              initial={{ opacity: 0, y: 24, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={panelSpring}
+              className="relative w-full max-w-lg rounded-3xl border border-border bg-card p-8 shadow-card"
+              onClick={(e: MouseEvent) => e.stopPropagation()}
+              onSubmit={submitInquiry}
+            >
+              <button
+                type="button"
+                onClick={() => setIsInquiryOpen(false)}
+                className="absolute right-5 top-5 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:bg-secondary"
+              >
+                <X className="h-4 w-4" />
+              </button>
+
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+                <MessageSquareText className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h2 className="mt-4 text-2xl font-black tracking-tight text-foreground">문의/제안 보내기</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                서비스 이용 중 불편한 점이나 제안을 관리자에게 전달해 주세요.
+              </p>
+
+              <label className="mt-6 block text-sm font-bold text-foreground">
+                제목
+                <input
+                  className="mt-2"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="문의 제목"
+                  maxLength={100}
+                  required
+                />
+              </label>
+              <label className="mt-4 block text-sm font-bold text-foreground">
+                내용
+                <textarea
+                  className="mt-2 min-h-32 resize-y"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="관리자에게 전달할 내용을 입력해 주세요."
+                  maxLength={3000}
+                  required
+                />
+              </label>
+
+              {submitMessage ? <p className="mt-4 text-sm font-bold text-muted-foreground">{submitMessage}</p> : null}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-primary py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:opacity-50"
+              >
+                {submitting ? '전송 중...' : '문의/제안 전송'}
+              </button>
+            </motion.form>
           </motion.div>
         ) : null}
       </AnimatePresence>

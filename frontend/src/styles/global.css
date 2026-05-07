@@ -86,7 +86,8 @@ select {
     background-color 180ms var(--motion-snappy);
 }
 select {
-  width: auto;
+  width: 100%;
+  padding-right: 2.75rem;
 }
 
 input::placeholder,

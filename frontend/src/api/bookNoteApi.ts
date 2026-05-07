@@ -2,7 +2,7 @@ import { http } from './http';
 import type { ApiResponse, PageResponse } from '../types/api';
 import type { BookNote, BookNotePayload, Memo, MemoPayload, ReadingStatus } from '../types/bookNote';
 
-export async function getBookNotes(page = 0, size = 20) {
+export async function getBookNotes(page = 0, size = 10) {
   const res = await http.get<ApiResponse<PageResponse<BookNote>>>('/posts', { params: { page, size } });
   return res.data.data;
 }

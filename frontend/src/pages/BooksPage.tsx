@@ -1,8 +1,9 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, CalendarCheck, Edit3, Plus, Trash2, X } from 'lucide-react';
 import { createBookNote, deleteBookNote, getBookNotes, searchBookNotes, updateBookNote } from '../api/bookNoteApi';
+import { DEFAULT_GENRES, getGenres } from '@/api/genreApi';
 import { READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import type { BookNote, ReadingStatus } from '../types/bookNote';
 import Spinner from '@/components/common/Spinner';
@@ -11,7 +12,7 @@ import { panelSpring, softSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 
 const defaultStatus: ReadingStatus = 'READING';
-const pageSize = 20;
+const pageSize = 10;
 
 export default function BooksPage() {
   const [items, setItems] = useState<BookNote[]>([]);
@@ -33,7 +34,11 @@ export default function BooksPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [statusFilter, setStatusFilter] = useState<ReadingStatus | ''>('');
+  const [genreOptions, setGenreOptions] = useState<string[]>(DEFAULT_GENRES);
+  const [deleteTarget, setDeleteTarget] = useState<BookNote | null>(null);
+  const navigate = useNavigate();
 
+  const selectableGenreOptions = genre && !genreOptions.includes(genre) ? [genre, ...genreOptions] : genreOptions;
   const totalPageCount = Math.max(totalPages, 1);
   const isFirstPage = currentPage === 0;
   const isLastPage = currentPage >= totalPageCount - 1;
@@ -42,7 +47,7 @@ export default function BooksPage() {
     setTitle('');
     setSummary('');
     setAuthor('');
-    setGenre('');
+    setGenre(genreOptions[0] ?? '기타');
     setPublisher('');
     setPublishedDate('');
     setReadingStatus(defaultStatus);
@@ -76,6 +81,12 @@ export default function BooksPage() {
     load(currentPage);
   }, [currentPage, keyword, statusFilter]);
 
+  useEffect(() => {
+    getGenres()
+      .then((genres) => setGenreOptions(genres.length ? genres : DEFAULT_GENRES))
+      .catch(() => setGenreOptions(DEFAULT_GENRES));
+  }, []);
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const payload = {
@@ -105,12 +116,12 @@ export default function BooksPage() {
 
     resetForm();
     setIsFormOpen(false);
-    };
+  };
 
   const handleDelete = async (bookId: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
 
     await deleteBookNote(bookId);
+    setDeleteTarget(null);
 
     if (items.length === 1 && currentPage > 0) {
       setCurrentPage((page) => page - 1);
@@ -143,6 +154,7 @@ export default function BooksPage() {
             type="button"
             onClick={() => {
               resetForm();
+              setGenre(genreOptions[0] ?? '기타');
               setIsFormOpen(true);
             }}
             className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
@@ -164,6 +176,7 @@ export default function BooksPage() {
           aria-label="도서 검색"
         />
         <select
+          className="w-full pr-10"
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as ReadingStatus | '');
@@ -234,13 +247,18 @@ export default function BooksPage() {
 
           <label className="block text-sm font-bold text-foreground">
             장르
-            <input
-              className="mt-2"
+            <select
+              className="mt-2 w-full pr-10"
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              placeholder="장르"
               required
-            />
+            >
+              {selectableGenreOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
           </label>
 
           <label className="block text-sm font-bold text-foreground">
@@ -268,7 +286,7 @@ export default function BooksPage() {
           <label className="block text-sm font-bold text-foreground">
             독서 상태
             <select
-              className="mt-2"
+              className="mt-2 w-full pr-10"
               value={readingStatus}
               onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
             >
@@ -369,7 +387,16 @@ export default function BooksPage() {
                 key={book.id}
                 layoutId={`book-note-card-${book.id}`}
                 transition={softSpring}
-                className="group flex min-h-72 flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
+                role="link"
+                tabIndex={0}
+                onClick={() => navigate(`/books/${book.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate(`/books/${book.id}`);
+                  }
+                }}
+                className="group flex min-h-72 cursor-pointer flex-col rounded-[1.5rem] border border-border bg-card p-5 shadow-soft transition hover:-translate-y-1 hover:shadow-float"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span
@@ -385,14 +412,11 @@ export default function BooksPage() {
                   </span>
                 </div>
 
-                <Link
-                  to={`/books/${book.id}`}
-                  className="mt-5 line-clamp-2 text-xl font-black tracking-tight text-foreground underline-offset-4 group-hover:underline"
-                >
+                <div className="mt-5 line-clamp-2 text-xl font-black tracking-tight text-foreground underline-offset-4 group-hover:underline">
                   <motion.span layoutId={`book-note-title-${book.id}`} transition={softSpring}>
                     {book.title}
                   </motion.span>
-                </Link>
+                </div>
                 <p className="mt-2 text-sm font-semibold text-muted-foreground">
                   {book.author} · {book.genre}
                 </p>
@@ -405,18 +429,12 @@ export default function BooksPage() {
                   {book.completedDate ? `${book.completedDate} 완독` : `${book.publishedDate} 출간`}
                 </div>
 
-                <div className="mt-5 flex gap-2 border-t border-border pt-4">
-                  <Link
-                    to={`/books/${book.id}`}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:shadow-soft"
-                  >
-                    <BookOpen className="h-4 w-4" />
-                    상세 보기
-                  </Link>
+                <div className="mt-5 flex gap-2 border-t border-border pt-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
                   <button
                     type="button"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setEditingId(book.id);
                       setTitle(book.title);
                       setSummary(book.summary);
@@ -437,7 +455,10 @@ export default function BooksPage() {
                   <button
                     type="button"
                     className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                    onClick={() => handleDelete(book.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(book);
+                    }}
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                     삭제
@@ -472,6 +493,47 @@ export default function BooksPage() {
           </div>
         </>
       )}
+      <AnimatePresence>
+        {deleteTarget ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 px-4 backdrop-blur-sm"
+            onClick={() => setDeleteTarget(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={panelSpring}
+              className="w-full max-w-md rounded-3xl border border-border bg-card p-7 shadow-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-black text-foreground">정말 삭제하시겠습니까?</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                ‘{deleteTarget.title}’ 독서 노트를 삭제하면 되돌릴 수 없습니다.
+              </p>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(deleteTarget.id)}
+                  className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:shadow-soft"
+                >
+                  삭제
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }
