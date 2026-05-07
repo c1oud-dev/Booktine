@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink } from 'react-router-dom';
-import { LogIn, LogOut, UserRound } from 'lucide-react';
+import { LogIn, LogOut, Menu, UserRound, X } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { panelSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,25 @@ const navItems = [
 
 export default function AppHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, isAdmin } = useAuth();
+  const headerNavItems = [
+    ...navItems,
+    ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : []),
+  ];
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.relative')) {
+      const target = e.target as Node;
+
+      if (profileMenuRef.current && !profileMenuRef.current.contains(target)) {
         setIsDropdownOpen(false);
+      }
+
+      if (mobileNavRef.current && !mobileNavRef.current.contains(target)) {
+        setIsMobileNavOpen(false);
       }
     };
 
@@ -40,7 +52,7 @@ export default function AppHeader() {
         </Link>
 
         <nav className="hidden items-center justify-center gap-1 rounded-full border border-border/70 bg-card px-1 py-1 shadow-soft md:flex" aria-label="주요 메뉴">
-          {[...navItems, ...(isAdmin ? [{ to: '/admin', label: 'Admin' }] : [])].map((item) => (
+          {headerNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -60,20 +72,67 @@ export default function AppHeader() {
         </nav>
 
         <div className="flex items-center justify-end gap-3">
+          <div ref={mobileNavRef} className="relative md:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen((prev) => !prev)}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft transition hover:bg-secondary"
+              aria-label={isMobileNavOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
+              aria-expanded={isMobileNavOpen}
+              aria-controls="mobile-main-nav"
+            >
+              {isMobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+
+            <AnimatePresence>
+              {isMobileNavOpen ? (
+                <motion.nav
+                  id="mobile-main-nav"
+                  aria-label="모바일 주요 메뉴"
+                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={panelSpring}
+                  className="absolute right-0 top-12 z-50 w-[calc(100vw-2.5rem)] max-w-sm origin-top-right rounded-2xl border border-border bg-card p-2 shadow-card"
+                >
+                  {headerNavItems.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === '/'}
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className={({ isActive }) =>
+                        cn(
+                          'flex items-center rounded-xl px-4 py-3 text-sm font-bold transition-all',
+                          isActive
+                            ? 'bg-primary text-primary-foreground shadow-soft'
+                            : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                        )
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  ))}
+                </motion.nav>
+              ) : null}
+            </AnimatePresence>
+          </div>
           {isAuthenticated ? (
             <>
-              <div className="relative hidden sm:block">
+              <div ref={profileMenuRef} className="relative hidden min-w-0 sm:block">
                 <button
                   type="button"
                   onClick={() => setIsDropdownOpen((prev) => !prev)}
-                  className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-card px-2.5 py-1.5 shadow-soft"
+                  className="inline-flex max-w-[13rem] items-center gap-2 rounded-full border border-border/80 bg-card px-2.5 py-1.5 shadow-soft"
                 >
                   <img
                     src={user?.profileImageUrl ?? "/default_avatar.png"}
                     alt="사용자 프로필"
-                    className="h-8 w-8 rounded-full border object-cover"
+                    className="h-8 w-8 shrink-0 rounded-full border object-cover"
                   />
-                  <span className="text-sm font-bold text-foreground">{user?.nickname ?? 'Reader'}</span>
+                  <span className="min-w-0 max-w-[8rem] truncate text-sm font-bold text-foreground">
+                    {user?.nickname ?? 'Reader'}
+                  </span>
                 </button>
 
                 <AnimatePresence>
@@ -85,23 +144,23 @@ export default function AppHeader() {
                       transition={panelSpring}
                       className="absolute right-0 top-12 z-50 w-48 origin-top-right rounded-2xl border border-border bg-card p-2 shadow-card"
                     >
-                    <Link
-                      to="/mypage"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
-                    >
-                      <UserRound className="h-4 w-4" />
-                      마이페이지
-                    </Link>
-                    <Link
-                      to="/logout"
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      로그아웃
-                    </Link>
-                  </motion.div>
+                      <Link
+                        to="/mypage"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
+                      >
+                        <UserRound className="h-4 w-4" />
+                        마이페이지
+                      </Link>
+                      <Link
+                        to="/logout"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-foreground hover:bg-secondary"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        로그아웃
+                      </Link>
+                    </motion.div>
                   ) : null}
                 </AnimatePresence>
               </div>
