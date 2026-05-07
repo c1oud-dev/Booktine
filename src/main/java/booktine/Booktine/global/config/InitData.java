@@ -1,5 +1,11 @@
 package booktine.Booktine.global.config;
 
+import booktine.Booktine.domain.community.entity.CommunityComment;
+import booktine.Booktine.domain.community.entity.CommunityLike;
+import booktine.Booktine.domain.community.entity.CommunityPost;
+import booktine.Booktine.domain.community.repository.CommunityCommentRepository;
+import booktine.Booktine.domain.community.repository.CommunityLikeRepository;
+import booktine.Booktine.domain.community.repository.CommunityPostRepository;
 import booktine.Booktine.domain.memo.entity.Memo;
 import booktine.Booktine.domain.memo.repository.MemoRepository;
 import booktine.Booktine.domain.post.entity.Post;
@@ -39,6 +45,9 @@ public class InitData {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final MemoRepository memoRepository;
+    private final CommunityPostRepository communityPostRepository;
+    private final CommunityCommentRepository communityCommentRepository;
+    private final CommunityLikeRepository communityLikeRepository;
     private final AnnualGoalRepository annualGoalRepository;
     private final MonthlyGoalRepository monthlyGoalRepository;
     private final RecommendationRepository recommendationRepository;
@@ -62,6 +71,9 @@ public class InitData {
         createProgressGoals(user, today);
         createRecommendations(user);
         createReminders(user);
+
+        User admin = userRepository.findByEmailAndAuthProvider("admin@booktine.com", UserAuthProvider.LOCAL).orElseThrow();
+        createCommunityData(user, admin);
 
         log.info("[InitData] 개발용 초기 데이터 삽입 완료. userId={}, postCount={}, memoCount=12",
                 user.getId(), posts.size());
@@ -156,6 +168,77 @@ public class InitData {
                 .content(content)
                 .page(page)
                 .build());
+    }
+
+    private void createCommunityData(User user, User admin) {
+        // 게시글 3개
+        CommunityPost post1 = communityPostRepository.save(CommunityPost.builder()
+                .user(user)
+                .title("클린 코드 읽고 나서 코드 스타일이 바뀌었어요")
+                .content("처음엔 어렵게 느껴졌는데 읽고 나니 변수명 하나도 신경 쓰게 되더라고요. 다들 읽으면서 어떤 부분이 가장 인상 깊으셨나요?")
+                .build());
+
+        CommunityPost post2 = communityPostRepository.save(CommunityPost.builder()
+                .user(admin)
+                .title("올해 독서 목표 달성하신 분 계신가요?")
+                .content("저는 올해 목표가 24권인데 벌써 절반 넘었어요. 여러분은 어떻게 독서 루틴 잡으셨는지 궁금합니다!")
+                .build());
+
+        CommunityPost post3 = communityPostRepository.save(CommunityPost.builder()
+                .user(user)
+                .title("아토믹 해빗 실천 후기")
+                .content("습관 추적을 시작한 지 3개월이 됐어요. 작은 것부터 하나씩 쌓아가는 게 생각보다 효과가 있더라고요.")
+                .build());
+
+        // 댓글 + 대댓글
+        CommunityComment comment1 = communityCommentRepository.save(CommunityComment.builder()
+                .post(post1)
+                .user(admin)
+                .content("저는 함수는 한 가지 일만 해야 한다는 원칙이 가장 와닿았어요.")
+                .parent(null)
+                .build());
+
+        communityCommentRepository.save(CommunityComment.builder()
+                .post(post1)
+                .user(user)
+                .content("맞아요! 그 원칙 적용하고 나서 리뷰할 때 훨씬 편해졌어요.")
+                .parent(comment1)
+                .build());
+
+        CommunityComment comment2 = communityCommentRepository.save(CommunityComment.builder()
+                .post(post2)
+                .user(user)
+                .content("저는 아침 30분 독서 루틴으로 목표 채우고 있어요!")
+                .parent(null)
+                .build());
+
+        communityCommentRepository.save(CommunityComment.builder()
+                .post(post2)
+                .user(admin)
+                .content("아침 루틴 좋죠. 저도 시도해봐야겠네요.")
+                .parent(comment2)
+                .build());
+
+        communityCommentRepository.save(CommunityComment.builder()
+                .post(post3)
+                .user(admin)
+                .content("3개월이나 유지하셨다니 대단해요. 어떤 습관부터 시작하셨어요?")
+                .parent(null)
+                .build());
+
+        // 좋아요
+        addLike(post1, admin);
+        addLike(post2, user);
+        addLike(post3, admin);
+    }
+
+    private void addLike(CommunityPost post, User user) {
+        communityLikeRepository.save(CommunityLike.builder()
+                .post(post)
+                .user(user)
+                .build());
+        post.increaseLikeCount();
+        communityPostRepository.save(post);
     }
 
     private void createProgressGoals(User user, LocalDate today) {
