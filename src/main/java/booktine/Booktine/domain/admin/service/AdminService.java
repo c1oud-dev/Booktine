@@ -1,5 +1,10 @@
 package booktine.Booktine.domain.admin.service;
 
+import booktine.Booktine.domain.genre.dto.GenreCreateRequest;
+import booktine.Booktine.domain.genre.dto.GenreResponse;
+import booktine.Booktine.domain.genre.service.GenreService;
+import booktine.Booktine.domain.inquiry.dto.InquiryResponse;
+import booktine.Booktine.domain.inquiry.service.InquiryService;
 import booktine.Booktine.domain.post.dto.PostResponse;
 import booktine.Booktine.domain.post.repository.PostRepository;
 import booktine.Booktine.domain.user.dto.UserResponse;
@@ -21,6 +26,8 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final GenreService genreService;
+    private final InquiryService inquiryService;
 
     /**
      * 전체 사용자 페이지를 조회한다.
@@ -36,6 +43,24 @@ public class AdminService {
      */
     public Page<PostResponse> getPostPage(Pageable pageable) {
         return postRepository.findAll(pageable).map(PostResponse::from);
+    }
+
+    public java.util.List<GenreResponse> getGenres() {
+        return genreService.getManagedGenres();
+    }
+
+    @Transactional
+    public GenreResponse createGenre(GenreCreateRequest request) {
+        return genreService.createGenre(request);
+    }
+
+    @Transactional
+    public void deleteGenre(Long id) {
+        genreService.deleteGenre(id);
+    }
+
+    public Page<InquiryResponse> getInquiryPage(Pageable pageable) {
+        return inquiryService.getInquiryPage(pageable);
     }
 }
 
