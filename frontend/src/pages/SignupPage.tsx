@@ -1,9 +1,26 @@
 import { FormEvent, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { checkEmailDuplicated, checkNicknameDuplicated } from '@/api/userApi';
 import { authApi } from '../auth/authApi';
 import Spinner from '@/components/common/Spinner';
+
+type DuplicationFeedback = {
+  status: 'idle' | 'success' | 'error';
+  message: string;
+};
+
+const feedbackInputClass = (status: DuplicationFeedback['status']) => {
+  if (status === 'success') {
+    return 'border-emerald-500 pr-10 focus:border-emerald-500 focus:shadow-[0_0_0_4px_rgba(16,185,129,0.14)]';
+  }
+
+  if (status === 'error') {
+    return 'border-red-500 focus:border-red-500 focus:shadow-[0_0_0_4px_rgba(239,68,68,0.14)]';
+  }
+
+  return '';
+};
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +30,8 @@ export default function SignupPage() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailAvailable, setEmailAvailable] = useState(false);
   const [nicknameAvailable, setNicknameAvailable] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState<DuplicationFeedback>({ status: 'idle', message: '' });
+  const [nicknameFeedback, setNicknameFeedback] = useState<DuplicationFeedback>({ status: 'idle', message: '' });
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [checkingNickname, setCheckingNickname] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
@@ -24,6 +43,7 @@ export default function SignupPage() {
 
   const handleCheckEmail = async () => {
     if (!email) {
+      setEmailFeedback({ status: 'error', message: '이메일을 먼저 입력해 주세요.' });
       setMessage('이메일을 먼저 입력해 주세요.');
       return;
     }
@@ -33,9 +53,14 @@ export default function SignupPage() {
       const duplicated = await checkEmailDuplicated(email);
       setEmailAvailable(!duplicated);
       setEmailVerified(false);
+      setEmailFeedback({
+        status: duplicated ? 'error' : 'success',
+        message: duplicated ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다.',
+      });
       setMessage(duplicated ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다. 인증 코드를 발송해 주세요.');
     } catch {
       setEmailAvailable(false);
+      setEmailFeedback({ status: 'error', message: '이메일 중복 확인에 실패했습니다.' });
       setMessage('이메일 중복 확인에 실패했습니다.');
     } finally {
       setCheckingEmail(false);
@@ -44,6 +69,7 @@ export default function SignupPage() {
 
   const handleCheckNickname = async () => {
     if (!nickname) {
+      setNicknameFeedback({ status: 'error', message: '닉네임을 먼저 입력해 주세요.' });
       setMessage('닉네임을 먼저 입력해 주세요.');
       return;
     }
@@ -52,9 +78,14 @@ export default function SignupPage() {
     try {
       const duplicated = await checkNicknameDuplicated(nickname);
       setNicknameAvailable(!duplicated);
+      setNicknameFeedback({
+        status: duplicated ? 'error' : 'success',
+        message: duplicated ? '이미 사용 중인 닉네임입니다.' : '사용 가능한 닉네임입니다.',
+      });
       setMessage(duplicated ? '이미 사용 중인 닉네임입니다.' : '사용 가능한 닉네임입니다.');
     } catch {
       setNicknameAvailable(false);
+      setNicknameFeedback({ status: 'error', message: '닉네임 중복 확인에 실패했습니다.' });
       setMessage('닉네임 중복 확인에 실패했습니다.');
     } finally {
       setCheckingNickname(false);
@@ -134,7 +165,7 @@ export default function SignupPage() {
 
   return (
     <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden px-5 py-14 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(248,250,252,0.96),rgba(248,250,252,0.88)),url('/Main.png')] bg-cover bg-center" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(244,248,245,0.96),rgba(232,242,229,0.88)),url('/Main.png')] bg-cover bg-center" />
       <div className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-7xl items-center justify-center">
         <article className="w-full max-w-xl rounded-[2rem] border border-border/80 bg-card p-6 shadow-card sm:p-8 md:p-10">
           <div className="grid grid-cols-2 rounded-xl bg-secondary p-1">
@@ -161,38 +192,58 @@ export default function SignupPage() {
             <label className="block text-sm font-bold text-foreground">
               Nickname
               <span className="mt-2 flex gap-2">
-                <input
-                  value={nickname}
-                  onChange={(e) => {
-                    setNickname(e.target.value);
-                    setNicknameAvailable(false);
-                  }}
-                  type="text"
-                  placeholder="닉네임을 입력해주세요."
-                  required
-                />
+                <span className="relative flex-1">
+                  <input
+                    value={nickname}
+                    onChange={(e) => {
+                      setNickname(e.target.value);
+                      setNicknameAvailable(false);
+                      setNicknameFeedback({ status: 'idle', message: '' });
+                    }}
+                    type="text"
+                    placeholder="닉네임을 입력해주세요."
+                    required
+                    className={feedbackInputClass(nicknameFeedback.status)}
+                  />
+                  {nicknameFeedback.status === 'success' ? (
+                    <CheckCircle2 className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-600" aria-hidden="true" />
+                  ) : null}
+                </span>
                 <button type="button" onClick={handleCheckNickname} disabled={checkingNickname || nicknameAvailable} className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground hover:bg-secondary disabled:opacity-60">
                   {nicknameAvailable ? '확인 완료' : checkingNickname ? '확인 중' : '중복 확인'}
                 </button>
               </span>
+              {nicknameFeedback.message ? (
+                <span className={`mt-2 flex items-center gap-1.5 text-xs font-bold ${nicknameFeedback.status === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {nicknameFeedback.status === 'success' ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : null}
+                  {nicknameFeedback.message}
+                </span>
+              ) : null}
               <span className="mt-2 block text-xs font-semibold leading-5 text-muted-foreground">한글 8자, 영문 14자까지 입력 가능해요.</span>
             </label>
 
             <label className="block text-sm font-bold text-foreground">
               Email address
               <span className="mt-2 flex gap-2">
-                <input
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setEmailAvailable(false);
-                    setEmailVerified(false);
-                    setEmailCode('');
-                  }}
-                  type="email"
-                  placeholder="이메일을 입력해주세요."
-                  required
-                />
+                <span className="relative flex-1">
+                  <input
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setEmailAvailable(false);
+                      setEmailVerified(false);
+                      setEmailCode('');
+                      setEmailFeedback({ status: 'idle', message: '' });
+                    }}
+                    type="email"
+                    placeholder="이메일을 입력해주세요."
+                    required
+                    className={feedbackInputClass(emailFeedback.status)}
+                  />
+                  {emailFeedback.status === 'success' ? (
+                    <CheckCircle2 className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-600" aria-hidden="true" />
+                  ) : null}
+                </span>
                 <button 
                   type="button" 
                   onClick={handleCheckEmail} 
@@ -202,6 +253,12 @@ export default function SignupPage() {
                   {emailAvailable ? '확인 완료' : checkingEmail ? '확인 중' : '중복 확인'}
                 </button>
               </span>
+              {emailFeedback.message ? (
+                <span className={`mt-2 flex items-center gap-1.5 text-xs font-bold ${emailFeedback.status === 'success' ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {emailFeedback.status === 'success' ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : null}
+                  {emailFeedback.message}
+                </span>
+              ) : null}
             </label>
 
             <label className="block text-sm font-bold text-foreground">
