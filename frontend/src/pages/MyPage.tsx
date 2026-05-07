@@ -3,6 +3,7 @@ import { BookOpen, Camera, KeyRound, Sparkles, Trash2, UserRound } from 'lucide-
 import {
   changePassword,
   deleteMyAccount,
+  deleteMyProfileImage,
   getMyProfile,
   updateMyProfile,
   uploadMyProfileImage,
@@ -79,6 +80,23 @@ export default function MyPage() {
     }
   };
 
+  const handleDeleteProfileImage = async () => {
+    setSaving(true);
+    setMessage('');
+
+    try {
+      const data = await deleteMyProfileImage();
+      setProfile(data);
+      setImagePreview(data.profileImageUrl ?? '/default_avatar.png');
+      setMessage('프로필 이미지가 삭제되었습니다.');
+      window.dispatchEvent(new Event('auth-change'));
+    } catch {
+      setMessage('프로필 이미지 삭제에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handlePasswordSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSaving(true);
@@ -140,6 +158,14 @@ export default function MyPage() {
             </span>
             <input type="file" accept="image/*" className="sr-only" onChange={handleImageChange} />
           </label>
+          <button
+            type="button"
+            onClick={handleDeleteProfileImage}
+            disabled={saving || !profile?.profileImageUrl}
+            className="mt-3 rounded-full border border-border bg-card px-4 py-2 text-xs font-black text-muted-foreground hover:bg-secondary hover:text-foreground disabled:opacity-50"
+          >
+            기본 이미지로 변경
+          </button>
           <p className="mt-5 text-2xl font-black tracking-tight text-foreground">{profile?.nickname ?? nickname}</p>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">{profile?.aboutMe || '소개를 작성해 주세요.'}</p>
 

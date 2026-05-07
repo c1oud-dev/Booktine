@@ -23,6 +23,16 @@ export interface ChangePasswordPayload {
   newPassword: string;
 }
 
+export async function checkEmailDuplicated(email: string) {
+  const res = await http.get<ApiResponse<boolean>>('/users/check/email', { params: { email } });
+  return res.data.data;
+}
+
+export async function checkNicknameDuplicated(nickname: string) {
+  const res = await http.get<ApiResponse<boolean>>('/users/check/nickname', { params: { nickname } });
+  return res.data.data;
+}
+
 export async function getMyProfile() {
   const res = await http.get<ApiResponse<UserProfile>>('/users/me');
   return res.data.data;
@@ -40,6 +50,11 @@ export async function uploadMyProfileImage(image: File) {
   const res = await http.post<ApiResponse<UserProfile>>('/users/me/image', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return res.data.data;
+}
+
+export async function deleteMyProfileImage() {
+  const res = await http.delete<ApiResponse<UserProfile>>('/users/me/image');
   return res.data.data;
 }
 

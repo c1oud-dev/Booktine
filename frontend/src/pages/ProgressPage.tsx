@@ -5,6 +5,7 @@ import {
   createMonthlyGoal,
   getAnnualCompletedCounts,
   getAnnualGoal,
+  getAnnualTrend,
   getBasicStats,
   getGenreStats,
   getMonthlyGoal,
@@ -28,6 +29,7 @@ export default function ProgressPage() {
   const [month, setMonth] = useState(defaultMonth);
   const [stats, setStats] = useState<BasicStats | null>(null);
   const [genres, setGenres] = useState<GenreStats[]>([]);
+  const [annualTrend, setAnnualTrend] = useState<MonthlyReadCount[]>([]);
   const [completedCounts, setCompletedCounts] = useState<MonthlyReadCount[]>([]);
   const [monthlyGoal, setMonthlyGoal] = useState<MonthlyGoal | null>(null);
   const [annualGoal, setAnnualGoal] = useState<AnnualGoal | null>(null);
@@ -56,11 +58,13 @@ export default function ProgressPage() {
       setMessage('');
     }
     try {
-      const [genreStats, annualCompletedCounts] = await Promise.all([
+      const [genreStats, annualTrendData, annualCompletedCounts] = await Promise.all([
         getGenreStats(year, month),
+        getAnnualTrend(year),
         getAnnualCompletedCounts(year),
       ]);
       setGenres(genreStats);
+      setAnnualTrend(annualTrendData);
       setCompletedCounts(annualCompletedCounts);
 
       try {
@@ -226,8 +230,12 @@ export default function ProgressPage() {
             </section>
 
             <section className="border-t border-border pt-8">
-              <SectionTitle icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />} eyebrow="Annual completed counts" title={`${year}년 연간 독서량 차트`} />
-              <MonthlyBarChart data={completedCounts} currentYear={defaultYear} currentMonth={defaultMonth} selectedYear={year} />
+              <SectionTitle icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />} eyebrow="Annual reading trend" title={`${year}년 연간 독서량 추이`} />
+              <p className="mt-2 text-sm font-semibold leading-6 text-muted-foreground">
+                백엔드 기준 /stats/annual은 연간 월별 추이용 엔드포인트이고, 현재 서비스 구현에서는 /stats/annual/completed-counts와 동일하게 월별 완독 권수를 반환합니다. 차트는 추이 엔드포인트를 기준으로 그리고, 요약 수치는 완독 권수 엔드포인트를 기준으로 계산합니다.
+              </p>
+              <AnnualCompletedSummary data={completedCounts} />
+              <MonthlyBarChart data={annualTrend} currentYear={defaultYear} currentMonth={defaultMonth} selectedYear={year} />
             </section>
           </div>
         )}
@@ -264,6 +272,34 @@ function SectionTitle({ icon, eyebrow, title }: { icon: ReactNode; eyebrow: stri
     <div className="flex items-center gap-3">
       <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">{icon}</span>
       <div><p className="text-sm font-bold text-muted-foreground">{eyebrow}</p><h2 className="text-2xl font-black text-foreground">{title}</h2></div>
+    </div>
+  );
+}
+
+function AnnualCompletedSummary({ data }: { data: MonthlyReadCount[] }) {
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  const best = data.reduce<MonthlyReadCount | null>((current, item) => {
+    if (!current || item.count > current.count) {
+      return item;
+    }
+    return current;
+  }, null);
+  const activeMonths = data.filter((item) => item.count > 0).length;
+
+  return (
+    <div className="mt-5 grid gap-3 md:grid-cols-3">
+      <MiniStat label="연간 완독" value={`${total}권`} />
+      <MiniStat label="최고 월" value={best && best.count > 0 ? `${best.month}월 · ${best.count}권` : '-'} />
+      <MiniStat label="완독한 달" value={`${activeMonths}개월`} />
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[1.25rem] border border-border bg-background px-4 py-3">
+      <p className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-black text-foreground">{value}</p>
     </div>
   );
 }

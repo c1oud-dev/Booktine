@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { authApi } from './authApi';
 import { getAccessToken, setAccessToken } from '@/api/http';
 import { getMyProfile, type UserProfile } from '@/api/userApi';
@@ -21,15 +21,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initializing, setInitializing] = useState(true);
   const [authVersion, setAuthVersion] = useState(0);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const profile = await getMyProfile();
     setUser(profile);
-  };
+   }, []);
 
-  const clearSession = () => {
+  const clearSession = useCallback(() => {
     setAccessToken(null);
     setUser(null);
-  };
+  }, []);
 
   useEffect(() => {
     const handleAuthChange = () => setAuthVersion((version) => version + 1);
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     refreshUser,
     clearSession,
-  }), [user, initializing, authVersion]);
+  }), [user, initializing, authVersion, refreshUser, clearSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

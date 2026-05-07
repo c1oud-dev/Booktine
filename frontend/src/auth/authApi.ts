@@ -7,6 +7,7 @@ type AuthTokenPayload = {
 };
 
 const SIGNUP_PURPOSE = 'SIGNUP';
+const PASSWORD_RESET_PURPOSE = 'PASSWORD_RESET';
 const resolveToken = (payload: AuthTokenPayload) => payload.accessToken ?? payload.token ?? null;
 
 export const authApi = {
@@ -16,6 +17,18 @@ export const authApi = {
 
   verifySignupEmailCode: async (email: string, code: string) => {
     return http.post('/auth/email/verify', { email, code, purpose: SIGNUP_PURPOSE });
+  },
+
+  sendPasswordResetEmailCode: async (email: string) => {
+    return http.post('/auth/email/send', { email, purpose: PASSWORD_RESET_PURPOSE });
+  },
+
+  verifyPasswordResetEmailCode: async (email: string, code: string) => {
+    return http.post('/auth/email/verify', { email, code, purpose: PASSWORD_RESET_PURPOSE });
+  },
+
+  resetPasswordByEmail: async (email: string, code: string, newPassword: string) => {
+    return http.post('/auth/password/reset', { email, code, newPassword });
   },
 
   signup: async (email: string, password: string, nickname: string) => {

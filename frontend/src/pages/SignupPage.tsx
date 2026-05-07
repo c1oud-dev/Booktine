@@ -1,6 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { checkEmailDuplicated, checkNicknameDuplicated } from '@/api/userApi';
 import { authApi } from '../auth/authApi';
 import Spinner from '@/components/common/Spinner';
 
@@ -10,6 +11,10 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [emailCode, setEmailCode] = useState('');
   const [emailVerified, setEmailVerified] = useState(false);
+  const [emailAvailable, setEmailAvailable] = useState(false);
+  const [nicknameAvailable, setNicknameAvailable] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(false);
+  const [checkingNickname, setCheckingNickname] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [verifyingCode, setVerifyingCode] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -17,9 +22,48 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSendCode = async () => {
+  const handleCheckEmail = async () => {
     if (!email) {
       setMessage('이메일을 먼저 입력해 주세요.');
+      return;
+    }
+    setCheckingEmail(true);
+    setMessage('');
+    try {
+      const duplicated = await checkEmailDuplicated(email);
+      setEmailAvailable(!duplicated);
+      setEmailVerified(false);
+      setMessage(duplicated ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다. 인증 코드를 발송해 주세요.');
+    } catch {
+      setEmailAvailable(false);
+      setMessage('이메일 중복 확인에 실패했습니다.');
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
+
+  const handleCheckNickname = async () => {
+    if (!nickname) {
+      setMessage('닉네임을 먼저 입력해 주세요.');
+      return;
+    }
+    setCheckingNickname(true);
+    setMessage('');
+    try {
+      const duplicated = await checkNicknameDuplicated(nickname);
+      setNicknameAvailable(!duplicated);
+      setMessage(duplicated ? '이미 사용 중인 닉네임입니다.' : '사용 가능한 닉네임입니다.');
+    } catch {
+      setNicknameAvailable(false);
+      setMessage('닉네임 중복 확인에 실패했습니다.');
+    } finally {
+      setCheckingNickname(false);
+    }
+  };
+
+  const handleSendCode = async () => {
+    if (!emailAvailable) {
+      setMessage('이메일 중복 확인을 먼저 완료해 주세요.');
       return;
     }
 
@@ -58,6 +102,16 @@ export default function SignupPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
+
+    if (!nicknameAvailable) {
+      setMessage('닉네임 중복 확인을 먼저 완료해 주세요.');
+      return;
+    }
+
+    if (!emailAvailable) {
+      setMessage('이메일 중복 확인을 먼저 완료해 주세요.');
+      return;
+    }
 
     if (!emailVerified) {
       setMessage('이메일 인증을 먼저 완료해 주세요.');
@@ -106,17 +160,22 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="mt-9 space-y-5">
             <label className="block text-sm font-bold text-foreground">
               Nickname
-              <input
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                type="text"
-                placeholder="닉네임을 입력해주세요."
-                required
-                className="mt-2"
-              />
-              <span className="mt-2 block text-xs font-semibold leading-5 text-muted-foreground">
-                한글 8자, 영문 14자까지 입력 가능해요.
+              <span className="mt-2 flex gap-2">
+                <input
+                  value={nickname}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                    setNicknameAvailable(false);
+                  }}
+                  type="text"
+                  placeholder="닉네임을 입력해주세요."
+                  required
+                />
+                <button type="button" onClick={handleCheckNickname} disabled={checkingNickname || nicknameAvailable} className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground hover:bg-secondary disabled:opacity-60">
+                  {nicknameAvailable ? '확인 완료' : checkingNickname ? '확인 중' : '중복 확인'}
+                </button>
               </span>
+              <span className="mt-2 block text-xs font-semibold leading-5 text-muted-foreground">한글 8자, 영문 14자까지 입력 가능해요.</span>
             </label>
 
             <label className="block text-sm font-bold text-foreground">
@@ -126,19 +185,21 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
+                    setEmailAvailable(false);
                     setEmailVerified(false);
+                    setEmailCode('');
                   }}
                   type="email"
                   placeholder="이메일을 입력해주세요."
                   required
                 />
-                <button
-                  type="button"
-                  onClick={handleSendCode}
-                  disabled={sendingCode || emailVerified}
+                <button 
+                  type="button" 
+                  onClick={handleCheckEmail} 
+                  disabled={checkingEmail || emailAvailable} 
                   className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground hover:bg-secondary disabled:opacity-60"
-                >
-                  {sendingCode ? '발송 중' : '인증 코드'}
+                  >
+                  {emailAvailable ? '확인 완료' : checkingEmail ? '확인 중' : '중복 확인'}
                 </button>
               </span>
             </label>
@@ -183,11 +244,7 @@ export default function SignupPage() {
                   className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground"
                   aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </span>
               <span className="mt-2 block text-xs font-semibold leading-5 text-muted-foreground">
@@ -195,24 +252,16 @@ export default function SignupPage() {
               </span>
             </label>
 
-            <button
-              type="submit"
-              disabled={loading || !emailVerified}
+            <button 
+              type="submit" 
+              disabled={loading || !emailVerified || !emailAvailable || !nicknameAvailable} 
               className="inline-flex w-full items-center justify-center rounded-full bg-primary px-5 py-4 text-base font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:opacity-60"
-            >
-              {loading ? (
-                <Spinner label="가입 처리 중..." className="justify-center text-primary-foreground" />
-              ) : (
-                'Sign up'
-              )}
+              >
+              {loading ? <Spinner label="가입 처리 중..." className="justify-center text-primary-foreground" /> : 'Sign up'}
             </button>
           </form>
 
-          {message ? (
-            <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-              {message}
-            </p>
-          ) : null}
+          {message ? <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground">{message}</p> : null}
         </article>
       </div>
     </section>

@@ -11,6 +11,7 @@ import ProgressPage from '../pages/ProgressPage';
 import RecommendationPage from '../pages/RecommendationPage';
 import ReminderPage from '../pages/ReminderPage';
 import NotFoundPage from '../pages/NotFoundPage';
+import OAuthCallbackPage from '../pages/OAuthCallbackPage';
 import SignupPage from '../pages/SignupPage';
 import PrivateRoute from './PrivateRoute';
 
@@ -22,7 +23,7 @@ export function AppRouter() {
         <Route path="/home" element={<Navigate to="/" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-
+        <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
         <Route element={<PrivateRoute />}>
           <Route path="/books" element={<BooksPage />} />
           <Route path="/books/:id" element={<BookDetailPage />} />

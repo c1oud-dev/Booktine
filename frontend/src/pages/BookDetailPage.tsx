@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, NotebookPen, Plus } from 'lucide-react';
-import { createMemo, getBookNote, getMemos } from '../api/bookNoteApi';
+import { ArrowLeft, BookOpen, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react';
+import { createMemo, deleteMemo, getBookNote, getMemos, updateMemo } from '../api/bookNoteApi';
 import type { BookNote, Memo } from '../types/bookNote';
 import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import Spinner from '@/components/common/Spinner';
@@ -15,6 +15,10 @@ export default function BookDetailPage() {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [memoContent, setMemoContent] = useState('');
   const [memoPage, setMemoPage] = useState<number | ''>('');
+  const [editingMemoId, setEditingMemoId] = useState<number | null>(null);
+  const [editingContent, setEditingContent] = useState('');
+  const [editingPage, setEditingPage] = useState<number | ''>('');
+  const [memoMessage, setMemoMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -36,9 +40,43 @@ export default function BookDetailPage() {
 
   const onCreateMemo = async (e: FormEvent) => {
     e.preventDefault();
+    setMemoMessage('');
     await createMemo(postId, { content: memoContent, page: Number(memoPage) });
     setMemoContent('');
     setMemoPage('');
+    setMemoMessage('메모를 작성했습니다.');
+    await load();
+  };
+
+  const startEditMemo = (memo: Memo) => {
+    setEditingMemoId(memo.id);
+    setEditingContent(memo.content);
+    setEditingPage(memo.page);
+    setMemoMessage('');
+  };
+
+  const cancelEditMemo = () => {
+    setEditingMemoId(null);
+    setEditingContent('');
+    setEditingPage('');
+  };
+
+  const onUpdateMemo = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!editingMemoId) return;
+
+    await updateMemo(postId, editingMemoId, { content: editingContent, page: Number(editingPage) });
+    cancelEditMemo();
+    setMemoMessage('메모를 수정했습니다.');
+    await load();
+  };
+
+  const onDeleteMemo = async (memoId: number) => {
+    await deleteMemo(postId, memoId);
+    if (editingMemoId === memoId) {
+      cancelEditMemo();
+    }
+    setMemoMessage('메모를 삭제했습니다.');
     await load();
   };
 
@@ -182,6 +220,12 @@ export default function BookDetailPage() {
             메모 작성
           </button>
         </form>
+        
+        {memoMessage ? 
+          <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground">
+            {memoMessage}
+          </p> : null
+        }
 
         {memos.length === 0 ? (
           <div className="mt-6">
@@ -194,13 +238,36 @@ export default function BookDetailPage() {
           <ul className="mt-6 grid gap-4 md:grid-cols-2">
             {memos.map((memo) => (
               <li key={memo.id} className="rounded-[1.25rem] border border-border bg-background p-5">
-                <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
-                  <NotebookPen className="h-4 w-4" aria-hidden="true" />
-                  {memo.page} 페이지
-                </div>
-                <p className="mt-3 text-sm leading-7 text-foreground">
-                  {memo.content}
-                </p>
+                {editingMemoId === memo.id ? (
+                  <form onSubmit={onUpdateMemo} className="space-y-3">
+                    <input value={editingContent} onChange={(e) => setEditingContent(e.target.value)} required aria-label="메모 내용" />
+                    <input type="number" min={1} value={editingPage} onChange={(e) => setEditingPage(e.target.value === '' ? '' : Number(e.target.value))} required aria-label="메모 페이지" />
+                    <div className="flex flex-wrap gap-2">
+                      <button type="submit" className="rounded-full bg-primary px-4 py-2 text-xs font-black text-primary-foreground">저장</button>
+                      <button type="button" onClick={cancelEditMemo} className="rounded-full border border-border bg-card px-4 py-2 text-xs font-black text-foreground hover:bg-secondary">취소</button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">
+                        <NotebookPen className="h-4 w-4" aria-hidden="true" />
+                        {memo.page} 페이지
+                      </div>
+                      <div className="flex gap-1">
+                        <button type="button" onClick={() => startEditMemo(memo)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground" aria-label="메모 수정">
+                          <Pencil className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={() => onDeleteMemo(memo.id)} className="rounded-full p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600" aria-label="메모 삭제">
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-foreground">
+                      {memo.content}
+                    </p>
+                  </>
+                )}
               </li>
             ))}
           </ul>

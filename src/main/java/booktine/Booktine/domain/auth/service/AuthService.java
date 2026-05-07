@@ -98,11 +98,11 @@ public class AuthService {
 
         if (SIGNUP_PURPOSE.equalsIgnoreCase(request.purpose())) {
             markEmailVerified(request.email(), request.purpose());
+            deleteEmailCode(request.email(), request.purpose());
         } else {
             User user = userRepository.findByEmailAndAuthProvider(request.email(), UserAuthProvider.LOCAL).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
             user.verifyEmail();
         }
-        deleteEmailCode(request.email(), request.purpose());
     }
 
     /** 이메일 인증 코드를 검증한 뒤 비밀번호를 재설정한다. */

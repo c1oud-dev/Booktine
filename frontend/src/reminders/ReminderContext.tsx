@@ -21,6 +21,18 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
   const [notices, setNotices] = useState<ReminderNotice[]>([]);
 
   useEffect(() => {
+    if (notices.length === 0) {
+      return;
+    }
+
+    const timers = notices.map((notice) => window.setTimeout(() => {
+      setNotices((current) => current.filter((item) => item.id !== notice.id));
+    }, 7000));
+
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [notices]);
+
+  useEffect(() => {
     if (initializing || !isAuthenticated) {
       return;
     }
@@ -33,7 +45,7 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setNotices((current) => [notice, ...current].slice(0, 3));
+      setNotices((current) => [{ ...notice, id: Date.now() + Math.random() }, ...current].slice(0, 3));
     };
 
     eventSource.onmessage = handleReminder;
