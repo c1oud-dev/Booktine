@@ -4,12 +4,14 @@ import {
   createAnnualGoal,
   createMonthlyGoal,
   getAnnualCompletedCounts,
+  getAnnualCompletedSummary,
   getAnnualGoal,
   getBasicStats,
   getGenreStats,
   getMonthlyGoal,
   updateAnnualGoal,
   updateMonthlyGoal,
+  type AnnualCompletedSummary,
   type AnnualGoal,
   type BasicStats,
   type GenreStats,
@@ -29,6 +31,7 @@ export default function ProgressPage() {
   const [stats, setStats] = useState<BasicStats | null>(null);
   const [genres, setGenres] = useState<GenreStats[]>([]);
   const [completedCounts, setCompletedCounts] = useState<MonthlyReadCount[]>([]);
+  const [completedSummary, setCompletedSummary] = useState<AnnualCompletedSummary | null>(null);
   const [monthlyGoal, setMonthlyGoal] = useState<MonthlyGoal | null>(null);
   const [annualGoal, setAnnualGoal] = useState<AnnualGoal | null>(null);
   const [monthlyGoalCount, setMonthlyGoalCount] = useState(1);
@@ -56,12 +59,14 @@ export default function ProgressPage() {
       setMessage('');
     }
     try {
-      const [genreStats, annualCompletedCounts] = await Promise.all([
+      const [genreStats, annualCompletedCounts, annualSummary] = await Promise.all([
         getGenreStats(year, month),
         getAnnualCompletedCounts(year),
+        getAnnualCompletedSummary(year),
       ]);
       setGenres(genreStats);
       setCompletedCounts(annualCompletedCounts);
+      setCompletedSummary(annualSummary);
 
       try {
         const monthly = await getMonthlyGoal(year, month);
@@ -230,7 +235,7 @@ export default function ProgressPage() {
               <p className="mt-2 text-sm font-semibold leading-6 text-muted-foreground">
                 월별 완독 권수 기준으로 차트와 요약 수치를 계산합니다.
               </p>
-              <AnnualCompletedSummary data={completedCounts} />
+              <AnnualCompletedSummaryCard summary={completedSummary} />
               <MonthlyBarChart data={completedCounts} currentYear={defaultYear} currentMonth={defaultMonth} selectedYear={year} />
             </section>
           </div>
@@ -272,21 +277,13 @@ function SectionTitle({ icon, eyebrow, title }: { icon: ReactNode; eyebrow: stri
   );
 }
 
-function AnnualCompletedSummary({ data }: { data: MonthlyReadCount[] }) {
-  const total = data.reduce((sum, item) => sum + item.count, 0);
-  const best = data.reduce<MonthlyReadCount | null>((current, item) => {
-    if (!current || item.count > current.count) {
-      return item;
-    }
-    return current;
-  }, null);
-  const activeMonths = data.filter((item) => item.count > 0).length;
+function AnnualCompletedSummaryCard({ summary }: { summary: AnnualCompletedSummary | null }) {
 
   return (
     <div className="mt-5 grid gap-3 md:grid-cols-3">
-      <MiniStat label="연간 완독" value={`${total}권`} />
-      <MiniStat label="최고 월" value={best && best.count > 0 ? `${best.month}월 · ${best.count}권` : '-'} />
-      <MiniStat label="완독한 달" value={`${activeMonths}개월`} />
+      <MiniStat label="연간 완독" value={`${summary?.totalCount ?? 0}권`} />
+      <MiniStat label="최고 월" value={summary?.bestMonth ? `${summary.bestMonth}월 · ${summary.bestMonthCount}권` : '-'} />
+      <MiniStat label="완독한 달" value={`${summary?.activeMonthCount ?? 0}개월`} />
     </div>
   );
 }

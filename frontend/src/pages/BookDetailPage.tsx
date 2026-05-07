@@ -82,23 +82,7 @@ export default function BookDetailPage() {
     await load();
   };
 
-  const progressPercent = useMemo(() => {
-    if (!book) {
-      return 0;
-    }
-
-    if (book.totalPage && book.totalPage > 0) {
-      return Math.min(100, Math.round(((book.currentPage ?? 0) / book.totalPage) * 100));
-    }
-
-    if (book.readingStatus === 'COMPLETED') {
-      return 100;
-    }
-    if (book.readingStatus === 'WISHLIST') {
-      return 0;
-    }
-    return Math.min(95, memos.length * 12);
-  }, [book, memos]);
+  const progressPercent = book?.progressPercent ?? 0;
 
   const progressLabel = book?.totalPage
     ? `${book.currentPage ?? 0} / ${book.totalPage}쪽`

@@ -1,5 +1,6 @@
 package booktine.Booktine.domain.progress.controller;
 
+import booktine.Booktine.domain.progress.dto.AnnualCompletedSummaryResponse;
 import booktine.Booktine.domain.progress.dto.BasicStatsResponse;
 import booktine.Booktine.domain.progress.dto.GenreStatsResponse;
 import booktine.Booktine.domain.progress.dto.MonthlyReadCountResponse;
@@ -47,6 +48,13 @@ public class StatisticsController {
     @GetMapping("/annual/completed-counts")
     public ApiResponse<List<MonthlyReadCountResponse>> getAnnualCompletedCounts(@RequestParam Integer year) {
         return ApiResponse.ok(statisticsService.getAnnualCompletedCounts(getCurrentUserId(), year));
+    }
+
+    /** 연간 완독 요약 통계를 조회한다. */
+    @Operation(summary = "연간 완독 요약 조회", description = "지정한 연도의 총 완독 수, 최고 월, 완독 발생 월 수를 조회합니다.")
+    @GetMapping("/annual/completed-summary")
+    public ApiResponse<AnnualCompletedSummaryResponse> getAnnualCompletedSummary(@RequestParam Integer year) {
+        return ApiResponse.ok(statisticsService.getAnnualCompletedSummary(getCurrentUserId(), year));
     }
 
     /** 인증 컨텍스트에서 현재 사용자 ID를 조회한다. */

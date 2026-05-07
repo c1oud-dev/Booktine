@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -34,8 +35,8 @@ public class PostService {
     @Transactional
     public PostResponse createPost(Long userId, PostCreateRequest request) {
         User user = userRepository.getReferenceById(userId);
-        validatePageRange(request.currentPage(), request.totalPage());
-        validateRating(request.readingStatus(), request.rating());
+        validateReadingDetails(request.readingStatus(), request.startDate(), request.completedDate(),
+                request.rating(), request.shortReview(), request.currentPage(), request.totalPage());
         Post post = buildPost(request, user);
 
         return PostResponse.from(postRepository.save(post));
@@ -56,8 +57,8 @@ public class PostService {
     @Transactional
     public PostResponse updatePost(Long userId, Long postId, PostUpdateRequest request) {
         Post post = getOwnedPost(userId, postId);
-        validatePageRange(request.currentPage(), request.totalPage());
-        validateRating(request.readingStatus(), request.rating());
+        validateReadingDetails(request.readingStatus(), request.startDate(), request.completedDate(),
+                request.rating(), request.shortReview(), request.currentPage(), request.totalPage());
         post.updateDetails(
                 request.title(),
                 request.author(),
@@ -112,15 +113,54 @@ public class PostService {
                 .build();
     }
 
-    /** 별점은 완독 상태에서만 0.5 단위, 0.5~5.0 범위로 입력할 수 있다. */
-    private void validateRating(ReadingStatus readingStatus, Double rating) {
+    /** 독서 상태별 날짜, 별점, 한줄평, 페이지 입력 규칙을 검증한다. */
+    private void validateReadingDetails(ReadingStatus readingStatus, LocalDate startDate,
+                                        LocalDate completedDate, Double rating, String shortReview,
+                                        Integer currentPage, Integer totalPage) {
+        validatePageRange(currentPage, totalPage);
+        validateDateRange(startDate, completedDate);
+        validateWishlistDetails(readingStatus, startDate, completedDate, rating, shortReview, currentPage);
+        validateCompletedDetails(readingStatus, completedDate, rating, shortReview);
+    }
+
+    /** 읽고 싶은 책 상태에는 실제 독서 진행 정보가 포함될 수 없다. */
+    private void validateWishlistDetails(ReadingStatus readingStatus, LocalDate startDate,
+                                         LocalDate completedDate, Double rating, String shortReview,
+                                         Integer currentPage) {
+        if (readingStatus == ReadingStatus.WISHLIST
+                && (startDate != null || completedDate != null || rating != null || hasText(shortReview) || currentPage != null)) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+    }
+
+    /** 완독 상태의 완료일 필수 여부와 완독 전용 회고 입력 규칙을 검증한다. */
+    private void validateCompletedDetails(ReadingStatus readingStatus, LocalDate completedDate,
+                                          Double rating, String shortReview) {
+        if (readingStatus == ReadingStatus.COMPLETED && completedDate == null) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+        if (readingStatus != ReadingStatus.COMPLETED && (rating != null || hasText(shortReview))) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+        validateRating(rating);
+    }
+
+    /** 별점은 0.5 단위, 0.5~5.0 범위로 입력할 수 있다. */
+    private void validateRating(Double rating) {
         if (rating == null) {
             return;
         }
 
         double doubledRating = rating * 2;
         boolean isHalfStep = Math.abs(doubledRating - Math.round(doubledRating)) < 0.000001;
-        if (readingStatus != ReadingStatus.COMPLETED || rating < 0.5 || rating > 5.0 || !isHalfStep) {
+        if (rating < 0.5 || rating > 5.0 || !isHalfStep) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
+    }
+
+    /** 완료일이 시작일보다 빠르면 잘못된 입력 예외를 발생시킨다. */
+    private void validateDateRange(LocalDate startDate, LocalDate completedDate) {
+        if (startDate != null && completedDate != null && completedDate.isBefore(startDate)) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
     }
@@ -130,6 +170,11 @@ public class PostService {
         if (currentPage != null && totalPage != null && currentPage > totalPage) {
             throw new CustomException(ErrorCode.INVALID_INPUT);
         }
+    }
+
+    /** 문자열에 공백 외 내용이 있는지 확인한다. */
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     /** 게시물 ID로 게시물 엔티티를 조회하고 없으면 예외를 발생시킨다. */

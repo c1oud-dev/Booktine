@@ -12,6 +12,13 @@ export interface MonthlyReadCount {
   count: number;
 }
 
+export interface AnnualCompletedSummary {
+  totalCount: number;
+  bestMonth: number | null;
+  bestMonthCount: number;
+  activeMonthCount: number;
+}
+
 export interface MonthlyGoal {
   id: number;
   year: number;
@@ -41,6 +48,11 @@ export async function getGenreStats(year?: number, month?: number) {
 
 export async function getAnnualCompletedCounts(year: number) {
   const res = await http.get<ApiResponse<MonthlyReadCount[]>>('/stats/annual/completed-counts', { params: { year } });
+  return res.data.data;
+}
+
+export async function getAnnualCompletedSummary(year: number) {
+  const res = await http.get<ApiResponse<AnnualCompletedSummary>>('/stats/annual/completed-summary', { params: { year } });
   return res.data.data;
 }
 

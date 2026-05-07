@@ -27,6 +27,7 @@ public record PostResponse(
         String shortReview,
         Integer currentPage,
         Integer totalPage,
+        Integer progressPercent,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -51,8 +52,20 @@ public record PostResponse(
                 post.getShortReview(),
                 post.getCurrentPage(),
                 post.getTotalPage(),
+                calculateProgressPercent(post),
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
+    }
+
+    /** 독서 진행률을 백분율로 계산해 클라이언트가 그대로 렌더링할 수 있도록 제공한다. */
+    private static Integer calculateProgressPercent(Post post) {
+        if (post.getReadingStatus() == ReadingStatus.COMPLETED) {
+            return 100;
+        }
+        if (post.getTotalPage() == null || post.getTotalPage() <= 0 || post.getCurrentPage() == null) {
+            return 0;
+        }
+        return Math.min(100, Math.round((float) post.getCurrentPage() / post.getTotalPage() * 100));
     }
 }

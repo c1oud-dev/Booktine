@@ -2,6 +2,7 @@ package booktine.Booktine.domain.progress.service;
 
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
+import booktine.Booktine.domain.progress.dto.AnnualCompletedSummaryResponse;
 import booktine.Booktine.domain.progress.dto.BasicStatsResponse;
 import booktine.Booktine.domain.progress.dto.GenreStatsResponse;
 import booktine.Booktine.domain.progress.dto.MonthlyReadCountResponse;
@@ -75,6 +76,21 @@ public class StatisticsService {
         return IntStream.rangeClosed(1, 12)
                 .mapToObj(month -> new MonthlyReadCountResponse(month, getCountForMonth(completedCounts, month)))
                 .toList();
+    }
+
+    /** 특정 연도의 월별 완독 권수를 바탕으로 연간 요약 통계를 계산해 반환한다. */
+    public AnnualCompletedSummaryResponse getAnnualCompletedSummary(Long userId, Integer year) {
+        List<MonthlyReadCountResponse> counts = getAnnualCompletedCounts(userId, year);
+        long total = counts.stream().mapToLong(MonthlyReadCountResponse::count).sum();
+        if (total == 0) {
+            return AnnualCompletedSummaryResponse.empty();
+        }
+
+        MonthlyReadCountResponse best = counts.stream()
+                .max((left, right) -> Long.compare(left.count(), right.count()))
+                .orElseThrow();
+        long activeMonthCount = counts.stream().filter(count -> count.count() > 0).count();
+        return new AnnualCompletedSummaryResponse(total, best.month(), best.count(), activeMonthCount);
     }
 
     /** 집계 결과에서 특정 월의 완독 권수를 반환한다. */

@@ -2,6 +2,7 @@ package booktine.Booktine.domain.progress.service;
 
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
+import booktine.Booktine.domain.progress.dto.AnnualCompletedSummaryResponse;
 import booktine.Booktine.domain.progress.dto.BasicStatsResponse;
 import booktine.Booktine.domain.progress.dto.GenreStatsResponse;
 import booktine.Booktine.domain.progress.dto.MonthlyReadCountResponse;
@@ -78,6 +79,44 @@ class StatisticsServiceTest {
         // then
         assertThat(res).hasSize(12);
         assertThat(res.get(3).count()).isEqualTo(2); // 4월
+    }
+
+    @Test
+    @DisplayName("연간 완독 요약 통계 계산 성공")
+    void getAnnualCompletedSummary_success() {
+        // given
+        given(postRepository.countCompletedMonths(
+                eq(1L), eq(ReadingStatus.COMPLETED), any(), any())).willReturn(List.of(
+                new MonthlyReadCountResponse(1, 1),
+                new MonthlyReadCountResponse(4, 3),
+                new MonthlyReadCountResponse(7, 2)
+        ));
+
+        // when
+        AnnualCompletedSummaryResponse res = statisticsService.getAnnualCompletedSummary(1L, 2026);
+
+        // then
+        assertThat(res.totalCount()).isEqualTo(6);
+        assertThat(res.bestMonth()).isEqualTo(4);
+        assertThat(res.bestMonthCount()).isEqualTo(3);
+        assertThat(res.activeMonthCount()).isEqualTo(3);
+    }
+
+    @Test
+    @DisplayName("연간 완독 요약 통계가 없으면 빈 요약 반환")
+    void getAnnualCompletedSummary_empty() {
+        // given
+        given(postRepository.countCompletedMonths(
+                eq(1L), eq(ReadingStatus.COMPLETED), any(), any())).willReturn(List.of());
+
+        // when
+        AnnualCompletedSummaryResponse res = statisticsService.getAnnualCompletedSummary(1L, 2026);
+
+        // then
+        assertThat(res.totalCount()).isZero();
+        assertThat(res.bestMonth()).isNull();
+        assertThat(res.bestMonthCount()).isZero();
+        assertThat(res.activeMonthCount()).isZero();
     }
 
     @Test

@@ -6,6 +6,10 @@ import booktine.Booktine.domain.community.entity.CommunityPost;
 import booktine.Booktine.domain.community.repository.CommunityCommentRepository;
 import booktine.Booktine.domain.community.repository.CommunityLikeRepository;
 import booktine.Booktine.domain.community.repository.CommunityPostRepository;
+import booktine.Booktine.domain.genre.entity.Genre;
+import booktine.Booktine.domain.genre.repository.GenreRepository;
+import booktine.Booktine.domain.inquiry.entity.Inquiry;
+import booktine.Booktine.domain.inquiry.repository.InquiryRepository;
 import booktine.Booktine.domain.memo.entity.Memo;
 import booktine.Booktine.domain.memo.repository.MemoRepository;
 import booktine.Booktine.domain.post.entity.Post;
@@ -52,6 +56,8 @@ public class InitData {
     private final MonthlyGoalRepository monthlyGoalRepository;
     private final RecommendationRepository recommendationRepository;
     private final ReminderRepository reminderRepository;
+    private final GenreRepository genreRepository;
+    private final InquiryRepository inquiryRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
@@ -66,6 +72,7 @@ public class InitData {
         createAdminUser();
 
         LocalDate today = LocalDate.now();
+        createGenres();
         List<Post> posts = createPosts(user, today);
         createMemos(posts);
         createProgressGoals(user, today);
@@ -73,6 +80,7 @@ public class InitData {
         createReminders(user);
 
         User admin = userRepository.findByEmailAndAuthProvider("admin@booktine.com", UserAuthProvider.LOCAL).orElseThrow();
+        createInquiries(user, admin);
         createCommunityData(user, admin);
 
         log.info("[InitData] 개발용 초기 데이터 삽입 완료. userId={}, postCount={}, memoCount=12",
@@ -104,34 +112,39 @@ public class InitData {
         admin.updateRole(UserRole.ROLE_ADMIN);
     }
 
+    private void createGenres() {
+        List.of("철학", "심리", "SF", "환경").forEach(name -> genreRepository.save(new Genre(name)));
+    }
+
     private List<Post> createPosts(User user, LocalDate today) {
         return List.of(
                 savePost(user, "클린 코드", "로버트 C. 마틴", "IT", "인사이트", today.minusYears(12),
-                        "가독성과 유지보수성을 높이는 코드 작성 원칙", ReadingStatus.READING, null, 148, 584),
+                        "가독성과 유지보수성을 높이는 코드 작성 원칙", ReadingStatus.READING, today.minusWeeks(2), null, null, null, 148, 584),
                 savePost(user, "이펙티브 자바", "조슈아 블로크", "IT", "인사이트", today.minusYears(6),
-                        "자바 개발자가 알아야 할 실전 설계와 구현 원칙", ReadingStatus.COMPLETED, today.minusMonths(1).withDayOfMonth(5), 416, 416),
+                        "자바 개발자가 알아야 할 실전 설계와 구현 원칙", ReadingStatus.COMPLETED, today.minusMonths(2).withDayOfMonth(3), today.minusMonths(1).withDayOfMonth(5), 5.0, "자바 API 설계 감각을 끌어올려 준 책", 416, 416),
                 savePost(user, "데미안", "헤르만 헤세", "소설", "민음사", today.minusYears(25),
-                        "자아를 찾아가는 성장의 여정을 다룬 작품", ReadingStatus.WISHLIST, null, null, 240),
+                        "자아를 찾아가는 성장의 여정을 다룬 작품", ReadingStatus.WISHLIST, null, null, null, null, null, 240),
                 savePost(user, "아토믹 해빗", "제임스 클리어", "자기계발", "비즈니스북스", today.minusYears(7),
-                        "작은 습관이 모여 큰 변화를 만든다는 메시지", ReadingStatus.COMPLETED, today.minusMonths(3).withDayOfMonth(12), 360, 360),
+                        "작은 습관이 모여 큰 변화를 만든다는 메시지", ReadingStatus.COMPLETED, today.minusMonths(4).withDayOfMonth(1), today.minusMonths(3).withDayOfMonth(12), 4.5, "작은 실천을 바로 시작하게 만드는 힘이 있다", 360, 360),
                 savePost(user, "돈의 심리학", "모건 하우절", "경제", "인플루엔셜", today.minusYears(4),
-                        "돈을 대하는 태도와 의사결정을 설명하는 경제 에세이", ReadingStatus.COMPLETED, today.minusMonths(5).withDayOfMonth(18), 304, 304),
+                        "돈을 대하는 태도와 의사결정을 설명하는 경제 에세이", ReadingStatus.COMPLETED, today.minusMonths(6).withDayOfMonth(7), today.minusMonths(5).withDayOfMonth(18), 4.0, "투자보다 태도를 돌아보게 한 경제 에세이", 304, 304),
                 savePost(user, "사피엔스", "유발 하라리", "역사", "김영사", today.minusYears(8),
-                        "인류의 과거와 현재를 거시적으로 조망하는 역사서", ReadingStatus.COMPLETED, today.minusMonths(8).withDayOfMonth(9), 636, 636),
+                        "인류의 과거와 현재를 거시적으로 조망하는 역사서", ReadingStatus.COMPLETED, today.minusMonths(9).withDayOfMonth(2), today.minusMonths(8).withDayOfMonth(9), 4.5, "큰 흐름으로 인류사를 다시 보게 한다", 636, 636),
                 savePost(user, "코스모스", "칼 세이건", "과학", "사이언스북스", today.minusYears(18),
-                        "우주와 생명의 경이로움을 풀어낸 과학 고전", ReadingStatus.PAUSED, null, 220, 719),
+                        "우주와 생명의 경이로움을 풀어낸 과학 고전", ReadingStatus.PAUSED, today.minusMonths(1).withDayOfMonth(10), null, null, null, 220, 719),
                 savePost(user, "불편한 편의점", "김호연", "소설", "나무옆의자", today.minusYears(5),
-                        "편의점을 배경으로 이어지는 따뜻한 사람들의 이야기", ReadingStatus.COMPLETED, today.minusMonths(11).withDayOfMonth(22), 268, 268),
+                        "편의점을 배경으로 이어지는 따뜻한 사람들의 이야기", ReadingStatus.COMPLETED, today.minusYears(1).withDayOfMonth(3), today.minusMonths(11).withDayOfMonth(22), 3.5, "가볍게 읽히지만 오래 따뜻함이 남는다", 268, 268),
                 savePost(user, "타이탄의 도구들", "팀 페리스", "자기계발", "토네이도", today.minusYears(9),
-                        "성과를 만드는 루틴과 사고방식을 모은 인터뷰집", ReadingStatus.READING, null, 92, 368),
+                        "성과를 만드는 루틴과 사고방식을 모은 인터뷰집", ReadingStatus.READING, today.minusDays(10), null, null, null, 92, 368),
                 savePost(user, "넛지", "리처드 탈러", "경제", "리더스북", today.minusYears(15),
-                        "선택 설계를 통해 행동 변화를 이끄는 행동경제학 입문서", ReadingStatus.WISHLIST, null, null, 428)
+                        "선택 설계를 통해 행동 변화를 이끄는 행동경제학 입문서", ReadingStatus.WISHLIST, null, null, null, null, null, 428)
         );
     }
 
     private Post savePost(User user, String title, String author, String genre, String publisher,
                           LocalDate publishedDate, String summary, ReadingStatus readingStatus,
-                          LocalDate completedDate, Integer currentPage, Integer totalPage) {
+                          LocalDate startDate, LocalDate completedDate, Double rating, String shortReview,
+                          Integer currentPage, Integer totalPage) {
         return postRepository.save(Post.builder()
                 .user(user)
                 .title(title)
@@ -141,7 +154,10 @@ public class InitData {
                 .publishedDate(publishedDate)
                 .summary(summary)
                 .readingStatus(readingStatus)
+                .startDate(startDate)
                 .completedDate(completedDate)
+                .rating(rating)
+                .shortReview(shortReview)
                 .currentPage(currentPage)
                 .totalPage(totalPage)
                 .build());
@@ -167,6 +183,19 @@ public class InitData {
                 .post(post)
                 .content(content)
                 .page(page)
+                .build());
+    }
+
+    private void createInquiries(User user, User admin) {
+        inquiryRepository.save(Inquiry.builder()
+                .user(user)
+                .subject("독서 통계에 평균 별점도 보고 싶어요")
+                .message("완독한 책 기준으로 평균 별점과 높은 별점 책 목록을 확인할 수 있으면 좋겠습니다.")
+                .build());
+        inquiryRepository.save(Inquiry.builder()
+                .user(admin)
+                .subject("관리자 샘플 문의")
+                .message("관리자 페이지 문의 목록 확인을 위한 개발용 샘플 데이터입니다.")
                 .build());
     }
 

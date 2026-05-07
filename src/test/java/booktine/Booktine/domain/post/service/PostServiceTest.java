@@ -72,6 +72,7 @@ class PostServiceTest {
         assertThat(response.userId()).isEqualTo(1L);
         assertThat(response.currentPage()).isEqualTo(12);
         assertThat(response.totalPage()).isEqualTo(320);
+        assertThat(response.progressPercent()).isEqualTo(4);
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
@@ -96,7 +97,53 @@ class PostServiceTest {
         // given
         User user = createUser(1L);
         PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
-                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.COMPLETED, null, null, 4.2, "한줄평", 12, 320);
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.COMPLETED, LocalDate.of(2024, 1, 2), LocalDate.of(2024, 1, 10), 4.2, "한줄평", 12, 320);
+        given(userRepository.getReferenceById(1L)).willReturn(user);
+
+        // when // then
+        assertThatThrownBy(() -> postService.createPost(1L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+
+    @Test
+    @DisplayName("완독 상태에서 완료일이 없으면 예외 발생")
+    void createPost_completedWithoutCompletedDate_throwsException() {
+        // given
+        User user = createUser(1L);
+        PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.COMPLETED, LocalDate.of(2024, 1, 2), null, 4.5, "한줄평", 320, 320);
+        given(userRepository.getReferenceById(1L)).willReturn(user);
+
+        // when // then
+        assertThatThrownBy(() -> postService.createPost(1L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+    @Test
+    @DisplayName("완료일이 시작일보다 빠르면 예외 발생")
+    void createPost_completedDateBeforeStartDate_throwsException() {
+        // given
+        User user = createUser(1L);
+        PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.COMPLETED, LocalDate.of(2024, 2, 1), LocalDate.of(2024, 1, 10), 4.5, "한줄평", 320, 320);
+        given(userRepository.getReferenceById(1L)).willReturn(user);
+
+        // when // then
+        assertThatThrownBy(() -> postService.createPost(1L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+    @Test
+    @DisplayName("읽고 싶은 책에 진행 정보를 입력하면 예외 발생")
+    void createPost_wishlistWithProgressDetails_throwsException() {
+        // given
+        User user = createUser(1L);
+        PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.WISHLIST, null, null, null, null, 1, 320);
         given(userRepository.getReferenceById(1L)).willReturn(user);
 
         // when // then
@@ -168,6 +215,7 @@ class PostServiceTest {
         assertThat(response.startDate()).isEqualTo(LocalDate.of(2025, 1, 3));
         assertThat(response.rating()).isEqualTo(4.5);
         assertThat(response.shortReview()).isEqualTo("좋아요");
+        assertThat(response.progressPercent()).isEqualTo(100);
     }
 
     /**

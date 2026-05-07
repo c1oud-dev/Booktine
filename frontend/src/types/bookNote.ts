@@ -16,6 +16,7 @@ export interface BookNote {
   shortReview: string | null;
   currentPage: number | null;
   totalPage: number | null;
+  progressPercent: number;
   createdAt: string;
   updatedAt: string;
 }
