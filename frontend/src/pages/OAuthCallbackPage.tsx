@@ -16,7 +16,6 @@ export default function OAuthCallbackPage() {
 
     const completeOAuthLogin = async () => {
       const accessToken = searchParams.get('accessToken') ?? searchParams.get('token');
-      const refreshToken = searchParams.get('refreshToken');
 
       if (!accessToken) {
         clearSession();
@@ -27,9 +26,6 @@ export default function OAuthCallbackPage() {
 
       try {
         setAccessToken(accessToken);
-        if (refreshToken) {
-          document.cookie = `refreshToken=${encodeURIComponent(refreshToken)}; path=/; max-age=${60 * 60 * 24 * 14}; SameSite=Lax`;
-        }
         await refreshUser();
         window.dispatchEvent(new Event('auth-change'));
         if (mounted) {

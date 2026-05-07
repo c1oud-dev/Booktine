@@ -64,26 +64,6 @@ class StatisticsServiceTest {
     }
 
     @Test
-    @DisplayName("연간 독서량 추이 조회 - 12개월 데이터 반환")
-    void getAnnualTrend_returns12Months() {
-        // given
-        given(postRepository.countCompletedMonths(
-                eq(1L), eq(ReadingStatus.COMPLETED), any(), any())).willReturn(List.of(
-                new MonthlyReadCountResponse(1, 1),
-                new MonthlyReadCountResponse(3, 1)
-        ));
-
-        // when
-        List<MonthlyReadCountResponse> res = statisticsService.getAnnualTrend(1L, 2026);
-
-        // then
-        assertThat(res).hasSize(12);
-        assertThat(res.get(0).count()).isEqualTo(1); // 1월
-        assertThat(res.get(1).count()).isEqualTo(0); // 2월
-        assertThat(res.get(2).count()).isEqualTo(1); // 3월
-    }
-
-    @Test
     @DisplayName("연간 월별 완독 권수 조회 - 12개월 데이터 반환")
     void getAnnualCompletedCounts_returns12Months() {
         // given

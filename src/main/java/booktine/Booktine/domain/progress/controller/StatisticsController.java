@@ -42,13 +42,6 @@ public class StatisticsController {
         return ApiResponse.ok(statisticsService.getGenreStats(getCurrentUserId(), year, month));
     }
 
-    /** 연간 월별 독서량 추이를 조회한다. */
-    @Operation(summary = "연간 월별 독서량 조회", description = "지정한 연도의 월별 독서량 통계를 조회합니다.")
-    @GetMapping("/annual")
-    public ApiResponse<List<MonthlyReadCountResponse>> getAnnualTrend(@RequestParam Integer year) {
-        return ApiResponse.ok(statisticsService.getAnnualTrend(getCurrentUserId(), year));
-    }
-
     /** 연간 월별 완독 권수를 조회한다. */
     @Operation(summary = "연간 월별 완독 권수 조회", description = "지정한 연도의 월별 완독 권수 통계를 조회합니다.")
     @GetMapping("/annual/completed-counts")

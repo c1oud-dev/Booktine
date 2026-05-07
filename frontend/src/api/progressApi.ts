@@ -39,11 +39,6 @@ export async function getGenreStats(year?: number, month?: number) {
   return res.data.data;
 }
 
-export async function getAnnualTrend(year: number) {
-  const res = await http.get<ApiResponse<MonthlyReadCount[]>>('/stats/annual', { params: { year } });
-  return res.data.data;
-}
-
 export async function getAnnualCompletedCounts(year: number) {
   const res = await http.get<ApiResponse<MonthlyReadCount[]>>('/stats/annual/completed-counts', { params: { year } });
   return res.data.data;

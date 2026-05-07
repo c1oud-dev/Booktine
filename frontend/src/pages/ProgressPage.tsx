@@ -5,7 +5,6 @@ import {
   createMonthlyGoal,
   getAnnualCompletedCounts,
   getAnnualGoal,
-  getAnnualTrend,
   getBasicStats,
   getGenreStats,
   getMonthlyGoal,
@@ -29,7 +28,6 @@ export default function ProgressPage() {
   const [month, setMonth] = useState(defaultMonth);
   const [stats, setStats] = useState<BasicStats | null>(null);
   const [genres, setGenres] = useState<GenreStats[]>([]);
-  const [annualTrend, setAnnualTrend] = useState<MonthlyReadCount[]>([]);
   const [completedCounts, setCompletedCounts] = useState<MonthlyReadCount[]>([]);
   const [monthlyGoal, setMonthlyGoal] = useState<MonthlyGoal | null>(null);
   const [annualGoal, setAnnualGoal] = useState<AnnualGoal | null>(null);
@@ -58,13 +56,11 @@ export default function ProgressPage() {
       setMessage('');
     }
     try {
-      const [genreStats, annualTrendData, annualCompletedCounts] = await Promise.all([
+      const [genreStats, annualCompletedCounts] = await Promise.all([
         getGenreStats(year, month),
-        getAnnualTrend(year),
         getAnnualCompletedCounts(year),
       ]);
       setGenres(genreStats);
-      setAnnualTrend(annualTrendData);
       setCompletedCounts(annualCompletedCounts);
 
       try {
@@ -232,10 +228,10 @@ export default function ProgressPage() {
             <section className="border-t border-border pt-8">
               <SectionTitle icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />} eyebrow="Annual reading trend" title={`${year}년 연간 독서량 추이`} />
               <p className="mt-2 text-sm font-semibold leading-6 text-muted-foreground">
-                백엔드 기준 /stats/annual은 연간 월별 추이용 엔드포인트이고, 현재 서비스 구현에서는 /stats/annual/completed-counts와 동일하게 월별 완독 권수를 반환합니다. 차트는 추이 엔드포인트를 기준으로 그리고, 요약 수치는 완독 권수 엔드포인트를 기준으로 계산합니다.
+                월별 완독 권수 기준으로 차트와 요약 수치를 계산합니다.
               </p>
               <AnnualCompletedSummary data={completedCounts} />
-              <MonthlyBarChart data={annualTrend} currentYear={defaultYear} currentMonth={defaultMonth} selectedYear={year} />
+              <MonthlyBarChart data={completedCounts} currentYear={defaultYear} currentMonth={defaultMonth} selectedYear={year} />
             </section>
           </div>
         )}
