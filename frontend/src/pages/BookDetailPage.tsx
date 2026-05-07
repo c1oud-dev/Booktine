@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, BookOpen, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, NotebookPen, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { createMemo, deleteMemo, getBookNote, getMemos, updateMemo } from '../api/bookNoteApi';
 import type { BookNote, Memo } from '../types/bookNote';
 import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
@@ -176,10 +176,24 @@ export default function BookDetailPage() {
               {book.author || '-'} · {book.publisher || '-'} · {book.genre || '장르 미입력'}
             </p>
             <p className="mt-6 rounded-[1.25rem] bg-background p-5 text-sm leading-7 text-muted-foreground">
-              {book.summary}
+              {book.summary || '요약이 없습니다.'}
             </p>
 
-          <div className="mt-7 space-y-3">
+          {(book.rating || book.shortReview) ? (
+              <div className="mt-5 rounded-[1.25rem] border border-yellow-200 bg-yellow-50 p-5 text-sm font-bold text-yellow-900">
+                {book.rating ? (
+                  <p className="inline-flex items-center gap-2 text-base text-yellow-600">
+                    <Star className="h-5 w-5 fill-yellow-400" aria-hidden="true" />
+                    {book.rating.toFixed(1)}점
+                  </p>
+                ) : null}
+                {book.shortReview ? (
+                  <p className="mt-2 text-yellow-950">“{book.shortReview}”</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            <div className="mt-7 space-y-3">
               <div className="flex items-center justify-between text-sm font-bold">
                 <p className="text-foreground">독서 진행률</p>
                 <p className="text-muted-foreground">{progressLabel}</p>

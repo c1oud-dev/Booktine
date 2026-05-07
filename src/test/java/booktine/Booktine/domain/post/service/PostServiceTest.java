@@ -54,7 +54,7 @@ class PostServiceTest {
         // given
         User user = createUser(1L);
         PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
-                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 12, 320);
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, null, null, null, 12, 320);
         given(userRepository.getReferenceById(1L)).willReturn(user);
 
         Post post = Post.builder()
@@ -73,6 +73,36 @@ class PostServiceTest {
         assertThat(response.currentPage()).isEqualTo(12);
         assertThat(response.totalPage()).isEqualTo(320);
         verify(postRepository, times(1)).save(any(Post.class));
+    }
+
+    @Test
+    @DisplayName("완독이 아닌 상태에서 별점을 입력하면 예외 발생")
+    void createPost_ratingForNotCompleted_throwsException() {
+        // given
+        User user = createUser(1L);
+        PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, null, 4.0, "한줄평", 12, 320);
+        given(userRepository.getReferenceById(1L)).willReturn(user);
+
+        // when // then
+        assertThatThrownBy(() -> postService.createPost(1L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+    @Test
+    @DisplayName("0.5 단위가 아닌 별점을 입력하면 예외 발생")
+    void createPost_invalidRatingStep_throwsException() {
+        // given
+        User user = createUser(1L);
+        PostCreateRequest request = new PostCreateRequest("제목", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.COMPLETED, null, null, 4.2, "한줄평", 12, 320);
+        given(userRepository.getReferenceById(1L)).willReturn(user);
+
+        // when // then
+        assertThatThrownBy(() -> postService.createPost(1L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
     }
 
     /**
@@ -124,7 +154,7 @@ class PostServiceTest {
         User user = createUser(1L);
         Post post = createPost(31L, user, "수정전");
         PostUpdateRequest request = new PostUpdateRequest("수정후", "새저자", "새장르", "새출판사",
-                LocalDate.of(2025, 1, 1), "새요약", ReadingStatus.COMPLETED, LocalDate.of(2025, 2, 2), 320, 320);
+                LocalDate.of(2025, 1, 1), "새요약", ReadingStatus.COMPLETED, LocalDate.of(2025, 1, 3), LocalDate.of(2025, 2, 2), 4.5, "좋아요", 320, 320);
         given(postRepository.findWithUserByIdAndUserId(31L, 1L)).willReturn(java.util.Optional.of(post));
 
         // when
@@ -135,6 +165,9 @@ class PostServiceTest {
         assertThat(response.readingStatus()).isEqualTo(ReadingStatus.COMPLETED);
         assertThat(response.currentPage()).isEqualTo(320);
         assertThat(response.totalPage()).isEqualTo(320);
+        assertThat(response.startDate()).isEqualTo(LocalDate.of(2025, 1, 3));
+        assertThat(response.rating()).isEqualTo(4.5);
+        assertThat(response.shortReview()).isEqualTo("좋아요");
     }
 
     /**
@@ -165,7 +198,7 @@ class PostServiceTest {
         User owner = createUser(1L);
         Post post = createPost(51L, owner, "권한게시물");
         PostUpdateRequest request = new PostUpdateRequest("수정시도", "저자", "장르", "출판사",
-                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 12, 320);
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, null, null, null, 12, 320);
         given(postRepository.findWithUserByIdAndUserId(51L, 2L)).willReturn(java.util.Optional.empty());
         given(postRepository.existsById(51L)).willReturn(true);
 
@@ -182,7 +215,7 @@ class PostServiceTest {
         User user = createUser(1L);
         Post post = createPost(61L, user, "페이지검증");
         PostUpdateRequest request = new PostUpdateRequest("수정", "저자", "장르", "출판사",
-                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, 101, 100);
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, null, null, null, 101, 100);
         given(postRepository.findWithUserByIdAndUserId(61L, 1L)).willReturn(java.util.Optional.of(post));
 
         // when // then
@@ -212,7 +245,10 @@ class PostServiceTest {
                 .publishedDate(LocalDate.of(2024, 1, 1))
                 .summary("요약")
                 .readingStatus(ReadingStatus.READING)
+                .startDate(null)
                 .completedDate(null)
+                .rating(null)
+                .shortReview(null)
                 .currentPage(30)
                 .totalPage(300)
                 .user(user)

@@ -35,6 +35,7 @@ public class PostService {
     public PostResponse createPost(Long userId, PostCreateRequest request) {
         User user = userRepository.getReferenceById(userId);
         validatePageRange(request.currentPage(), request.totalPage());
+        validateRating(request.readingStatus(), request.rating());
         Post post = buildPost(request, user);
 
         return PostResponse.from(postRepository.save(post));
@@ -56,6 +57,7 @@ public class PostService {
     public PostResponse updatePost(Long userId, Long postId, PostUpdateRequest request) {
         Post post = getOwnedPost(userId, postId);
         validatePageRange(request.currentPage(), request.totalPage());
+        validateRating(request.readingStatus(), request.rating());
         post.updateDetails(
                 request.title(),
                 request.author(),
@@ -64,7 +66,10 @@ public class PostService {
                 request.publishedDate(),
                 request.summary(),
                 request.readingStatus(),
+                request.startDate(),
                 request.completedDate(),
+                request.rating(),
+                request.shortReview(),
                 request.currentPage(),
                 request.totalPage()
         );
@@ -97,11 +102,27 @@ public class PostService {
                 .publishedDate(request.publishedDate())
                 .summary(request.summary())
                 .readingStatus(request.readingStatus())
+                .startDate(request.startDate())
                 .completedDate(request.completedDate())
+                .rating(request.rating())
+                .shortReview(request.shortReview())
                 .currentPage(request.currentPage())
                 .totalPage(request.totalPage())
                 .user(user)
                 .build();
+    }
+
+    /** 별점은 완독 상태에서만 0.5 단위, 0.5~5.0 범위로 입력할 수 있다. */
+    private void validateRating(ReadingStatus readingStatus, Double rating) {
+        if (rating == null) {
+            return;
+        }
+
+        double doubledRating = rating * 2;
+        boolean isHalfStep = Math.abs(doubledRating - Math.round(doubledRating)) < 0.000001;
+        if (readingStatus != ReadingStatus.COMPLETED || rating < 0.5 || rating > 5.0 || !isHalfStep) {
+            throw new CustomException(ErrorCode.INVALID_INPUT);
+        }
     }
 
     /** 현재 페이지가 전체 페이지를 초과하면 잘못된 입력 예외를 발생시킨다. */

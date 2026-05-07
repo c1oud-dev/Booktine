@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, CalendarCheck, Edit3, Plus, Trash2, X } from 'lucide-react';
+import { BookOpen, CalendarCheck, Edit3, Plus, Star, Trash2, X } from 'lucide-react';
 import { createBookNote, deleteBookNote, getBookNotes, searchBookNotes, updateBookNote } from '../api/bookNoteApi';
 import { DEFAULT_GENRES, getGenres } from '@/api/genreApi';
 import { READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
@@ -14,6 +14,60 @@ import { cn } from '@/lib/utils';
 const defaultStatus: ReadingStatus = 'READING';
 const pageSize = 10;
 
+type RatingInputProps = {
+  value: number | null;
+  onChange: (value: number | null) => void;
+};
+
+function RatingInput({ value, onChange }: RatingInputProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center" role="radiogroup" aria-label="별점 선택">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const leftValue = star - 0.5;
+          const rightValue = star;
+          const fillPercent = Math.max(0, Math.min(100, ((value ?? 0) - (star - 1)) * 100));
+
+          return (
+            <span key={star} className="relative inline-flex h-9 w-9 items-center justify-center">
+              <Star className="h-8 w-8 text-muted" aria-hidden="true" />
+              <span className="pointer-events-none absolute inset-0 overflow-hidden" style={{ width: `${fillPercent}%` }}>
+                <Star className="h-8 w-8 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+              </span>
+              <button
+                type="button"
+                className="absolute inset-y-0 left-0 w-1/2 rounded-l-full focus:outline-none focus:ring-2 focus:ring-ring"
+                aria-label={`${leftValue}점`}
+                aria-checked={value === leftValue}
+                role="radio"
+                onClick={() => onChange(leftValue)}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 w-1/2 rounded-r-full focus:outline-none focus:ring-2 focus:ring-ring"
+                aria-label={`${rightValue}점`}
+                aria-checked={value === rightValue}
+                role="radio"
+                onClick={() => onChange(rightValue)}
+              />
+            </span>
+          );
+        })}
+      </div>
+      <span className="text-sm font-black text-foreground">{value ? `${value.toFixed(1)}점` : '별점 미선택'}</span>
+      {value ? (
+        <button
+          type="button"
+          className="rounded-full border border-border px-3 py-1 text-xs font-bold text-muted-foreground hover:bg-secondary"
+          onClick={() => onChange(null)}
+        >
+          초기화
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 export default function BooksPage() {
   const [items, setItems] = useState<BookNote[]>([]);
   const [title, setTitle] = useState('');
@@ -22,8 +76,11 @@ export default function BooksPage() {
   const [genre, setGenre] = useState('');
   const [publisher, setPublisher] = useState('');
   const [publishedDate, setPublishedDate] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [readingStatus, setReadingStatus] = useState<ReadingStatus>(defaultStatus);
   const [completedDate, setCompletedDate] = useState('');
+  const [rating, setRating] = useState<number | null>(null);
+  const [shortReview, setShortReview] = useState('');
   const [bookCurrentPage, setBookCurrentPage] = useState('');
   const [bookTotalPage, setBookTotalPage] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -50,8 +107,11 @@ export default function BooksPage() {
     setGenre(genreOptions[0] ?? '기타');
     setPublisher('');
     setPublishedDate('');
+    setStartDate('');
     setReadingStatus(defaultStatus);
     setCompletedDate('');
+    setRating(null);
+    setShortReview('');
     setBookCurrentPage('');
     setBookTotalPage('');
     setEditingId(null);
@@ -93,13 +153,16 @@ export default function BooksPage() {
       title,
       summary,
       author,
-      genre,
+      genre: genre || null,
       publisher,
-      publishedDate,
+      publishedDate: publishedDate || null,
       readingStatus,
+      startDate: startDate || null,
       completedDate: completedDate || null,
       currentPage: bookCurrentPage === '' ? null : Number(bookCurrentPage),
       totalPage: bookTotalPage === '' ? null : Number(bookTotalPage),
+      rating: readingStatus === 'COMPLETED' ? rating : null,
+      shortReview: readingStatus === 'COMPLETED' ? shortReview || null : null,
     };
 
     if (editingId) {
@@ -199,10 +262,10 @@ export default function BooksPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -12, scale: 0.985 }}
             transition={panelSpring}
-            className="grid origin-top gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-2"
+            className="grid origin-top gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-6"
             onSubmit={onSubmit}
           >
-          <div className="flex items-center justify-between lg:col-span-2">
+          <div className="flex items-center justify-between lg:col-span-6">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
                 {editingId ? 'Edit note' : 'Create note'}
@@ -223,7 +286,7 @@ export default function BooksPage() {
             </button>
           </div>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-6">
             제목
             <input
               className="mt-2"
@@ -234,7 +297,7 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
             저자
             <input
               className="mt-2"
@@ -245,13 +308,12 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
             장르
             <select
               className="mt-2 w-full pr-10"
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
-              required
             >
               {selectableGenreOptions.map((option) => (
                 <option key={option} value={option}>
@@ -261,7 +323,7 @@ export default function BooksPage() {
             </select>
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
             출판사
             <input
               className="mt-2"
@@ -272,23 +334,19 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
-            출간일
-            <input
-              className="mt-2"
-              type="date"
-              value={publishedDate}
-              onChange={(e) => setPublishedDate(e.target.value)}
-              required
-            />
-          </label>
-
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
             독서 상태
             <select
               className="mt-2 w-full pr-10"
               value={readingStatus}
-              onChange={(e) => setReadingStatus(e.target.value as ReadingStatus)}
+              onChange={(e) => {
+                const nextStatus = e.target.value as ReadingStatus;
+                setReadingStatus(nextStatus);
+                if (nextStatus !== 'COMPLETED') {
+                  setRating(null);
+                  setShortReview('');
+                }
+              }}
             >
               {READING_STATUS_OPTIONS.map((status) => (
                 <option key={status} value={status}>
@@ -298,7 +356,18 @@ export default function BooksPage() {
             </select>
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
+            시작일
+            <input
+              className="mt-2"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              placeholder="독서 시작일"
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-foreground lg:col-span-3">
             완독일
             <input
               className="mt-2"
@@ -309,7 +378,17 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-2">
+            출간일
+            <input
+              className="mt-2"
+              type="date"
+              value={publishedDate}
+              onChange={(e) => setPublishedDate(e.target.value)}
+            />
+          </label>
+
+          <label className="block text-sm font-bold text-foreground lg:col-span-2">
             현재 페이지
             <input
               className="mt-2"
@@ -321,7 +400,7 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground">
+          <label className="block text-sm font-bold text-foreground lg:col-span-2">
             전체 페이지
             <input
               className="mt-2"
@@ -333,18 +412,38 @@ export default function BooksPage() {
             />
           </label>
 
-          <label className="block text-sm font-bold text-foreground lg:col-span-2">
+          <label className="block text-sm font-bold text-foreground lg:col-span-6">
             요약
             <textarea
               className="mt-2 min-h-28 resize-y"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="책의 핵심 내용이나 읽고 싶은 이유를 적어보세요."
-              required
             />
           </label>
 
-          <div className="flex flex-col gap-3 sm:flex-row lg:col-span-2">
+          {readingStatus === 'COMPLETED' ? (
+            <div className="space-y-4 rounded-[1.25rem] border border-border bg-background p-4 lg:col-span-6">
+              <label className="block text-sm font-bold text-foreground">
+                별점
+                <div className="mt-2">
+                  <RatingInput value={rating} onChange={setRating} />
+                </div>
+              </label>
+              <label className="block text-sm font-bold text-foreground">
+                한줄평
+                <input
+                  className="mt-2"
+                  value={shortReview}
+                  onChange={(e) => setShortReview(e.target.value)}
+                  placeholder="완독 후 떠오르는 한 문장을 남겨보세요."
+                  maxLength={255}
+                />
+              </label>
+            </div>
+          ) : null}
+
+          <div className="flex flex-col gap-3 sm:flex-row lg:col-span-6">
             <button
               className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
               type="submit"
@@ -418,15 +517,29 @@ export default function BooksPage() {
                   </motion.span>
                 </div>
                 <p className="mt-2 text-sm font-semibold text-muted-foreground">
-                  {book.author} · {book.genre}
+                  {book.author} · {book.genre || '장르 미입력'}
                 </p>
                 <p className="mt-4 line-clamp-4 flex-1 text-sm leading-6 text-muted-foreground">
-                  {book.summary}
+                  {book.summary || '요약이 없습니다.'}
                 </p>
+
+                {(book.rating || book.shortReview) ? (
+                  <div className="mt-4 rounded-2xl bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground">
+                    {book.rating ? (
+                      <p className="flex items-center gap-1 text-yellow-500">
+                        <Star className="h-4 w-4 fill-yellow-400" aria-hidden="true" />
+                        {book.rating.toFixed(1)}점
+                      </p>
+                    ) : null}
+                    {book.shortReview ? (
+                      <p className="mt-1 line-clamp-2 text-secondary-foreground">“{book.shortReview}”</p>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="mt-5 flex items-center gap-2 text-xs font-bold text-muted-foreground">
                   <CalendarCheck className="h-4 w-4" aria-hidden="true" />
-                  {book.completedDate ? `${book.completedDate} 완독` : `${book.publishedDate} 출간`}
+                  {book.completedDate ? `${book.completedDate} 완독` : book.publishedDate ? `${book.publishedDate} 출간` : '출간일 미입력'}
                 </div>
 
                 <div className="mt-5 flex gap-2 border-t border-border pt-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
@@ -437,13 +550,16 @@ export default function BooksPage() {
                       e.stopPropagation();
                       setEditingId(book.id);
                       setTitle(book.title);
-                      setSummary(book.summary);
+                      setSummary(book.summary ?? '');
                       setAuthor(book.author);
-                      setGenre(book.genre);
+                      setGenre(book.genre ?? genreOptions[0] ?? '기타');
                       setPublisher(book.publisher);
-                      setPublishedDate(book.publishedDate);
+                      setPublishedDate(book.publishedDate ?? '');
+                      setStartDate(book.startDate ?? '');
                       setReadingStatus(book.readingStatus);
                       setCompletedDate(book.completedDate ?? '');
+                      setRating(book.rating ?? null);
+                      setShortReview(book.shortReview ?? '');
                       setBookCurrentPage(book.currentPage?.toString() ?? '');
                       setBookTotalPage(book.totalPage?.toString() ?? '');
                       setIsFormOpen(true);

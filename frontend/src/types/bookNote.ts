@@ -5,12 +5,15 @@ export interface BookNote {
   title: string;
   coverImageUrl: string | null;
   author: string;
-  genre: string;
+  genre: string | null;
   publisher: string;
-  publishedDate: string;
-  summary: string;
+  publishedDate: string | null;
+  summary: string | null;
   readingStatus: ReadingStatus;
+  startDate: string | null;
   completedDate: string | null;
+  rating: number | null;
+  shortReview: string | null;
   currentPage: number | null;
   totalPage: number | null;
   createdAt: string;
@@ -29,12 +32,15 @@ export interface Memo {
 export interface BookNotePayload {
   title: string;
   author: string;
-  genre: string;
+  genre?: string | null;
   publisher: string;
-  publishedDate: string;
-  summary: string;
+  publishedDate?: string | null;
+  summary?: string | null;
   readingStatus: ReadingStatus;
+  startDate?: string | null;
   completedDate?: string | null;
+  rating?: number | null;
+  shortReview?: string | null;
   currentPage?: number | null;
   totalPage?: number | null;
 }

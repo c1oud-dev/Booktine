@@ -16,12 +16,15 @@ import java.time.LocalDate;
 public record PostCreateRequest(
         @NotBlank(message = "제목은 필수입니다.") String title,
         @NotBlank(message = "저자는 필수입니다.") String author,
-        @NotBlank(message = "장르는 필수입니다.") String genre,
+        String genre,
         @NotBlank(message = "출판사는 필수입니다.") String publisher,
-        @NotNull(message = "출판일은 필수입니다.") LocalDate publishedDate,
-        @NotBlank(message = "요약은 필수입니다.") String summary,
+        LocalDate publishedDate,
+        String summary,
         @NotNull(message = "독서 상태는 필수입니다.") ReadingStatus readingStatus,
+        LocalDate startDate,
         LocalDate completedDate,
+        Double rating,
+        String shortReview,
         @Min(value = 0, message = "현재 페이지는 0 이상이어야 합니다.") Integer currentPage,
         @Min(value = 1, message = "전체 페이지는 1 이상이어야 합니다.") Integer totalPage
 ) {

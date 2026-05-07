@@ -38,23 +38,27 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private String author;
 
-    @Column(nullable = false)
     private String genre;
 
     @Column(nullable = false)
     private String publisher;
 
-    @Column(nullable = false)
     private LocalDate publishedDate;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String summary;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReadingStatus readingStatus;
 
+    private LocalDate startDate;
+
     private LocalDate completedDate;
+
+    private Double rating;
+
+    private String shortReview;
 
     private Integer currentPage;
 
@@ -68,7 +72,8 @@ public class Post extends BaseEntity {
     @Builder
     public Post(String title, String coverImageUrl, String author, String genre, String publisher,
                 LocalDate publishedDate, String summary, ReadingStatus readingStatus,
-                LocalDate completedDate, Integer currentPage, Integer totalPage, User user) {
+                LocalDate startDate, LocalDate completedDate, Double rating, String shortReview,
+                Integer currentPage, Integer totalPage, User user) {
         this.title = title;
         this.coverImageUrl = coverImageUrl;
         this.author = author;
@@ -77,7 +82,10 @@ public class Post extends BaseEntity {
         this.publishedDate = publishedDate;
         this.summary = summary;
         this.readingStatus = readingStatus;
+        this.startDate = startDate;
         this.completedDate = completedDate;
+        this.rating = rating;
+        this.shortReview = shortReview;
         this.currentPage = currentPage;
         this.totalPage = totalPage;
         this.user = user;
@@ -86,7 +94,8 @@ public class Post extends BaseEntity {
     /** 게시물 수정 요청의 변경 가능한 정보를 반영한다 */
     public void updateDetails(String title, String author, String genre, String publisher,
                               LocalDate publishedDate, String summary, ReadingStatus readingStatus,
-                              LocalDate completedDate, Integer currentPage, Integer totalPage) {
+                              LocalDate startDate, LocalDate completedDate, Double rating, String shortReview,
+                              Integer currentPage, Integer totalPage) {
         this.title = title;
         this.author = author;
         this.genre = genre;
@@ -94,7 +103,10 @@ public class Post extends BaseEntity {
         this.publishedDate = publishedDate;
         this.summary = summary;
         this.readingStatus = readingStatus;
+        this.startDate = startDate;
         this.completedDate = completedDate;
+        this.rating = rating;
+        this.shortReview = shortReview;
         this.currentPage = currentPage;
         this.totalPage = totalPage;
     }
