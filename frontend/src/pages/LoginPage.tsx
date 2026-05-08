@@ -9,8 +9,6 @@ import { panelSpring } from '@/lib/motion';
 
 const OAUTH_PROVIDERS = [
   { id: 'google', label: 'Google', className: 'bg-card text-foreground border border-border hover:bg-secondary' },
-  { id: 'kakao', label: 'Kakao', className: 'bg-[#FEE500] text-[#191919] hover:bg-[#f5dc00]' },
-  { id: 'naver', label: 'Naver', className: 'bg-[#03C75A] text-white hover:bg-[#02b351]' },
 ];
 
 export default function LoginPage() {

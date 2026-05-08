@@ -72,17 +72,6 @@ public class SocialOAuth2UserService extends DefaultOAuth2UserService {
             return switch (registrationId) {
                 case "google" -> new SocialUserInfo(UserAuthProvider.GOOGLE, String.valueOf(attributes.get("sub")),
                         String.valueOf(attributes.get("email")), String.valueOf(attributes.get("name")));
-                case "kakao" -> {
-                    Map<String, Object> account = (Map<String, Object>) attributes.get("kakao_account");
-                    Map<String, Object> profile = (Map<String, Object>) account.get("profile");
-                    yield new SocialUserInfo(UserAuthProvider.KAKAO, String.valueOf(attributes.get("id")),
-                            String.valueOf(account.get("email")), String.valueOf(profile.get("nickname")));
-                }
-                case "naver" -> {
-                    Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-                    yield new SocialUserInfo(UserAuthProvider.NAVER, String.valueOf(response.get("id")),
-                            String.valueOf(response.get("email")), String.valueOf(response.get("name")));
-                }
                 default -> throw new IllegalArgumentException("지원하지 않는 provider 입니다: " + registrationId);
             };
         }
