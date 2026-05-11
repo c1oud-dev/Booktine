@@ -1,14 +1,19 @@
-import { FormEvent, useState } from 'react';
-import { CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import { FormEvent, useMemo, useState } from 'react';
+import { CheckCircle2, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { checkEmailDuplicated, checkNicknameDuplicated } from '@/api/userApi';
 import { authApi } from '../auth/authApi';
 import Spinner from '@/components/common/Spinner';
+import { API_BASE_URL } from '@/config/env';
 
 type DuplicationFeedback = {
   status: 'idle' | 'success' | 'error';
   message: string;
 };
+
+const OAUTH_PROVIDERS = [
+  { id: 'google', label: 'Google', className: 'bg-card text-foreground border border-border hover:bg-secondary' },
+];
 
 const feedbackInputClass = (status: DuplicationFeedback['status']) => {
   if (status === 'success') {
@@ -40,12 +45,13 @@ export default function SignupPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const oauthBaseUrl = useMemo(() => API_BASE_URL, []);
 
-  const handleCheckEmail = async () => {
+  const handleCheckEmail = async (): Promise<boolean> => {
     if (!email) {
       setEmailFeedback({ status: 'error', message: '이메일을 먼저 입력해 주세요.' });
       setMessage('이메일을 먼저 입력해 주세요.');
-      return;
+      return false;
     }
     setCheckingEmail(true);
     setMessage('');
@@ -58,10 +64,12 @@ export default function SignupPage() {
         message: duplicated ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다.',
       });
       setMessage(duplicated ? '이미 사용 중인 이메일입니다.' : '사용 가능한 이메일입니다. 인증 코드를 발송해 주세요.');
+      return !duplicated;
     } catch {
       setEmailAvailable(false);
       setEmailFeedback({ status: 'error', message: '이메일 중복 확인에 실패했습니다.' });
       setMessage('이메일 중복 확인에 실패했습니다.');
+      return false;
     } finally {
       setCheckingEmail(false);
     }
@@ -93,8 +101,9 @@ export default function SignupPage() {
   };
 
   const handleSendCode = async () => {
-    if (!emailAvailable) {
-      setMessage('이메일 중복 확인을 먼저 완료해 주세요.');
+    const canSendCode = emailAvailable || (await handleCheckEmail());
+
+    if (!canSendCode) {
       return;
     }
 
@@ -246,11 +255,11 @@ export default function SignupPage() {
                 </span>
                 <button 
                   type="button" 
-                  onClick={handleCheckEmail} 
-                  disabled={checkingEmail || emailAvailable} 
+                  onClick={handleSendCode} 
+                  disabled={checkingEmail || sendingCode || emailVerified} 
                   className="shrink-0 rounded-xl border border-border bg-card px-4 text-sm font-bold text-foreground hover:bg-secondary disabled:opacity-60"
                   >
-                  {emailAvailable ? '확인 완료' : checkingEmail ? '확인 중' : '중복 확인'}
+                  {emailVerified ? '인증 완료' : sendingCode ? '발송 중' : checkingEmail ? '확인 중' : '인증 코드 보내기'}
                 </button>
               </span>
               {emailFeedback.message ? (
@@ -317,6 +326,25 @@ export default function SignupPage() {
               {loading ? <Spinner label="가입 처리 중..." className="justify-center text-primary-foreground" /> : 'Sign up'}
             </button>
           </form>
+
+          <div className="my-7 flex items-center gap-3 text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            또는
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <div className="grid gap-3">
+            {OAUTH_PROVIDERS.map((provider) => (
+              <a
+                key={provider.id}
+                href={`${oauthBaseUrl}/oauth2/authorization/${provider.id}`}
+                className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black shadow-soft ${provider.className}`}
+              >
+                <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                {provider.label}로 계속하기
+              </a>
+            ))}
+          </div>
 
           {message ? <p className="mt-4 rounded-xl bg-secondary px-4 py-3 text-sm font-semibold text-secondary-foreground">{message}</p> : null}
         </article>
