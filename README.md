@@ -10,7 +10,7 @@
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
-![Image]("https://github.com/user-attachments/assets/e6826308-10d7-4696-b3eb-9268be15104e")
+![Image](https://github.com/user-attachments/assets/e6826308-10d7-4696-b3eb-9268be15104e)
 
 🔗 **서비스**: https://booktine.cloud
 > 서비스 운영 기간: 2025.05 ~ 2026.05
