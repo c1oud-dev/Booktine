@@ -2,7 +2,7 @@ import { FormEvent, type ReactNode, useEffect, useState } from 'react';
 import { BookmarkPlus, LibraryBig, Search, Sparkles, Trash2 } from 'lucide-react';
 import {
   deleteRecommendation,
-  getRecommendationByGenre,
+  getRecommendationsByGenre,
   getSavedRecommendations,
   getBestsellers,
   saveRecommendation,
@@ -20,7 +20,7 @@ const BESTSELLER_PREVIEW_SIZE = 6;
 
 export default function RecommendationPage() {
   const [selectedGenre, setSelectedGenre] = useState(genres[0]);
-  const [genreResult, setGenreResult] = useState<RecommendationBook | null>(null);
+  const [genreResults, setGenreResults] = useState<RecommendationBook[]>([]);
   const [query, setQuery] = useState('');
   const [searchItems, setSearchItems] = useState<SearchBook[]>([]);
   const [bestsellerItems, setBestsellerItems] = useState<SearchBook[]>([]);
@@ -47,8 +47,9 @@ export default function RecommendationPage() {
     setLoading(true);
     setMessage('');
     try {
-      setGenreResult(await getRecommendationByGenre(selectedGenre));
+      setGenreResults(await getRecommendationsByGenre(selectedGenre, 6));
     } catch {
+      setGenreResults([]);
       setMessage('장르 추천을 불러오지 못했습니다.');
     } finally {
       setLoading(false);
@@ -121,7 +122,7 @@ export default function RecommendationPage() {
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
@@ -155,24 +156,29 @@ export default function RecommendationPage() {
             </button>
           </div>
 
-          {genreResult ? (
-            <BookRecommendationCard
-              className="mt-6"
-              title={genreResult.title}
-              author={genreResult.author}
-              publisher={genreResult.publisher}
-              genre={genreResult.genre}
-              description={genreResult.description}
-              coverImageUrl={genreResult.coverImageUrl}
-              actionLabel="저장"
-              actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
-              onAction={() => onSave(genreResult)}
-            />
+          {genreResults.length > 0 ? (
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+              {genreResults.map((item) => (
+                <li key={item.isbn || `${item.title}-${item.author}`} className="h-full">
+                  <BookRecommendationCard
+                    title={item.title}
+                    author={item.author}
+                    publisher={item.publisher}
+                    genre={item.genre}
+                    description={item.description}
+                    coverImageUrl={item.coverImageUrl}
+                    actionLabel="저장"
+                    actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
+                    onAction={() => onSave(item)}
+                  />
+                </li>
+              ))}
+            </ul>
           ) : (
             <div className="mt-6">
               <EmptyState
                 title="장르를 선택해 보세요"
-                description="관심 있는 장르를 고르면 다음에 읽기 좋은 책을 추천해 드려요."
+                description="관심 있는 장르를 고르면 최대 6권의 추천 도서를 보여드려요."
               />
             </div>
           )}
@@ -217,7 +223,7 @@ export default function RecommendationPage() {
                 <h3 className="text-lg font-black text-foreground">지금 인기 있는 책</h3>
                 <ul className="mt-4 grid gap-4 sm:grid-cols-2">
                   {bestsellerItems.map((item) => (
-                    <li key={item.isbn13 || `${item.title}-${item.author}`}>
+                    <li key={item.isbn13 || `${item.title}-${item.author}`} className="h-full">
                       <BookRecommendationCard
                         title={item.title}
                         author={item.author}
@@ -244,7 +250,7 @@ export default function RecommendationPage() {
           ) : (
             <ul className="mt-6 grid gap-4 sm:grid-cols-2">
               {searchItems.map((item) => (
-                <li key={item.isbn13}>
+                <li key={item.isbn13} className="h-full">
                   <BookRecommendationCard
                     title={item.title}
                     author={item.author}
@@ -286,7 +292,7 @@ export default function RecommendationPage() {
         ) : (
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {savedItems.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className="h-full">
                 <BookRecommendationCard
                   title={item.title}
                   author={item.author}
@@ -340,27 +346,31 @@ function BookRecommendationCard({
 }: BookRecommendationCardProps) {
   return (
     <div className={`flex h-full min-w-0 max-w-full flex-col overflow-hidden rounded-[1.25rem] border border-border bg-background p-5 ${className}`}>
-      {coverImageUrl ? (
-        <div className="mb-4 h-44 w-full overflow-hidden rounded-2xl bg-secondary">
+      <div className="mx-auto mb-4 h-56 w-36 shrink-0 overflow-hidden rounded-2xl bg-secondary shadow-soft">
+        {coverImageUrl ? (
           <img
             src={coverImageUrl}
             alt={`${title} 표지`}
             className="h-full w-full object-cover object-center"
             loading="lazy"
           />
-        </div>
-      ) : null}
+        ) : (
+          <div className="flex h-full w-full items-center justify-center px-4 text-center text-xs font-black text-muted-foreground">
+            표지 없음
+          </div>
+        )}
+      </div>
       <span className="w-fit max-w-full truncate rounded-full bg-card px-3 py-1 text-xs font-black text-muted-foreground shadow-soft">
         {genre || '장르 미분류'}
       </span>
-      <h3 className="mt-4 line-clamp-2 break-words text-lg font-black tracking-tight text-foreground">
+      <h3 className="mt-4 min-h-[3.5rem] line-clamp-2 break-words text-lg font-black tracking-tight text-foreground">
         {title}
       </h3>
-      <p className="mt-2 break-words text-sm font-semibold text-muted-foreground">
+      <p className="mt-2 min-h-[2.5rem] line-clamp-2 break-words text-sm font-semibold text-muted-foreground">
         {author || '저자 미입력'} · {publisher || '출판사 미입력'}
       </p>
       {description ? (
-        <p className="mt-4 line-clamp-3 flex-1 break-words text-sm leading-6 text-muted-foreground">
+        <p className="mt-4 line-clamp-3 min-h-[4.5rem] flex-1 break-words text-sm leading-6 text-muted-foreground">
           {description}
         </p>
       ) : (

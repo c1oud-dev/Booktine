@@ -50,6 +50,23 @@ public class RecommendationService {
     }
 
     /**
+     * 장르 기준으로 알라딘 API를 조회한 뒤 최대 6권의 추천 도서 목록을 반환한다.
+     */
+    public List<RecommendationResponse> recommendListByGenre(Long userId, String genre, int size) {
+        User user = getUserById(userId);
+        List<AladinBookResponse> books = aladinApiClient.searchBooksByGenre(genre);
+        if (books.isEmpty()) {
+            throw new CustomException(ErrorCode.RECOMMENDATION_NOT_AVAILABLE);
+        }
+
+        int limit = Math.min(Math.max(size, 1), 6);
+        return books.stream()
+                .limit(limit)
+                .map(book -> RecommendationResponse.from(createRecommendation(user, book, genre)))
+                .toList();
+    }
+
+    /**
      * 추천 도서를 사용자의 저장 목록에 저장한다.
      */
     @Transactional

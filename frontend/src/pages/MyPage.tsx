@@ -9,10 +9,11 @@ import {
   uploadMyProfileImage,
   type UserProfile,
 } from '@/api/userApi';
-import { setAccessToken } from '@/api/http';
+import { useAuth } from '@/auth/AuthContext';
 import Spinner from '@/components/common/Spinner';
 
 export default function MyPage() {
+  const { clearSession, updateUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [nickname, setNickname] = useState('');
   const [intro, setIntro] = useState('');
@@ -50,9 +51,9 @@ export default function MyPage() {
     try {
       const data = await updateMyProfile({ nickname, aboutMe: intro, password: profilePassword });
       setProfile(data);
+      updateUser(data);
       setProfilePassword('');
       setMessage('프로필이 저장되었습니다.');
-      window.dispatchEvent(new Event('auth-change'));
     } catch {
       setMessage('프로필 저장에 실패했습니다. 현재 비밀번호를 확인해 주세요.');
     } finally {
@@ -71,9 +72,9 @@ export default function MyPage() {
     try {
       const data = await uploadMyProfileImage(file);
       setProfile(data);
+      updateUser(data);
       setImagePreview(data.profileImageUrl ?? localPreview);
       setMessage('프로필 이미지가 변경되었습니다.');
-      window.dispatchEvent(new Event('auth-change'));
     } catch {
       setImagePreview(profile?.profileImageUrl ?? '/default_avatar.png');
       setMessage('프로필 이미지 업로드에 실패했습니다.');
@@ -87,9 +88,9 @@ export default function MyPage() {
     try {
       const data = await deleteMyProfileImage();
       setProfile(data);
+      updateUser(data);
       setImagePreview(data.profileImageUrl ?? '/default_avatar.png');
       setMessage('프로필 이미지가 삭제되었습니다.');
-      window.dispatchEvent(new Event('auth-change'));
     } catch {
       setMessage('프로필 이미지 삭제에 실패했습니다.');
     } finally {
@@ -120,8 +121,7 @@ export default function MyPage() {
 
     try {
       await deleteMyAccount();
-      setAccessToken(null);
-      window.dispatchEvent(new Event('auth-change'));
+      clearSession();
       window.location.replace('/signup');
     } catch {
       setMessage('회원탈퇴에 실패했습니다. 잠시 후 다시 시도해 주세요.');
@@ -151,9 +151,9 @@ export default function MyPage() {
 
       <div className="grid gap-6 lg:grid-cols-[22rem_1fr]">
         <aside className="rounded-[1.5rem] border border-border bg-card p-6 text-center shadow-soft lg:p-8">
-          <label className="group relative mx-auto flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border bg-secondary p-2 shadow-soft">
-            <img src={imagePreview} alt="프로필" className="h-24 w-24 overflow-hidden rounded-full object-cover" />
-            <span className="absolute inset-2 hidden items-center justify-center rounded-full bg-black/45 text-white group-hover:flex">
+          <label className="group relative mx-auto flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border bg-secondary shadow-soft">
+            <img src={imagePreview} alt="프로필" className="h-28 w-28 overflow-hidden rounded-full object-cover" />
+            <span className="absolute inset-0 hidden items-center justify-center overflow-hidden rounded-full bg-black/45 text-white group-hover:flex">
               <Camera className="h-6 w-6" aria-hidden="true" />
             </span>
             <input type="file" accept="image/*" className="sr-only" onChange={handleImageChange} />

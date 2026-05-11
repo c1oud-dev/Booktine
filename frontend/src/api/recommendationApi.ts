@@ -33,8 +33,10 @@ export interface SaveRecommendationPayload {
   isbn: string;
 }
 
-export async function getRecommendationByGenre(genre: string) {
-  const res = await http.get<ApiResponse<RecommendationBook>>('/recommendations', { params: { genre } });
+export async function getRecommendationsByGenre(genre: string, size = 6) {
+  const res = await http.get<ApiResponse<RecommendationBook[]>>('/recommendations/genre', { 
+    params: { genre, size } 
+  });
   return res.data.data;
 }
 

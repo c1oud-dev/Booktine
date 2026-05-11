@@ -78,6 +78,31 @@ class RecommendationServiceTest {
     }
 
     @Test
+    @DisplayName("장르 기반 도서 추천 목록은 최대 6권 반환")
+    void recommendListByGenre_limitToSix() {
+        // given
+        User user = createUser(1L);
+        List<AladinBookResponse> books = List.of(
+                new AladinBookResponse("제목1", "저자", "출판사", "cover", "소설", "설명", "1"),
+                new AladinBookResponse("제목2", "저자", "출판사", "cover", "소설", "설명", "2"),
+                new AladinBookResponse("제목3", "저자", "출판사", "cover", "소설", "설명", "3"),
+                new AladinBookResponse("제목4", "저자", "출판사", "cover", "소설", "설명", "4"),
+                new AladinBookResponse("제목5", "저자", "출판사", "cover", "소설", "설명", "5"),
+                new AladinBookResponse("제목6", "저자", "출판사", "cover", "소설", "설명", "6"),
+                new AladinBookResponse("제목7", "저자", "출판사", "cover", "소설", "설명", "7")
+        );
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(aladinApiClient.searchBooksByGenre("소설")).willReturn(books);
+
+        // when
+        List<RecommendationResponse> responses = recommendationService.recommendListByGenre(1L, "소설", 10);
+
+        // then
+        assertThat(responses).hasSize(6);
+        assertThat(responses).extracting(RecommendationResponse::title).containsExactly("제목1", "제목2", "제목3", "제목4", "제목5", "제목6");
+    }
+
+    @Test
     @DisplayName("추천 도서 저장 성공")
     void saveRecommendation_success() {
         // given

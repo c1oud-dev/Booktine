@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 추천 도서 API를 제공하며 인증 컨텍스트 userId로 추천 저장/조회/삭제를 처리하는 컨트롤러.
  */
@@ -31,6 +33,17 @@ public class RecommendationController {
     public ApiResponse<RecommendationResponse> recommendByGenre(@RequestParam String genre) {
         Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.ok(recommendationService.recommendByGenre(userId, genre));
+    }
+
+    /** 장르 기반 추천 도서 목록을 최대 6권까지 조회한다. */
+    @Operation(summary = "장르 기반 도서 추천 목록", description = "선택한 장르를 기준으로 최대 6권의 추천 도서를 조회합니다.")
+    @GetMapping("/genre")
+    public ApiResponse<List<RecommendationResponse>> recommendListByGenre(
+            @RequestParam String genre,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return ApiResponse.ok(recommendationService.recommendListByGenre(userId, genre, size));
     }
 
     /** 추천 도서를 사용자 저장 목록에 저장한다. */

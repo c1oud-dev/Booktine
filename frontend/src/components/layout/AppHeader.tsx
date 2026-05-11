@@ -138,7 +138,7 @@ export default function AppHeader() {
                   <img
                     src={user?.profileImageUrl ?? "/default_avatar.png"}
                     alt="사용자 프로필"
-                    className="h-8 w-8 shrink-0 overflow-hidden rounded-full border object-cover"
+                    className="h-9 w-9 shrink-0 overflow-hidden rounded-full border object-cover"
                   />
                   <span className="min-w-0 max-w-[8rem] truncate text-sm font-bold text-foreground">
                     {user?.nickname ?? 'Reader'}

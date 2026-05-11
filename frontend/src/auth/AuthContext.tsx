@@ -11,6 +11,7 @@ type AuthContextValue = {
   login: (email: string, password: string, keepLogin: boolean) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUser: (profile: UserProfile) => void;
   clearSession: () => void;
 };
 
@@ -26,17 +27,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(profile);
    }, []);
 
+  const updateUser = useCallback((profile: UserProfile) => {
+    setUser(profile);
+  }, []);
+
   const clearSession = useCallback(() => {
     setAccessToken(null);
     setUser(null);
   }, []);
 
   useEffect(() => {
-    const handleAuthChange = () => setAuthVersion((version) => version + 1);
+    const handleAuthChange = async () => {
+      setAuthVersion((version) => version + 1);
+
+      if (!getAccessToken()) {
+        setUser(null);
+        return;
+      }
+
+      try {
+        const profile = await getMyProfile();
+        setUser(profile);
+      } catch {
+        clearSession();
+      }
+    };
     window.addEventListener('auth-change', handleAuthChange);
 
     return () => window.removeEventListener('auth-change', handleAuthChange);
-  }, []);
+  }, [clearSession]);
 
   useEffect(() => {
     let mounted = true;
@@ -80,8 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     },
     refreshUser,
+    updateUser,
     clearSession,
-  }), [user, initializing, authVersion, refreshUser, clearSession]);
+  }), [user, initializing, authVersion, refreshUser, updateUser, clearSession]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
