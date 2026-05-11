@@ -1,4 +1,4 @@
-![header](https://capsule-render.vercel.app/api?type=cylinder&color=gradient&customColorList=2&height=160&section=header&text=Booktine&fontSize=40&fontColor=ffffff&animation=fadeIn&desc=A%20Reading%20Record%20Service&descSize=16&descAlignY=75)
+![header](https://capsule-render.vercel.app/api?type=cylinder&color=gradient&customColorList=3&height=160&section=header&text=Booktine&fontSize=40&fontColor=ffffff&animation=fadeIn&desc=A%20Reading%20Record%20Service&descSize=16&descAlignY=75)
 
 > 독서 기록, 목표, 통계, 추천, 커뮤니티를 한 곳에서 관리하는 독서 습관 관리 서비스
 
