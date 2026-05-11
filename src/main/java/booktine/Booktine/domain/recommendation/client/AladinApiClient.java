@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 
 import java.util.Collections;
@@ -26,7 +27,7 @@ public class AladinApiClient {
     private final String ttbKey;
 
     public AladinApiClient(@Value("${aladin.api.ttb-key}") String ttbKey) {
-        this.restClient = RestClient.builder().baseUrl("http://www.aladin.co.kr/ttb/api").build();
+        this.restClient = RestClient.builder().baseUrl("https://www.aladin.co.kr/ttb/api").build();
         this.ttbKey = ttbKey;
     }
 
@@ -75,6 +76,11 @@ public class AladinApiClient {
      * 알라딘 API 호출 결과를 공통적으로 파싱해 도서 목록으로 반환한다.
      */
     private List<AladinBookResponse> fetchItems(RequestSupplier requestSupplier, Runnable failLogAction) {
+        if (!hasUsableTtbKey()) {
+            log.warn("알라딘 API 키가 설정되지 않아 외부 도서 조회를 건너뜁니다. 환경변수 ALADIN_TTB_KEY를 설정해 주세요.");
+            return Collections.emptyList();
+        }
+
         try {
             AladinSearchResponse response = requestSupplier.get()
                     .accept(MediaType.APPLICATION_JSON)
@@ -90,6 +96,13 @@ public class AladinApiClient {
             log.debug("알라딘 API 예외 상세", exception);
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * 알라딘 API 키가 실제 호출에 사용할 수 있는 값인지 확인한다.
+     */
+    private boolean hasUsableTtbKey() {
+        return StringUtils.hasText(ttbKey) && !"dummy".equalsIgnoreCase(ttbKey.trim());
     }
 
     /**

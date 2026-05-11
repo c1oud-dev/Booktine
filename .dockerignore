@@ -1,0 +1,15 @@
+.git
+.gradle
+build
+src/main/generated
+frontend/node_modules
+frontend/dist
+frontend/.env
+
+.idea
+*.iml
+.vscode
+.env
+*.log
+README.md
+docker-compose*.yml   # 로컬용 compose 파일이 있다면

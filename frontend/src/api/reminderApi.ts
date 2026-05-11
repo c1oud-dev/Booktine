@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config/env';
 import { getAccessToken, http } from './http';
 import type { ApiResponse } from '../types/api';
 
@@ -68,8 +69,7 @@ async function connectReminderStream(
   listeners: ReminderStreamListenerMap,
 ) {
   const token = getAccessToken();
-  const baseURL = import.meta.env.VITE_API_BASE_URL ?? '';
-  const url = new URL(`${baseURL}/reminders/connect`, window.location.origin);
+  const url = new URL(`${API_BASE_URL}/reminders/connect`, window.location.origin);
 
   try {
     const response = await fetch(url.toString(), {
@@ -103,7 +103,7 @@ async function readReminderStream(body: ReadableStream<Uint8Array>, onEvent: (ev
     }
 
 
-  buffer += decoder.decode(value, { stream: true });
+    buffer += decoder.decode(value, { stream: true });
     const chunks = buffer.split(/\r?\n\r?\n/);
     buffer = chunks.pop() ?? '';
     chunks.forEach((chunk) => {

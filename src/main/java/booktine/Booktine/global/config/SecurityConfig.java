@@ -5,6 +5,7 @@ import booktine.Booktine.domain.auth.service.SocialOAuth2UserService;
 import booktine.Booktine.global.security.CustomAccessDeniedHandler;
 import booktine.Booktine.global.security.CustomAuthenticationEntryPoint;
 import booktine.Booktine.global.security.JwtFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,6 +19,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,6 +34,7 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final SocialOAuth2UserService socialOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final List<String> allowedOrigins;
 
     /**
      * 인증 필터와 예외 핸들러를 주입받아 시큐리티 필터 체인 구성에 사용한다.
@@ -40,23 +43,30 @@ public class SecurityConfig {
                           CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
                           CustomAccessDeniedHandler customAccessDeniedHandler,
                           SocialOAuth2UserService socialOAuth2UserService,
-                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+                          OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler,
+                          @Value("${app.cors.allowed-origins}") String[] allowedOrigins) {
         this.jwtFilter = jwtFilter;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
         this.socialOAuth2UserService = socialOAuth2UserService;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+        this.allowedOrigins = Arrays.stream(allowedOrigins)
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .toList();
     }
 
     /**
-     * 세션 없는 JWT 인증 방식을 적용하고 공개 경로를 제외한 모든 요청에 인증을 요구하는 필터 체인을 생성한다.
+     *  JWT 인증을 기본으로 적용하되 OAuth2 state 검증에 필요한 세션은 필요할 때만 생성한다.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // OAuth2 login validates the state parameter via a short-lived HTTP session.
+                // API authentication remains JWT-based; Spring Security creates sessions only when OAuth2 requires one.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(socialOAuth2UserService))
                         .successHandler(oAuth2LoginSuccessHandler)
@@ -102,7 +112,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

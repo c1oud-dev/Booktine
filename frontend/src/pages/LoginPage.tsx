@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, LockKeyhole, Mail, MessageCircle } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { authApi } from '@/auth/authApi';
+import { API_BASE_URL } from '@/config/env';
 import { useAuth } from '@/auth/AuthContext';
 import Spinner from '@/components/common/Spinner';
 import { panelSpring } from '@/lib/motion';
@@ -24,7 +25,7 @@ export default function LoginPage() {
   const { login } = useAuth();
 
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/';
-  const oauthBaseUrl = useMemo(() => import.meta.env.VITE_API_BASE_URL ?? '', []);
+  const oauthBaseUrl = useMemo(() => API_BASE_URL, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

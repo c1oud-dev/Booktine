@@ -1,7 +1,8 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { accessTokenStore } from '../auth/accessTokenStore';
+import { API_BASE_URL } from '../config/env';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+const baseURL = API_BASE_URL;
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;

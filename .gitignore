@@ -63,9 +63,9 @@ logs/
 Thumbs.db
 
 ### Docker ###
-Dockerfile
+# Docker deployment descriptors are tracked for reproducible EC2 builds.
+# Keep compose override files ignored if they contain local secrets.
 docker-compose*.yml
-.dockerignore
 
 # QueryDSL
 src/main/generated
