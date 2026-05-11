@@ -142,7 +142,7 @@ export default function CommunityDetailPage() {
             <img
               src={comment.authorProfileImageUrl || defaultAvatar}
               alt=""
-              className="h-8 w-8 rounded-full border border-border object-cover"
+              className="h-8 w-8 overflow-hidden rounded-full border border-border object-cover"
             />
             <div className="min-w-0">
               <p className="truncate text-sm font-black text-foreground">{commentAuthorName}</p>
@@ -257,7 +257,7 @@ export default function CommunityDetailPage() {
               <img
                 src={post.authorProfileImageUrl || defaultAvatar}
                 alt=""
-                className="h-10 w-10 rounded-full border border-border object-cover"
+                className="h-10 w-10 overflow-hidden rounded-full border border-border object-cover"
               />
               <div className="min-w-0">
                 <p className="truncate text-sm font-black text-foreground">{authorName}</p>

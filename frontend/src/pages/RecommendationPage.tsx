@@ -4,6 +4,7 @@ import {
   deleteRecommendation,
   getRecommendationByGenre,
   getSavedRecommendations,
+  getBestsellers,
   saveRecommendation,
   searchRecommendationBooks,
   type RecommendationBook,
@@ -15,13 +16,16 @@ import EmptyState from '@/components/common/EmptyState';
 const genres = ['소설', '인문', '자기계발', '경제경영', '역사', '과학', '에세이', '예술'];
 const SAVED_RECOMMENDATION_PAGE_SIZE = 20;
 const SEARCH_RESULT_PAGE_SIZE = 10;
+const BESTSELLER_PREVIEW_SIZE = 6;
 
 export default function RecommendationPage() {
   const [selectedGenre, setSelectedGenre] = useState(genres[0]);
   const [genreResult, setGenreResult] = useState<RecommendationBook | null>(null);
   const [query, setQuery] = useState('');
   const [searchItems, setSearchItems] = useState<SearchBook[]>([]);
+  const [bestsellerItems, setBestsellerItems] = useState<SearchBook[]>([]);
   const [savedItems, setSavedItems] = useState<RecommendationBook[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const loadSaved = async () => {
@@ -29,8 +33,14 @@ export default function RecommendationPage() {
     setSavedItems(page.content);
   };
 
+  const loadBestsellers = async () => {
+    const page = await getBestsellers(0, BESTSELLER_PREVIEW_SIZE);
+    setBestsellerItems(page.content);
+  };
+
   useEffect(() => {
-    loadSaved();
+    void loadSaved();
+    void loadBestsellers();
   }, []);
 
   const onRecommendByGenre = async () => {
@@ -48,6 +58,8 @@ export default function RecommendationPage() {
   const onSearch = async (e: FormEvent) => {
     e.preventDefault();
     if (!query.trim()) {
+      setHasSearched(false);
+      setSearchItems([]);
       return;
     }
     setLoading(true);
@@ -55,7 +67,9 @@ export default function RecommendationPage() {
     try {
       const page = await searchRecommendationBooks(query.trim(), 0, SEARCH_RESULT_PAGE_SIZE);
       setSearchItems(page.content);
+      setHasSearched(true);
     } catch {
+      setHasSearched(true);
       setMessage('도서 검색에 실패했습니다.');
     } finally {
       setLoading(false);
@@ -108,7 +122,7 @@ export default function RecommendationPage() {
       ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+        <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
@@ -119,7 +133,7 @@ export default function RecommendationPage() {
             </div>
           </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
+          <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_auto]">
             <select
               value={selectedGenre}
               onChange={(e) => setSelectedGenre(e.target.value)}
@@ -149,6 +163,7 @@ export default function RecommendationPage() {
               publisher={genreResult.publisher}
               genre={genreResult.genre}
               description={genreResult.description}
+              coverImageUrl={genreResult.coverImageUrl}
               actionLabel="저장"
               actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
               onAction={() => onSave(genreResult)}
@@ -163,7 +178,7 @@ export default function RecommendationPage() {
           )}
         </article>
 
-        <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+        <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
               <Search className="h-5 w-5" aria-hidden="true" />
@@ -189,11 +204,41 @@ export default function RecommendationPage() {
             </button>
           </form>
 
-          {searchItems.length === 0 ? (
+          {!hasSearched ? (
+            bestsellerItems.length === 0 ? (
+              <div className="mt-6">
+                <EmptyState
+                  title="베스트셀러를 준비 중이에요"
+                  description="검색어를 입력하면 원하는 책도 바로 찾아볼 수 있어요."
+                />
+              </div>
+            ) : (
+              <div className="mt-6">
+                <h3 className="text-lg font-black text-foreground">지금 인기 있는 책</h3>
+                <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {bestsellerItems.map((item) => (
+                    <li key={item.isbn13 || `${item.title}-${item.author}`}>
+                      <BookRecommendationCard
+                        title={item.title}
+                        author={item.author}
+                        publisher={item.publisher}
+                        genre={item.categoryName}
+                        description={item.description}
+                        coverImageUrl={item.cover}
+                        actionLabel="저장"
+                        actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
+                        onAction={() => onSave(item)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          ) : searchItems.length === 0 ? (
             <div className="mt-6">
               <EmptyState
                 title="검색 결과가 없어요"
-                description="검색어를 입력해 새로운 책을 찾아보세요."
+                description="다른 검색어로 다시 찾아보세요."
               />
             </div>
           ) : (
@@ -206,6 +251,7 @@ export default function RecommendationPage() {
                     publisher={item.publisher}
                     genre={item.categoryName}
                     description={item.description}
+                    coverImageUrl={item.cover}
                     actionLabel="저장"
                     actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
                     onAction={() => onSave(item)}
@@ -247,6 +293,7 @@ export default function RecommendationPage() {
                   publisher={item.publisher}
                   genre={item.genre}
                   description={item.description}
+                  coverImageUrl={item.coverImageUrl}
                   actionLabel="삭제"
                   actionIcon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
                   secondaryAction
@@ -270,6 +317,7 @@ interface BookRecommendationCardProps {
   publisher: string;
   genre: string;
   description?: string;
+  coverImageUrl?: string;
   actionLabel: string;
   actionIcon: ReactNode;
   className?: string;
@@ -283,6 +331,7 @@ function BookRecommendationCard({
   publisher,
   genre,
   description,
+  coverImageUrl,
   actionLabel,
   actionIcon,
   className = '',
@@ -290,18 +339,28 @@ function BookRecommendationCard({
   onAction,
 }: BookRecommendationCardProps) {
   return (
-    <div className={`flex h-full flex-col rounded-[1.25rem] border border-border bg-background p-5 ${className}`}>
-      <span className="w-fit rounded-full bg-card px-3 py-1 text-xs font-black text-muted-foreground shadow-soft">
+    <div className={`flex h-full min-w-0 max-w-full flex-col overflow-hidden rounded-[1.25rem] border border-border bg-background p-5 ${className}`}>
+      {coverImageUrl ? (
+        <div className="mb-4 h-44 w-full overflow-hidden rounded-2xl bg-secondary">
+          <img
+            src={coverImageUrl}
+            alt={`${title} 표지`}
+            className="h-full w-full object-cover object-center"
+            loading="lazy"
+          />
+        </div>
+      ) : null}
+      <span className="w-fit max-w-full truncate rounded-full bg-card px-3 py-1 text-xs font-black text-muted-foreground shadow-soft">
         {genre || '장르 미분류'}
       </span>
-      <h3 className="mt-4 line-clamp-2 text-lg font-black tracking-tight text-foreground">
+      <h3 className="mt-4 line-clamp-2 break-words text-lg font-black tracking-tight text-foreground">
         {title}
       </h3>
-      <p className="mt-2 text-sm font-semibold text-muted-foreground">
+      <p className="mt-2 break-words text-sm font-semibold text-muted-foreground">
         {author || '저자 미입력'} · {publisher || '출판사 미입력'}
       </p>
       {description ? (
-        <p className="mt-4 line-clamp-3 flex-1 text-sm leading-6 text-muted-foreground">
+        <p className="mt-4 line-clamp-3 flex-1 break-words text-sm leading-6 text-muted-foreground">
           {description}
         </p>
       ) : (

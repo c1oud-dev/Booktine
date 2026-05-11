@@ -45,6 +45,13 @@ export async function searchRecommendationBooks(query: string, page = 0, size = 
   return res.data.data;
 }
 
+export async function getBestsellers(page = 0, size = 6) {
+  const res = await http.get<ApiResponse<PageResponse<SearchBook>>>('/recommendations/bestseller', {
+    params: { page, size },
+  });
+  return res.data.data;
+}
+
 export async function getSavedRecommendations(page = 0, size = 10) {
   const res = await http.get<ApiResponse<PageResponse<RecommendationBook>>>('/recommendations/saved', {
     params: { page, size },

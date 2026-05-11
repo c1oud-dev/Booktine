@@ -151,8 +151,8 @@ export default function MyPage() {
 
       <div className="grid gap-6 lg:grid-cols-[22rem_1fr]">
         <aside className="rounded-[1.5rem] border border-border bg-card p-6 text-center shadow-soft lg:p-8">
-          <label className="group relative mx-auto flex h-28 w-28 cursor-pointer items-center justify-center rounded-full border border-border bg-secondary p-2 shadow-soft">
-            <img src={imagePreview} alt="프로필" className="h-full w-full rounded-full object-cover" />
+          <label className="group relative mx-auto flex h-28 w-28 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border bg-secondary p-2 shadow-soft">
+            <img src={imagePreview} alt="프로필" className="h-24 w-24 overflow-hidden rounded-full object-cover" />
             <span className="absolute inset-2 hidden items-center justify-center rounded-full bg-black/45 text-white group-hover:flex">
               <Camera className="h-6 w-6" aria-hidden="true" />
             </span>

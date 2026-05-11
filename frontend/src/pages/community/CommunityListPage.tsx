@@ -114,7 +114,7 @@ export default function CommunityListPage() {
                       <img
                         src={post.authorProfileImageUrl || defaultAvatar}
                         alt=""
-                        className="h-9 w-9 rounded-full border border-border object-cover"
+                        className="h-9 w-9 overflow-hidden rounded-full border border-border object-cover"
                       />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-black text-foreground">{getAuthorName(post)}</p>

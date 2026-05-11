@@ -115,7 +115,7 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 top-10 hidden rounded-2xl border border-border bg-card p-5 shadow-card lg:block">
+            <div className="absolute -left-6 top-10 z-20 hidden rounded-2xl border border-border bg-card p-5 shadow-card lg:block">
               <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
               <p className="mt-1 text-4xl font-black text-foreground">∞</p>
             </div>
