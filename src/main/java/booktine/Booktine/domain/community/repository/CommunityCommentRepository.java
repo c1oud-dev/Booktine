@@ -4,6 +4,7 @@ import booktine.Booktine.domain.community.entity.CommunityComment;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,5 +37,17 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
 
     /** 특정 댓글에 달린 대댓글을 일괄 삭제한다. */
     void deleteAllByParentId(Long parentId);
+
+    /** 회원 탈퇴 시 사용자가 작성한 게시글에 달린 대댓글을 일괄 삭제한다. */
+    void deleteAllByParentPostIdIn(Collection<Long> postIds);
+
+    /** 회원 탈퇴 시 사용자가 작성한 게시글에 달린 댓글/대댓글을 일괄 삭제한다. */
+    void deleteAllByPostIdIn(Collection<Long> postIds);
+
+    /** 회원 탈퇴 시 사용자가 작성한 댓글의 대댓글을 일괄 삭제한다. */
+    void deleteAllByParentUserId(Long userId);
+
+    /** 회원 탈퇴 시 사용자가 작성한 댓글을 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }
 

@@ -1,7 +1,16 @@
 package booktine.Booktine.domain.user.service;
 
 import booktine.Booktine.domain.auth.service.AuthService;
+import booktine.Booktine.domain.community.repository.CommunityCommentRepository;
+import booktine.Booktine.domain.community.repository.CommunityLikeRepository;
+import booktine.Booktine.domain.community.repository.CommunityPostRepository;
+import booktine.Booktine.domain.inquiry.repository.InquiryRepository;
+import booktine.Booktine.domain.memo.repository.MemoRepository;
 import booktine.Booktine.domain.post.repository.PostRepository;
+import booktine.Booktine.domain.progress.repository.AnnualGoalRepository;
+import booktine.Booktine.domain.progress.repository.MonthlyGoalRepository;
+import booktine.Booktine.domain.recommendation.repository.RecommendationRepository;
+import booktine.Booktine.domain.reminder.repository.ReminderRepository;
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
@@ -20,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,6 +53,33 @@ class UserServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private MemoRepository memoRepository;
+
+    @Mock
+    private ReminderRepository reminderRepository;
+
+    @Mock
+    private RecommendationRepository recommendationRepository;
+
+    @Mock
+    private InquiryRepository inquiryRepository;
+
+    @Mock
+    private MonthlyGoalRepository monthlyGoalRepository;
+
+    @Mock
+    private AnnualGoalRepository annualGoalRepository;
+
+    @Mock
+    private CommunityPostRepository communityPostRepository;
+
+    @Mock
+    private CommunityCommentRepository communityCommentRepository;
+
+    @Mock
+    private CommunityLikeRepository communityLikeRepository;
 
     @Mock
     private AuthService authService;
@@ -208,11 +245,15 @@ class UserServiceTest {
         ReflectionTestUtils.setField(user, "id", 1L);
 
         given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(communityPostRepository.findIdsByUserId(1L)).willReturn(List.of());
 
         // when
-        userService.deleteMyAccount(1L);
+        userService.deleteMyAccount(1L, "access-token");
 
         // then
+        verify(memoRepository, times(1)).deleteAllByPostUserId(1L);
+        verify(postRepository, times(1)).deleteAllByUserId(1L);
         verify(userRepository, times(1)).delete(user);
+        verify(authService, times(1)).revokeUserTokens(1L, "access-token", "withdrawal");
     }
 }

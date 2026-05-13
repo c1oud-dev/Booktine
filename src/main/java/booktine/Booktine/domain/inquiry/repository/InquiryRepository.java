@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * 사용자 문의/제안 저장과 관리자 페이지의 문의 목록 페이지 조회에서 서비스 계층이 사용한다.
  */
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
+    /** 회원 탈퇴 시 사용자 문의를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

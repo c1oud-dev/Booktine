@@ -13,18 +13,15 @@ import java.util.Optional;
  */
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
-    /**
-     * 특정 사용자에 등록된 리마인더를 모두 조회한다.
-     */
+    /** 특정 사용자에 등록된 리마인더를 모두 조회한다. */
     List<Reminder> findAllByUserId(Long userId);
 
-    /**
-     * 특정 사용자 소유 리마인더를 ID로 조회한다.
-     */
+    /** 특정 사용자 소유 리마인더를 ID로 조회한다. */
     Optional<Reminder> findByIdAndUserId(Long id, Long userId);
 
-    /**
-     * 특정 시각과 일치하는 리마인더를 조회한다.
-     */
+    /** 특정 시각과 일치하는 리마인더를 조회한다. */
     List<Reminder> findAllByReminderTime(LocalTime reminderTime);
+
+    /** 회원 탈퇴 시 사용자 리마인더를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

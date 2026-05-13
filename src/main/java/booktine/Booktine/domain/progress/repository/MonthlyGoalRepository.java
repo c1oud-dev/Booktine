@@ -12,13 +12,12 @@ import java.util.Optional;
  */
 public interface MonthlyGoalRepository extends JpaRepository<MonthlyGoal, Long> {
 
-    /**
-     * 사용자와 연/월로 월간 목표를 단건 조회한다.
-     */
+    /** 사용자와 연/월로 월간 목표를 단건 조회한다. */
     Optional<MonthlyGoal> findByUserIdAndYearAndMonth(Long userId, Integer year, Integer month);
 
-    /**
-     * 사용자와 연도로 월간 목표 목록을 조회한다.
-     */
+    /** 사용자와 연도로 월간 목표 목록을 조회한다. */
     List<MonthlyGoal> findAllByUserIdAndYearOrderByMonthAsc(Long userId, Integer year);
+
+    /** 회원 탈퇴 시 월간 목표를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

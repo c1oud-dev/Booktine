@@ -1,8 +1,17 @@
 package booktine.Booktine.domain.user.service;
 
 import booktine.Booktine.domain.auth.service.AuthService;
+import booktine.Booktine.domain.community.repository.CommunityCommentRepository;
+import booktine.Booktine.domain.community.repository.CommunityLikeRepository;
+import booktine.Booktine.domain.community.repository.CommunityPostRepository;
+import booktine.Booktine.domain.inquiry.repository.InquiryRepository;
+import booktine.Booktine.domain.memo.repository.MemoRepository;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
+import booktine.Booktine.domain.progress.repository.AnnualGoalRepository;
+import booktine.Booktine.domain.progress.repository.MonthlyGoalRepository;
+import booktine.Booktine.domain.recommendation.repository.RecommendationRepository;
+import booktine.Booktine.domain.reminder.repository.ReminderRepository;
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
@@ -18,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * 사용자 도메인의 핵심 비즈니스 로직을 처리하는 서비스.
  * 회원가입, 중복 검사, 내 정보 조회/수정, 프로필 이미지 관리, 회원 탈퇴 시나리오에서 사용된다.
@@ -30,6 +41,15 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final MemoRepository memoRepository;
+    private final ReminderRepository reminderRepository;
+    private final RecommendationRepository recommendationRepository;
+    private final InquiryRepository inquiryRepository;
+    private final MonthlyGoalRepository monthlyGoalRepository;
+    private final AnnualGoalRepository annualGoalRepository;
+    private final CommunityPostRepository communityPostRepository;
+    private final CommunityCommentRepository communityCommentRepository;
+    private final CommunityLikeRepository communityLikeRepository;
     private final AuthService authService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final S3Service s3Service;
@@ -103,9 +123,54 @@ public class UserService {
      */
     @Transactional
     public void deleteMyAccount(Long userId) {
+        deleteMyAccount(userId, null);
+    }
+
+    /**
+     * 사용자 계정을 삭제하고 Redis에 남은 인증 토큰도 무효화한다.
+     * 사용자와 FK로 연결된 하위 데이터를 먼저 제거하여 DB 제약 조건 위반을 방지한다.
+     */
+    @Transactional
+    public void deleteMyAccount(Long userId, String accessToken) {
         User user = getUserById(userId);
+        deleteUserRelations(userId);
         deleteProfileImageIfExists(user);
         userRepository.delete(user);
+        authService.revokeUserTokens(userId, accessToken, "withdrawal");
+    }
+
+    /**
+     * 회원 탈퇴 시 users를 참조하는 데이터를 FK 의존 순서에 맞춰 삭제한다.
+     */
+    private void deleteUserRelations(Long userId) {
+        recommendationRepository.deleteAllByUserId(userId);
+        reminderRepository.deleteAllByUserId(userId);
+        inquiryRepository.deleteAllByUserId(userId);
+        monthlyGoalRepository.deleteAllByUserId(userId);
+        annualGoalRepository.deleteAllByUserId(userId);
+
+        deleteCommunityRelations(userId);
+
+        memoRepository.deleteAllByPostUserId(userId);
+        postRepository.deleteAllByUserId(userId);
+    }
+
+    /**
+     * 커뮤니티 게시글/댓글/좋아요는 상호 참조가 있어 댓글과 좋아요를 먼저 삭제한 뒤 게시글을 삭제한다.
+     */
+    private void deleteCommunityRelations(Long userId) {
+        communityLikeRepository.deleteAllByUserId(userId);
+
+        List<Long> communityPostIds = communityPostRepository.findIdsByUserId(userId);
+        if (!communityPostIds.isEmpty()) {
+            communityCommentRepository.deleteAllByParentPostIdIn(communityPostIds);
+            communityCommentRepository.deleteAllByPostIdIn(communityPostIds);
+            communityLikeRepository.deleteAllByPostIdIn(communityPostIds);
+            communityPostRepository.deleteAllByUserId(userId);
+        }
+
+        communityCommentRepository.deleteAllByParentUserId(userId);
+        communityCommentRepository.deleteAllByUserId(userId);
     }
 
     /**

@@ -4,6 +4,8 @@ import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.service.UserService;
+import booktine.Booktine.global.exception.CustomException;
+import booktine.Booktine.global.exception.ErrorCode;
 import booktine.Booktine.global.response.ApiResponse;
 import booktine.Booktine.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -76,8 +79,10 @@ public class UserController {
     /** 인증 컨텍스트 기준으로 회원탈퇴를 수행한다. */
     @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다.")
     @DeleteMapping("/users/me")
-    public ApiResponse<Void> deleteMyAccount() {
-        userService.deleteMyAccount(getCurrentUserId());
+    public ApiResponse<Void> deleteMyAccount(
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authorization
+    ) {
+        userService.deleteMyAccount(getCurrentUserId(), extractBearerToken(authorization));
         return ApiResponse.ok();
     }
 
@@ -97,5 +102,13 @@ public class UserController {
 
     private Long getCurrentUserId() {
         return SecurityUtils.getCurrentUserId();
+    }
+
+    /** Bearer 문자열에서 실제 JWT 값을 추출한다. */
+    private String extractBearerToken(String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
+        }
+        return authorization.substring(7);
     }
 }

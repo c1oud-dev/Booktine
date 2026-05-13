@@ -120,9 +120,21 @@ public class AuthService {
     public void logout(String accessToken) {
         jwtProvider.validateToken(accessToken);
         Long userId = jwtProvider.getUserId(accessToken);
+        revokeUserTokens(userId, accessToken, "logout");
+    }
+
+    /** 회원 탈퇴 등 계정 종료 시 Redis에 저장된 RT를 삭제하고 현재 AT를 블랙리스트에 등록한다. */
+    public void revokeUserTokens(Long userId, String accessToken, String reason) {
         redisTemplate.delete(RT_PREFIX + userId);
+
+        if (accessToken == null || accessToken.isBlank()) {
+            return;
+        }
+
         long remainMillis = jwtProvider.getExpiration(accessToken) - System.currentTimeMillis();
-        if (remainMillis > 0) redisTemplate.opsForValue().set(BL_PREFIX + accessToken, "logout", remainMillis, TimeUnit.MILLISECONDS);
+        if (remainMillis > 0) {
+            redisTemplate.opsForValue().set(BL_PREFIX + accessToken, reason, remainMillis, TimeUnit.MILLISECONDS);
+        }
     }
 
     /** RT를 검증하고 새 Access Token을 발급한다. */

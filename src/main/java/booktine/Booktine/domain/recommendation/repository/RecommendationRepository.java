@@ -11,8 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface RecommendationRepository extends JpaRepository<Recommendation, Long> {
 
-    /**
-     * 사용자 ID 기준으로 저장된 추천 도서 목록을 조회한다.
-     */
+    /** 사용자 ID 기준으로 저장된 추천 도서 목록을 조회한다. */
     Page<Recommendation> findAllByUserId(Long userId, Pageable pageable);
+
+    /** 회원 탈퇴 시 저장된 추천 도서를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

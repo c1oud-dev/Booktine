@@ -16,8 +16,8 @@ export default function LogoutPage() {
 
     try {
       await logout();
-      setMessage('로그아웃 되었습니다. 로그인 페이지로 이동합니다.');
-      navigate('/login', { replace: true });
+      setMessage('로그아웃 되었습니다. 홈으로 이동합니다.');
+      navigate('/', { replace: true });
     } catch {
       setMessage('로그아웃에 실패했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
@@ -41,35 +41,35 @@ export default function LogoutPage() {
           지금 로그아웃하면 현재 세션이 종료됩니다. 다음 방문 시 다시 로그인해서 독서 기록을 이어갈 수 있어요.
         </p>
 
-      <div className="mx-auto mt-8 flex max-w-xl items-start gap-3 rounded-[1.25rem] border border-border bg-background p-4 text-left">
-        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground" aria-hidden="true" />
-        <p className="text-sm font-semibold leading-6 text-muted-foreground">
-          읽던 책과 메모는 안전하게 저장되어 있습니다.
-        </p>
-      </div>
+        <div className="mx-auto mt-8 flex max-w-xl items-start gap-3 rounded-[1.25rem] border border-border bg-background p-4 text-left">
+          <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground" aria-hidden="true" />
+          <p className="text-sm font-semibold leading-6 text-muted-foreground">
+            읽던 책과 메모는 안전하게 저장되어 있습니다.
+          </p>
+        </div>
 
-      <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={loading}
-          className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {loading ? (
-            <Spinner label="로그아웃 중..." className="text-primary-foreground" />
-          ) : (
-            '로그아웃'
-          )}
-        </button>
-        <Link
-          to="/"
-          className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
-        >
-          홈으로 돌아가기
-        </Link>
-      </div>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={loading}
+            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {loading ? (
+              <Spinner label="로그아웃 중..." className="text-primary-foreground" />
+            ) : (
+              '로그아웃'
+            )}
+          </button>
+          <Link
+            to="/"
+            className="inline-flex items-center justify-center rounded-full border border-border bg-card px-5 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+          >
+            홈으로 돌아가기
+          </Link>
+        </div>
 
-      {message ? (
+        {message ? (
           <p className="mt-5 rounded-[1rem] bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
             {message}
           </p>

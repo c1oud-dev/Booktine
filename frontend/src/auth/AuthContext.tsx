@@ -95,15 +95,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await refreshUser();
     },
     logout: async () => {
-      await authApi.logout();
-      setUser(null);
+      try {
+        await authApi.logout();
+      } finally {
+        clearSession();
+      }
     },
     refreshUser,
     updateUser,
     clearSession,
   }), [user, initializing, authVersion, refreshUser, updateUser, clearSession]);
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

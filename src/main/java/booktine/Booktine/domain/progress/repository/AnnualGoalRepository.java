@@ -21,4 +21,7 @@ public interface AnnualGoalRepository extends JpaRepository<AnnualGoal, Long> {
      * 사용자 연간 목표 전체 목록을 조회한다.
      */
     List<AnnualGoal> findAllByUserIdOrderByYearAsc(Long userId);
+
+    /** 회원 탈퇴 시 연간 목표를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

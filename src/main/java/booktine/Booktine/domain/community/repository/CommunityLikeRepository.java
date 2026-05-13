@@ -24,4 +24,10 @@ public interface CommunityLikeRepository extends JpaRepository<CommunityLike, Lo
 
     /** 게시글에 달린 좋아요를 일괄 삭제한다. */
     void deleteAllByPostId(Long postId);
+
+    /** 회원 탈퇴 시 사용자가 누른 좋아요를 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
+
+    /** 회원 탈퇴 시 사용자가 작성한 게시글의 좋아요를 일괄 삭제한다. */
+    void deleteAllByPostIdIn(Collection<Long> postIds);
 }

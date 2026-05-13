@@ -99,4 +99,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, PostRepositor
             @Param("from") LocalDate from,
             @Param("to") LocalDate to
     );
+
+    /** 회원 탈퇴 시 사용자 게시물을 일괄 삭제한다. */
+    void deleteAllByUserId(Long userId);
 }

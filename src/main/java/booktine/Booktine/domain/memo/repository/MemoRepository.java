@@ -23,4 +23,7 @@ public interface MemoRepository extends JpaRepository<Memo, Long> {
     /** 메모와 연결 게시물/사용자 정보를 함께 조회한다. */
     @EntityGraph(attributePaths = {"post", "post.user"})
     Optional<Memo> findWithPostAndUserByIdAndPostId(Long id, Long postId);
+
+    /** 회원 탈퇴 시 사용자 게시물에 연결된 메모를 일괄 삭제한다. */
+    void deleteAllByPostUserId(Long userId);
 }
