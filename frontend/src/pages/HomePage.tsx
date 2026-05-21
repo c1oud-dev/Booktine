@@ -5,7 +5,7 @@ import { useAuth } from '@/auth/AuthContext';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
-import { STATUS_LABEL } from '../constants/readingStatus';
+import { STATUS_CLASS_NAME, STATUS_LABEL } from '../constants/readingStatus';
 import slideHome from '@/assets/slides/slide-home.png';
 import slideBooknote from '@/assets/slides/slide-booknote.png';
 import slideProgress from '@/assets/slides/slide-progress.png';
@@ -29,6 +29,16 @@ const featureItems = [
     description: '베스트셀러와 추천 흐름을 참고해 다음 독서 리스트를 확장하세요.',
   },
 ];
+
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value.slice(0, 10).replace(/-/g, '.');
+  }
+
+  return date.toISOString().slice(0, 10).replace(/-/g, '.');
+}
 
 export default function HomePage() {
   const { isAuthenticated: isLoggedIn, initializing } = useAuth();
@@ -181,7 +191,7 @@ export default function HomePage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div className="grid gap-8 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[0.95fr_1.05fr] lg:p-8">
+      <div className="grid gap-8 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
         <div className="flex flex-col justify-center">
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">
             Reading dashboard
@@ -190,7 +200,7 @@ export default function HomePage() {
             오늘의 독서 흐름을 확인하세요.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
-            완독 통계, 최근 독서 노트, 많이 읽히는 책을 한 화면에서 정리해 독서 루틴을 이어갈 수 있어요.
+            완독 통계부터 최근 독서 노트와 많이 읽히는 책까지 한 번에 확인하고, 오늘 읽을 분량과 다음 기록 계획을 자연스럽게 이어갈 수 있어요.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -212,7 +222,7 @@ export default function HomePage() {
           <img
             src="/Home1.png"
             alt="책과 독서 기록 이미지"
-            className="h-80 w-full object-cover object-center lg:h-full brightness-110"
+            className="h-72 w-full object-cover object-center lg:h-full brightness-110"
           />
         </div>
       </div>
@@ -232,23 +242,23 @@ export default function HomePage() {
       {!loading && !error && (
         <>
           <div className="grid gap-4 sm:grid-cols-3">
-            <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
-              <p className="text-sm font-bold text-muted-foreground">총 완독 권수</p>
-              <p className="mt-3 text-4xl font-black text-foreground">
+            <article className="rounded-2xl border border-border border-l-4 border-l-indigo-300 bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
+              <p className="text-sm font-bold text-muted-foreground"><span className="text-foreground">총</span> 완독 권수</p>
+              <p className="mt-3 text-4xl font-black text-indigo-400">
                 {stats?.totalFinished ?? 0}
                 <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
               </p>
             </article>
-            <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
-              <p className="text-sm font-bold text-muted-foreground">올해 완독</p>
-              <p className="mt-3 text-4xl font-black text-foreground">
+            <article className="rounded-2xl border border-border border-l-4 border-l-violet-300 bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
+              <p className="text-sm font-bold text-muted-foreground"><span className="text-foreground">올해</span> 완독</p>
+              <p className="mt-3 text-4xl font-black text-violet-400">
                 {stats?.currentYearFinished ?? 0}
                 <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
               </p>
             </article>
-            <article className="rounded-2xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
-              <p className="text-sm font-bold text-muted-foreground">이번 달 완독</p>
-              <p className="mt-3 text-4xl font-black text-foreground">
+            <article className="rounded-2xl border border-border border-l-4 border-l-amber-300 bg-card p-6 shadow-soft transition hover:-translate-y-0.5 hover:shadow-float">
+              <p className="text-sm font-bold text-muted-foreground"><span className="text-foreground">이번 달</span> 완독</p>
+              <p className="mt-3 text-4xl font-black text-amber-400">
                 {stats?.currentMonthFinished ?? 0}
                 <span className="ml-1 text-lg font-semibold text-muted-foreground">권</span>
               </p>
@@ -264,7 +274,7 @@ export default function HomePage() {
                 </div>
                 <Link
                   to="/books"
-                  className="text-sm font-bold text-foreground underline-offset-4 hover:underline"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-base font-bold text-foreground hover:bg-secondary"
                 >
                   전체 보기
                 </Link>
@@ -285,12 +295,18 @@ export default function HomePage() {
                         to={`/books/${post.id}`}
                         className="block rounded-2xl border border-border bg-background p-4 transition hover:bg-card hover:shadow-soft"
                       >
-                        <p className="text-base font-black text-foreground">
-                          {post.title}
-                        </p>
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-base font-black text-foreground">
+                            {post.title}
+                          </p>
+                          <span
+                            className={`inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-black ${STATUS_CLASS_NAME[post.readingStatus as keyof typeof STATUS_CLASS_NAME] ?? 'bg-secondary text-secondary-foreground'}`}
+                          >
+                            {STATUS_LABEL[post.readingStatus as keyof typeof STATUS_LABEL] ?? post.readingStatus}
+                          </span>
+                        </div>
                         <p className="mt-2 text-sm font-medium text-muted-foreground">
-                          {post.author || '저자 미입력'} ·{' '}
-                          {STATUS_LABEL[post.readingStatus as keyof typeof STATUS_LABEL] ?? post.readingStatus}
+                          {post.author || '저자 미입력'} · {formatDate(post.createdAt)}
                         </p>
                       </Link>
                     </li>
@@ -307,16 +323,24 @@ export default function HomePage() {
                 </div>
                 <Link
                   to="/recommendations"
-                  className="text-sm font-bold text-foreground underline-offset-4 hover:underline"
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-card px-4 py-2 text-base font-bold text-foreground hover:bg-secondary"
                 >
                   추천 보기
                 </Link>
               </div>
 
               {bestsellers.length === 0 ? (
-                <p className="mt-6 text-center text-sm font-semibold text-muted-foreground">
-                  베스트셀러 데이터를 불러올 수 없어요. 잠시 후 다시 확인해 주세요.
-                </p>
+                <ul className="mt-5 space-y-3" aria-label="베스트셀러 로딩 스켈레톤">
+                  {Array.from({ length: 5 }, (_, index) => (
+                    <li key={`skeleton-${index}`} className="flex gap-4 rounded-2xl border border-border bg-background p-4">
+                      <div className="h-8 w-8 shrink-0 animate-pulse rounded-full bg-muted" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                        <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <ul className="mt-5 space-y-3">
                   {bestsellers.slice(0, 5).map((book, index) => (
