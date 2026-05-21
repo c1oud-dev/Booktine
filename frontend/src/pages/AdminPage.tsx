@@ -168,10 +168,25 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[34rem] text-left text-sm">
-            <thead className="text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="py-3">ID</th><th>이메일</th><th>닉네임</th><th>권한</th><th>완독</th></tr></thead>
+            <thead className="text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-2 py-3">ID</th>
+                <th className="px-2">이메일</th>
+                <th className="px-2">닉네임</th>
+                <th className="px-2">권한</th>
+                <th className="px-2">완독</th>
+              </tr></thead>
             <tbody className="divide-y divide-border">
               {users.content.map((user) => (
-                <tr key={user.id} className="font-semibold text-foreground"><td className="py-3">{user.id}</td><td>{user.email}</td><td>{user.nickname}</td><td>{user.role}</td><td>{user.completedCount}권</td></tr>
+                <tr key={user.id} className="font-semibold text-foreground">
+                  <td className="px-2 py-3">{user.id}</td>
+                  <td className="px-2">{user.email}</td>
+                  <td className="px-2">{user.nickname}</td>
+                  <td className="px-2">
+                    <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-black text-secondary-foreground">{user.role}</span>
+                  </td>
+                  <td className="px-2">{user.completedCount}권</td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -191,10 +206,10 @@ function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNot
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[40rem] text-left text-sm">
-            <thead className="text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="py-3">ID</th><th>제목</th><th>저자</th><th>장르</th><th>상태</th></tr></thead>
+            <thead className="text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="px-2 py-3">ID</th><th className="px-2">제목</th><th className="px-2">저자</th><th className="px-2">장르</th><th className="px-2">상태</th></tr></thead>
             <tbody className="divide-y divide-border">
               {posts.content.map((post) => (
-                <tr key={post.id} className="font-semibold text-foreground"><td className="py-3">{post.id}</td><td>{post.title}</td><td>{post.author}</td><td>{post.genre}</td><td>{STATUS_LABEL[post.readingStatus]}</td></tr>
+                <tr key={post.id} className="font-semibold text-foreground"><td className="px-2 py-3">{post.id}</td><td className="px-2">{post.title}</td><td className="px-2">{post.author}</td><td className="px-2">{post.genre}</td><td className="px-2"><span className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-black text-foreground">{STATUS_LABEL[post.readingStatus]}</span></td></tr>
               ))}
             </tbody>
           </table>

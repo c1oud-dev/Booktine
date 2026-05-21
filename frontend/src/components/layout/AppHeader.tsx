@@ -45,9 +45,9 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-card/95 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-6 lg:px-8">
-        <Link to="/" className="flex items-center gap-2 text-xl font-black tracking-tight text-foreground">
-          <img src="/favicon.png" alt="Booktine 로고" className="h-8 w-8" />
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:h-16 sm:gap-4 sm:px-6 lg:px-8">
+        <Link to="/" className="flex items-center gap-2 text-lg font-black tracking-tight text-foreground sm:text-xl">
+          <img src="/favicon.png" alt="Booktine 로고" className="h-7 w-7 sm:h-8 sm:w-8" />
           Booktine
         </Link>
 
@@ -76,7 +76,7 @@ export default function AppHeader() {
             <button
               type="button"
               onClick={() => setIsMobileNavOpen((prev) => !prev)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft transition hover:bg-secondary"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft transition hover:bg-secondary sm:h-10 sm:w-10"
               aria-label={isMobileNavOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
               aria-expanded={isMobileNavOpen}
               aria-controls="mobile-main-nav"
@@ -93,7 +93,7 @@ export default function AppHeader() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.98 }}
                   transition={panelSpring}
-                  className="absolute right-0 top-12 z-50 w-[calc(100vw-2.5rem)] max-w-sm origin-top-right rounded-2xl border border-border bg-card p-2 shadow-card"
+                  className="absolute right-0 top-11 z-50 w-[calc(100vw-2rem)] max-w-sm origin-top-right rounded-2xl border border-border bg-card p-2 shadow-card sm:top-12 sm:w-[calc(100vw-2.5rem)]"
                 >
                   {headerNavItems.map((item) => (
                     <NavLink
@@ -103,7 +103,7 @@ export default function AppHeader() {
                       onClick={() => setIsMobileNavOpen(false)}
                       className={({ isActive }) =>
                         cn(
-                          'flex items-center rounded-xl px-4 py-3 text-sm font-bold transition-all',
+                          'flex items-center rounded-xl px-3 py-2.5 text-sm font-bold transition-all sm:px-4 sm:py-3',
                           isActive
                             ? 'bg-primary text-primary-foreground shadow-soft'
                             : 'text-muted-foreground hover:bg-secondary hover:text-foreground',

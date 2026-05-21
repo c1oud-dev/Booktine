@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, PenLine, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, PenLine, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
 import { STATUS_LABEL } from '../constants/readingStatus';
+import slideHome from '@/assets/slides/slide-home.png';
+import slideBooknote from '@/assets/slides/slide-booknote.png';
+import slideProgress from '@/assets/slides/slide-progress.png';
+import slideRecommendation from '@/assets/slides/slide-recommendation.png';
+import slideCommunity from '@/assets/slides/slide-community.png';
 
 const featureItems = [
   {
@@ -32,6 +37,30 @@ export default function HomePage() {
   const [bestsellers, setBestsellers] = useState<BestsellerBook[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slides = [
+    { src: slideHome, alt: '홈 대시보드 화면' },
+    { src: slideBooknote, alt: '독서 기록 화면' },
+    { src: slideProgress, alt: 'Progress 목표 및 통계 화면' },
+    { src: slideRecommendation, alt: '도서 추천 화면' },
+    { src: slideCommunity, alt: '커뮤니티 화면' },
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length);
+    }, 4000);
+
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  const goToPrevSlide = () => {
+    setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  };
+
+  const goToNextSlide = () => {
+    setActiveSlide((prev) => (prev + 1) % slides.length);
+  };
 
   useEffect(() => {
     const loadHome = async () => {
@@ -119,12 +148,19 @@ export default function HomePage() {
               <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
               <p className="mt-1 text-4xl font-black text-foreground">∞</p>
             </div>
-            <div className="overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
-              <img
-                src="/Main.png"
-                alt="가지런히 쌓인 책 이미지"
-                className="h-full min-h-[28rem] w-full object-cover object-center"
-              />
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
+              <img src={slides[activeSlide].src} alt={slides[activeSlide].alt} className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500" />
+              <button type="button" onClick={goToPrevSlide} className="absolute left-4 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/90 text-foreground shadow-soft hover:bg-card" aria-label="이전 슬라이드">
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <button type="button" onClick={goToNextSlide} className="absolute right-4 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/90 text-foreground shadow-soft hover:bg-card" aria-label="다음 슬라이드">
+                <ArrowRight className="h-5 w-5" />
+              </button>
+              <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+                {slides.map((slide, index) => (
+                  <button key={slide.alt} type="button" onClick={() => setActiveSlide(index)} className={`h-2.5 w-2.5 rounded-full transition-all ${index === activeSlide ? 'w-6 bg-primary' : 'bg-card/80'}`} aria-label={`${index + 1}번 슬라이드로 이동`} />
+                ))}
+              </div>
             </div>
             <div className="absolute -bottom-6 right-6 hidden max-w-xs rounded-2xl border border-border bg-card p-5 shadow-card sm:block">
               <div className="flex items-center gap-3">

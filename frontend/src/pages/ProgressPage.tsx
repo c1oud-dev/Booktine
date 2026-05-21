@@ -129,9 +129,9 @@ export default function ProgressPage() {
   };
 
   const statItems = [
-    { label: '총 완독', value: stats?.totalFinished ?? 0, icon: Trophy },
-    { label: '올해 완독', value: stats?.currentYearFinished ?? 0, icon: CalendarDays },
-    { label: '이번 달 완독', value: stats?.currentMonthFinished ?? 0, icon: Target },
+    { label: '총 완독', value: stats?.totalFinished ?? 0, icon: Trophy, cardClass: 'bg-emerald-50/80 border-emerald-100', iconClass: 'bg-emerald-100 text-emerald-700' },
+    { label: '올해 완독', value: stats?.currentYearFinished ?? 0, icon: CalendarDays, cardClass: 'bg-sky-50/80 border-sky-100', iconClass: 'bg-sky-100 text-sky-700' },
+    { label: '이번 달 완독', value: stats?.currentMonthFinished ?? 0, icon: Target, cardClass: 'bg-amber-50/80 border-amber-100', iconClass: 'bg-amber-100 text-amber-700' },
   ];
 
   return (
@@ -164,10 +164,10 @@ export default function ProgressPage() {
             {statItems.map((item) => {
               const Icon = item.icon;
               return (
-                <article key={item.label} className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft">
+                <article key={item.label} className={`rounded-[1.5rem] border p-6 shadow-soft ${item.cardClass}`}>
                   <div className="flex items-center justify-between gap-4">
                     <p className="text-sm font-bold text-muted-foreground">{item.label}</p>
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+                    <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${item.iconClass}`}>
                       <Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                   </div>

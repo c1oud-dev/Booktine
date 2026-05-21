@@ -122,6 +122,45 @@ export default function RecommendationPage() {
         </p>
       ) : null}
 
+      <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              Saved shelf
+            </p>
+            <h2 className="mt-2 text-3xl font-black text-foreground">저장한 추천 도서</h2>
+          </div>
+          {loading ? <Spinner label="처리 중..." /> : null}
+        </div>
+        {savedItems.length === 0 ? (
+          <div className="mt-6">
+            <EmptyState title="저장된 추천이 없어요" description="마음에 드는 추천 도서를 저장해 나만의 후보 리스트를 만들어 보세요." />
+          </div>
+        ) : (
+          <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
+            {savedItems.map((item) => (
+              <li key={item.id} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
+                <BookRecommendationCard
+                  title={item.title}
+                  author={item.author}
+                  publisher={item.publisher}
+                  genre={item.genre}
+                  description={item.description}
+                  coverImageUrl={item.coverImageUrl}
+                  actionLabel="삭제"
+                  actionIcon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
+                  secondaryAction
+                  onAction={async () => {
+                    await deleteRecommendation(item.id);
+                    setSavedItems((current) => current.filter((savedItem) => savedItem.id !== item.id));
+                  }}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
+
       <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
@@ -157,9 +196,9 @@ export default function RecommendationPage() {
           </div>
 
           {genreResults.length > 0 ? (
-            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
               {genreResults.map((item) => (
-                <li key={item.isbn || `${item.title}-${item.author}`} className="h-full">
+                <li key={item.isbn || `${item.title}-${item.author}`} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
                   <BookRecommendationCard
                     title={item.title}
                     author={item.author}
@@ -221,9 +260,9 @@ export default function RecommendationPage() {
             ) : (
               <div className="mt-6">
                 <h3 className="text-lg font-black text-foreground">지금 인기 있는 책</h3>
-                <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                <ul className="mt-4 flex gap-4 overflow-x-auto pb-2">
                   {bestsellerItems.map((item) => (
-                    <li key={item.isbn13 || `${item.title}-${item.author}`} className="h-full">
+                    <li key={item.isbn13 || `${item.title}-${item.author}`} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
                       <BookRecommendationCard
                         title={item.title}
                         author={item.author}
@@ -248,9 +287,9 @@ export default function RecommendationPage() {
               />
             </div>
           ) : (
-            <ul className="mt-6 grid gap-4 sm:grid-cols-2">
+            <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
               {searchItems.map((item) => (
-                <li key={item.isbn13} className="h-full">
+                <li key={item.isbn13} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
                   <BookRecommendationCard
                     title={item.title}
                     author={item.author}
@@ -268,51 +307,6 @@ export default function RecommendationPage() {
           )}
         </article>
       </div>
-
-      <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              Saved shelf
-            </p>
-            <h2 className="mt-2 text-3xl font-black text-foreground">저장한 추천 도서</h2>
-          </div>
-          {loading ? (
-            <Spinner label="처리 중..." />
-          ) : null}
-        </div>
-
-        {savedItems.length === 0 ? (
-          <div className="mt-6">
-            <EmptyState
-              title="저장된 추천이 없어요"
-              description="마음에 드는 추천 도서를 저장해 나만의 후보 리스트를 만들어 보세요."
-            />
-          </div>
-        ) : (
-          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {savedItems.map((item) => (
-              <li key={item.id} className="h-full">
-                <BookRecommendationCard
-                  title={item.title}
-                  author={item.author}
-                  publisher={item.publisher}
-                  genre={item.genre}
-                  description={item.description}
-                  coverImageUrl={item.coverImageUrl}
-                  actionLabel="삭제"
-                  actionIcon={<Trash2 className="h-4 w-4" aria-hidden="true" />}
-                  secondaryAction
-                  onAction={async () => {
-                    await deleteRecommendation(item.id);
-                    setSavedItems((current) => current.filter((savedItem) => savedItem.id !== item.id));
-                  }}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </article>
     </section>
   );
 }
