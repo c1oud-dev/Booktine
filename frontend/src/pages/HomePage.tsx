@@ -150,11 +150,23 @@ export default function HomePage() {
               <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
               <p className="mt-1 text-4xl font-black text-foreground">∞</p>
             </div>
-            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
-              <img src={slides[activeSlide].src} alt={slides[activeSlide].alt} className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500" />
-              <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-card px-3 py-2 shadow-soft">
+            <div className="relative overflow-visible rounded-[2rem] border border-border bg-secondary shadow-card">
+              <img
+                src={slides[activeSlide].src}
+                alt={slides[activeSlide].alt}
+                className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500"
+              />
+              <div className="absolute -bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-border bg-foreground/95 px-3 py-2 shadow-card">
                 {slides.map((slide, index) => (
-                  <button key={slide.alt} type="button" onClick={() => setActiveSlide(index)} className={`h-2.5 w-2.5 rounded-full transition-all ${index === activeSlide ? 'w-6 bg-foreground' : 'bg-muted-foreground/50 hover:bg-foreground/70'}`} aria-label={`${index + 1}번 슬라이드로 이동`} />
+                  <button
+                    key={slide.alt}
+                    type="button"
+                    onClick={() => setActiveSlide(index)}
+                    className={`h-2.5 w-2.5 rounded-full transition-all ${
+                      index === activeSlide ? 'w-6 bg-white' : 'bg-white/55 hover:bg-white/80'
+                    }`}
+                    aria-label={`${index + 1}번 슬라이드로 이동`}
+                  />
                 ))}
               </div>
             </div>

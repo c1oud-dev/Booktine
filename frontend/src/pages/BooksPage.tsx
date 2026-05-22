@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { BookOpen, CalendarCheck2, CalendarDays, Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { deleteBookNote, getBookNotes, searchBookNotes } from '@/api/bookNoteApi';
-import { getGenres } from '@/api/genreApi';
+import { getAdminGenres } from '@/api/adminApi';
 import { CARD_STATUS_CLASS_NAME, READING_STATUS_OPTIONS, STATUS_LABEL } from '@/constants/readingStatus';
 import type { BookNote, ReadingStatus } from '@/types/bookNote';
 import Spinner from '@/components/common/Spinner';
@@ -66,7 +66,9 @@ export default function BooksPage() {
   }, [currentPage, keyword, statusFilter]);
 
   useEffect(() => {
-    getGenres().then((genres) => setGenreOptions(genres)).catch(() => setGenreOptions([]));
+    getAdminGenres()
+      .then((genres) => setGenreOptions(genres.map((genre) => genre.name)))
+      .catch(() => setGenreOptions([]));
   }, []);
 
   return (
@@ -75,19 +77,43 @@ export default function BooksPage() {
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reading notes</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">독서 노트</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+            상태/장르 필터로 독서 기록을 빠르게 탐색하고, 진행 상황을 한눈에 관리해보세요.
+          </p>
         </div>
-        <button 
-          type="button" 
-          onClick={() => navigate('/books/new')} 
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground">
-            <Plus className="h-4 w-4" />새 노트 추가
+        <button
+          type="button"
+          onClick={() => navigate('/books/new')}
+          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground"
+        >
+          <Plus className="h-4 w-4" />
+          새 노트 추가
         </button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
         <aside className="hidden rounded-[1.25rem] border border-border bg-card p-4 shadow-soft lg:block">
           <p className="text-sm font-black">상태별</p>
-          <div className="mt-3 space-y-2">{STATUS_FILTERS.map((item) => <button key={item.label} type="button" onClick={() => { setStatusFilter(item.value); setCurrentPage(0); }} className={cn('block w-full rounded-xl px-3 py-2 text-left text-sm font-bold', statusFilter === item.value ? 'bg-secondary' : 'hover:bg-secondary')}>{item.label}</button>)}</div>
+          <div className="mt-3 space-y-2">
+            {STATUS_FILTERS.map((item) => (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  setStatusFilter(item.value);
+                  setCurrentPage(0);
+                }}
+                className={cn(
+                  'block w-full rounded-xl border px-3 py-2 text-left text-sm font-bold',
+                  statusFilter === item.value
+                    ? 'border-foreground/20 bg-secondary'
+                    : 'border-transparent hover:bg-secondary',
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
           <p className="mt-6 text-sm font-black">장르별</p>
           <div className="mt-3 space-y-2"><button type="button" onClick={() => setGenreFilter('')} className={cn('block w-full rounded-xl px-3 py-2 text-left text-sm font-bold', genreFilter === '' ? 'bg-secondary' : 'hover:bg-secondary')}>전체</button>{genreOptions.map((genre) => <button key={genre} type="button" onClick={() => setGenreFilter(genre)} className={cn('block w-full rounded-xl px-3 py-2 text-left text-sm font-bold', genreFilter === genre ? 'bg-secondary' : 'hover:bg-secondary')}>{genre}</button>)}</div>
         </aside>

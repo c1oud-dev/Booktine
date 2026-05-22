@@ -313,14 +313,30 @@ function MonthlyBarChart({ data, currentYear, currentMonth, selectedYear }: { da
       {Array.from({ length: 12 }, (_, i) => {
         const month = i + 1;
         const count = data.find((item) => item.month === month)?.count ?? 0;
-        const heightPercent = (count / maxCount) * 100;
+        const heightPercent = count > 0 ? Math.max((count / maxCount) * 100, 8) : 0;
         const isCurrentMonth = month === currentMonth && selectedYear === currentYear;
-        const monthColors = ['bg-rose-400','bg-orange-400','bg-amber-400','bg-lime-400','bg-emerald-400','bg-teal-400','bg-cyan-400','bg-sky-400','bg-blue-400','bg-indigo-400','bg-violet-400','bg-fuchsia-400'];
+        const monthColors = [
+          'bg-rose-300',
+          'bg-orange-300',
+          'bg-amber-300',
+          'bg-lime-300',
+          'bg-emerald-300',
+          'bg-teal-300',
+          'bg-cyan-300',
+          'bg-sky-300',
+          'bg-blue-300',
+          'bg-indigo-300',
+          'bg-violet-300',
+          'bg-fuchsia-300',
+        ];
         return (
           <div key={month} className="flex flex-1 flex-col items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground">{count > 0 ? count : ''}</span>
-            <div className="flex h-32 w-full items-end rounded-t-lg bg-muted">
-              <div className={`w-full rounded-t-lg transition-all ${isCurrentMonth ? 'bg-indigo-500' : month % 2 === 0 ? 'bg-violet-400/70' : 'bg-sky-400/70'}`} style={{ height: `${heightPercent}%` }} />
+            <div className="flex h-40 w-full items-end rounded-t-lg bg-muted">
+              <div
+                className={`w-full rounded-t-lg transition-all ${isCurrentMonth ? 'ring-2 ring-indigo-400' : ''} ${monthColors[i]}`}
+                style={{ height: `${heightPercent}%` }}
+              />
             </div>
           <span className={`text-xs font-bold ${isCurrentMonth ? 'text-primary' : 'text-muted-foreground'}`}>{month}월</span>
           </div>

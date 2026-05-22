@@ -96,7 +96,22 @@ export default function CommunityListPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {['ALL','GENERAL','REVIEW','QUESTION','RECOMMEND'].map((item)=><button key={item} type="button" onClick={()=>{setCurrentPage(0);setCategory(item as any);}} className={cn("rounded-full border px-4 py-2 text-sm font-bold", category===item?"border-primary bg-primary text-primary-foreground":"border-border")}>{item==='ALL'?'전체':item==='GENERAL'?'일반':item==='REVIEW'?'독서 후기':item==='QUESTION'?'질문':'추천'}</button>)}
+        {['ALL', 'GENERAL', 'REVIEW', 'QUESTION', 'RECOMMEND'].map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => {
+              setCurrentPage(0);
+              setCategory(item as typeof category);
+            }}
+            className={cn(
+              'rounded-full border px-4 py-2 text-sm font-bold',
+              category === item ? 'border-primary bg-primary text-primary-foreground' : 'border-border',
+            )}
+          >
+            {item === 'ALL' ? '전체' : item === 'GENERAL' ? '일반' : item === 'REVIEW' ? '독서 후기' : item === 'QUESTION' ? '질문' : '추천'}
+          </button>
+        ))}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
@@ -165,8 +180,31 @@ export default function CommunityListPage() {
       )}
         </div>
         <aside className="space-y-4">
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft"><h3 className="text-sm font-black">인기 게시글</h3><ul className="mt-3 space-y-2">{popularPosts.map((post) => <li key={`popular-${post.id}`}><Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">{post.title}</Link></li>)}</ul></div>
-          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft"><h3 className="text-sm font-black">최근 활동</h3><ul className="mt-3 space-y-2">{recentPosts.map((post) => <li key={`recent-${post.id}`}><Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">{post.title}</Link></li>)}</ul></div>
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <h3 className="text-sm font-black">커뮤니티 요약</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-xl bg-secondary px-3 py-2">
+                <p className="text-xs font-bold text-muted-foreground">총 게시글</p>
+                <p className="text-lg font-black text-foreground">{totalElements}</p>
+              </div>
+              <div className="rounded-xl bg-secondary px-3 py-2">
+                <p className="text-xs font-bold text-muted-foreground">현재 카테고리</p>
+                <p className="text-sm font-black text-foreground">{category === 'ALL' ? '전체' : '선택됨'}</p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <h3 className="text-sm font-black">인기 게시글</h3>
+            <ul className="mt-3 space-y-2">
+              {popularPosts.map((post) => (
+                <li key={`popular-${post.id}`}>
+                  <Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">
+                    {post.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
       </div>
 
