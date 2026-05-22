@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
  * 연간 목표 CRUD 비즈니스 로직을 담당하는 서비스.
  * 사용자/연도 기준 단일 연간 목표를 생성, 조회, 수정, 삭제한다.
@@ -47,17 +45,6 @@ public class AnnualGoalService {
         return AnnualGoalResponse.from(findGoalByUserAndYear(userId, year));
     }
 
-    /** 사용자 연간 목표 목록을 조회한다. */
-    public List<AnnualGoalResponse> getAll(Long userId) {
-        validateUserExists(userId);
-        return annualGoalRepository.findAllByUserIdOrderByYearAsc(userId).stream().map(AnnualGoalResponse::from).toList();
-    }
-
-    /** 특정 연도의 연간 목표를 조회한다. */
-    public AnnualGoalResponse getByYear(Long userId, Integer year) {
-        return AnnualGoalResponse.from(findGoalByUserAndYear(userId, year));
-    }
-
     /** 특정 연도의 연간 목표를 수정한다. */
     @Transactional
     public AnnualGoalResponse update(Long userId, Integer year, AnnualGoalCreateRequest request) {
@@ -65,12 +52,6 @@ public class AnnualGoalService {
         AnnualGoal goal = findGoalByUserAndYear(userId, year);
         goal.updateGoalCount(request.goalCount());
         return AnnualGoalResponse.from(goal);
-    }
-
-    /** 특정 연도의 연간 목표를 삭제한다. */
-    @Transactional
-    public void deleteByYear(Long userId, Integer year) {
-        annualGoalRepository.delete(findGoalByUserAndYear(userId, year));
     }
 
     /** ID로 사용자를 조회한다. */

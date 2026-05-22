@@ -3,7 +3,6 @@ package booktine.Booktine.domain.progress.repository;
 import booktine.Booktine.domain.progress.entity.AnnualGoal;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -16,11 +15,6 @@ public interface AnnualGoalRepository extends JpaRepository<AnnualGoal, Long> {
      * 사용자와 연도로 연간 목표를 단건 조회한다.
      */
     Optional<AnnualGoal> findByUserIdAndYear(Long userId, Integer year);
-
-    /**
-     * 사용자 연간 목표 전체 목록을 조회한다.
-     */
-    List<AnnualGoal> findAllByUserIdOrderByYearAsc(Long userId);
 
     /** 회원 탈퇴 시 연간 목표를 일괄 삭제한다. */
     void deleteAllByUserId(Long userId);

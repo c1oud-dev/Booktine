@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
  * 월간 목표 CRUD 비즈니스 로직을 담당하는 서비스.
  * 사용자/연월 기준 단일 월간 목표를 생성, 조회, 수정, 삭제한다.
@@ -48,18 +46,6 @@ public class MonthlyGoalService {
         return MonthlyGoalResponse.from(findGoalByUserYearMonth(userId, year, month));
     }
 
-    /** 특정 연도의 월간 목표 목록을 조회한다. */
-    public List<MonthlyGoalResponse> getByYear(Long userId, Integer year) {
-        validateUserExists(userId);
-        return monthlyGoalRepository.findAllByUserIdAndYearOrderByMonthAsc(userId, year).stream()
-                .map(MonthlyGoalResponse::from).toList();
-    }
-
-    /** 특정 연월의 월간 목표를 조회한다. */
-    public MonthlyGoalResponse getByYearAndMonth(Long userId, Integer year, Integer month) {
-        return MonthlyGoalResponse.from(findGoalByUserYearMonth(userId, year, month));
-    }
-
     /** 특정 연월의 월간 목표를 수정한다. */
     @Transactional
     public MonthlyGoalResponse update(Long userId, Integer year, Integer month, MonthlyGoalCreateRequest request) {
@@ -67,12 +53,6 @@ public class MonthlyGoalService {
         MonthlyGoal goal = findGoalByUserYearMonth(userId, year, month);
         goal.updateGoalCount(request.goalCount());
         return MonthlyGoalResponse.from(goal);
-    }
-
-    /** 특정 연월의 월간 목표를 삭제한다. */
-    @Transactional
-    public void deleteByYearAndMonth(Long userId, Integer year, Integer month) {
-        monthlyGoalRepository.delete(findGoalByUserYearMonth(userId, year, month));
     }
 
     /** ID로 사용자를 조회한다. */

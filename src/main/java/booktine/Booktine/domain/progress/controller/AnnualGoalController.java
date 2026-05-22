@@ -39,7 +39,7 @@ public class AnnualGoalController {
     /** 특정 연도의 연간 목표를 수정한다. */
     @Operation(summary = "독서 목표 수정", description = "로그인한 사용자의 기존 독서 목표를 수정합니다.")
     @PutMapping
-    public ApiResponse<AnnualGoalResponse> update(@Valid @RequestParam Integer year, @RequestBody AnnualGoalCreateRequest request) {
+    public ApiResponse<AnnualGoalResponse> update(@RequestParam Integer year, @Valid @RequestBody AnnualGoalCreateRequest request) {
         return ApiResponse.ok(annualGoalService.update(getCurrentUserId(), year, request));
     }
 
