@@ -80,7 +80,7 @@ export default function CommunityListPage() {
       <div className="grid gap-6 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[1fr_auto] lg:items-end lg:p-8">
         <div>
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Reader community</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-foreground sm:text-4xl">커뮤니티</h1>
+          <h1 className="mt-3 text-3xl font-black tracking-tight text-foreground sm:text-4xl">커뮤니티</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
             책을 읽으며 떠오른 생각, 질문, 추천을 다른 독자와 나눠보세요.
           </p>
@@ -188,8 +188,10 @@ export default function CommunityListPage() {
                 <p className="text-lg font-black text-foreground">{totalElements}</p>
               </div>
               <div className="rounded-xl bg-secondary px-3 py-2">
-                <p className="text-xs font-bold text-muted-foreground">현재 카테고리</p>
-                <p className="text-sm font-black text-foreground">{category === 'ALL' ? '전체' : '선택됨'}</p>
+                <p className="text-xs font-bold text-muted-foreground">오늘 게시글</p>
+                <p className="text-lg font-black text-foreground">
+                  {posts.filter((post) => new Date(post.createdAt).toDateString() === new Date().toDateString()).length}
+                </p>
               </div>
             </div>
           </div>

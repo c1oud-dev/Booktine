@@ -97,7 +97,7 @@ export default function HomePage() {
   if (!initializing && !isLoggedIn) {
     return (
       <section className="bg-card">
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-12 px-5 py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
+        <div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl items-center gap-8 px-5 py-10 sm:gap-12 sm:py-16 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:px-8 lg:py-20">
           <div className="max-w-2xl">
             <p className="inline-flex rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-muted-foreground shadow-soft">
               독서 습관 추적 & 목표 관리 서비스
@@ -146,40 +146,25 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 top-10 z-30 hidden rounded-2xl border border-border bg-card/95 p-5 shadow-float backdrop-blur-sm lg:block">
-              <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
-              <p className="mt-1 text-4xl font-black text-foreground">∞</p>
-            </div>
-            <div className="relative overflow-visible rounded-[2rem] border border-border bg-secondary shadow-card">
+            <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
               <img
                 src={slides[activeSlide].src}
                 alt={slides[activeSlide].alt}
-                className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500"
+                className="h-full min-h-[20rem] sm:min-h-[28rem] w-full object-cover object-center transition-all duration-500"
               />
-              <div className="absolute -bottom-8 left-1/2 z-20 flex -translate-x-1/2 gap-2 rounded-full border border-border bg-foreground/95 px-3 py-2 shadow-card">
-                {slides.map((slide, index) => (
-                  <button
-                    key={slide.alt}
-                    type="button"
-                    onClick={() => setActiveSlide(index)}
-                    className={`h-2.5 w-2.5 rounded-full transition-all ${
-                      index === activeSlide ? 'w-6 bg-white' : 'bg-white/55 hover:bg-white/80'
-                    }`}
-                    aria-label={`${index + 1}번 슬라이드로 이동`}
-                  />
-                ))}
-              </div>
             </div>
-            <div className="absolute -bottom-6 right-6 hidden max-w-xs rounded-2xl border border-border bg-card p-5 shadow-card sm:block">
-              <div className="flex items-center gap-3">
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <BookOpen className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-bold text-muted-foreground">오늘의 루틴</p>
-                  <p className="text-base font-black text-foreground">30분 읽기 완료</p>
-                </div>
-              </div>
+            <div className="mt-3 flex justify-center gap-2">
+              {slides.map((slide, index) => (
+                <button
+                  key={slide.alt}
+                  type="button"
+                  onClick={() => setActiveSlide(index)}
+                  className={`h-2.5 rounded-full transition-all ${
+                    index === activeSlide ? 'w-6 bg-primary' : 'w-2.5 bg-muted-foreground/40 hover:bg-muted-foreground/70'
+                  }`}
+                  aria-label={`${index + 1}번 슬라이드로 이동`}
+                />
+              ))}
             </div>
           </div>
         </div>

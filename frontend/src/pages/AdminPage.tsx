@@ -53,7 +53,7 @@ export default function AdminPage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div className="rounded-[2rem] border border-border bg-card p-6 shadow-card lg:p-8">
+      <div className="rounded-[2rem] border border-border bg-card p-4 shadow-card sm:p-6 lg:p-8">
         <div className="flex items-center gap-3">
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><ShieldCheck className="h-6 w-6" aria-hidden="true" /></span>
           <div>

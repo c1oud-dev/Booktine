@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Eye, EyeOff, LockKeyhole, Mail, MessageCircle } from 'lucide-react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { authApi } from '@/auth/authApi';
 import { API_BASE_URL } from '@/config/env';
 import { useAuth } from '@/auth/AuthContext';
@@ -21,11 +21,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const { login } = useAuth();
 
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/';
+  const redirectParam = searchParams.get('redirect');
+  const from = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+  const isAuthRequired = searchParams.get('authRequired') === '1';
   const oauthBaseUrl = useMemo(() => API_BASE_URL, []);
+
+  const closeAuthRequiredNotice = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('authRequired');
+    setSearchParams(next, { replace: true });
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -47,6 +56,14 @@ export default function LoginPage() {
       <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(248,250,252,0.96),rgba(248,250,252,0.88)),url('/Main.png')] bg-cover bg-center" />
       <div className="mx-auto flex min-h-[calc(100vh-11rem)] w-full max-w-7xl items-center justify-center">
         <article className="w-full max-w-lg rounded-[2rem] border border-border/80 bg-card p-6 shadow-card sm:p-8 md:p-10">
+        <Link
+            to="/"
+            className="mx-auto mb-5 inline-flex items-center gap-2 text-base font-black text-foreground"
+          >
+            <img src="/favicon.png" alt="Booktine 로고" className="h-7 w-7" />
+            Booktine
+          </Link>
+
           <div className="grid grid-cols-2 rounded-xl bg-secondary p-1">
             <Link
               to="/signup"
@@ -61,6 +78,20 @@ export default function LoginPage() {
               Log in
             </Link>
           </div>
+
+          {isAuthRequired ? (
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+              <p className="text-sm font-bold text-amber-700">로그인이 필요합니다.</p>
+              <p className="mt-1 text-xs font-semibold text-amber-700">로그인 후 요청하신 페이지로 이동합니다.</p>
+              <button
+                type="button"
+                onClick={closeAuthRequiredNotice}
+                className="mt-2 text-xs font-bold text-amber-800 underline"
+              >
+                닫기
+              </button>
+            </div>
+          ) : null}
 
           <div className="mt-9 text-center">
             <p className="text-sm font-semibold text-muted-foreground">다시 이어 읽기</p>

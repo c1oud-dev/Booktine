@@ -48,7 +48,6 @@ export const authApi = {
 
   logout: async () => {
     const response = await http.post('/auth/logout');
-    setAccessToken(null);
     return response;
   },
 

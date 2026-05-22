@@ -2,7 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { ArrowLeft, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createBookNote } from '@/api/bookNoteApi';
-import { getAdminGenres } from '@/api/adminApi';
+import { getGenres } from '@/api/genreApi';
 import { READING_STATUS_OPTIONS, STATUS_LABEL } from '@/constants/readingStatus';
 import type { ReadingStatus } from '@/types/bookNote';
 
@@ -49,9 +49,8 @@ export default function BooksNewPage() {
   const [genres, setGenres] = useState<string[]>(['기타']);
 
   useEffect(() => {
-    getAdminGenres()
-      .then((items) => {
-        const names = items.map((item) => item.name);
+    getGenres()
+      .then((names) => {
         setGenres(names.length ? names : ['기타']);
         setGenre(names[0] ?? '기타');
       })
@@ -83,16 +82,16 @@ export default function BooksNewPage() {
 
   return (
     <section className="mx-auto w-full max-w-5xl space-y-6 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
-      <div className="flex items-center justify-between gap-3">
+      <div className="space-y-3">
         <button
           type="button"
           onClick={() => navigate('/books')}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+          className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          돌아가기
+          독서 노트로 돌아가기
         </button>
-        <h1 className="flex-1 text-left text-3xl font-black text-foreground">새 책 기록하기</h1>
+        <h1 className="text-3xl font-black text-foreground">새 책 기록하기</h1>
       </div>
       <form className="grid gap-5 rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:grid-cols-6" onSubmit={onSubmit}>
         <label className="block text-sm font-bold text-foreground lg:col-span-6">제목<input className="mt-2" value={title} onChange={(e) => setTitle(e.target.value)} required /></label>

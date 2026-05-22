@@ -13,6 +13,10 @@ type AuthContextValue = {
   refreshUser: () => Promise<void>;
   updateUser: (profile: UserProfile) => void;
   clearSession: () => void;
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
+  isLoggingOut: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -21,6 +25,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [authVersion, setAuthVersion] = useState(0);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);
+  const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
   const refreshUser = useCallback(async () => {
     const profile = await getMyProfile();
@@ -95,16 +103,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await refreshUser();
     },
     logout: async () => {
+      setIsLoggingOut(true);
+      closeAuthModal();
       try {
         await authApi.logout();
       } finally {
         clearSession();
+        setIsLoggingOut(false);
       }
     },
     refreshUser,
     updateUser,
     clearSession,
-  }), [user, initializing, authVersion, refreshUser, updateUser, clearSession]);
+    isAuthModalOpen,
+    openAuthModal,
+    closeAuthModal,
+    isLoggingOut,
+  }), [user, initializing, authVersion, refreshUser, updateUser, clearSession, isAuthModalOpen, openAuthModal, closeAuthModal, isLoggingOut]);
 
   return (
     <AuthContext.Provider value={value}>

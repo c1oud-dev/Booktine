@@ -129,7 +129,7 @@ public class InitData {
     }
 
     private void createGenres() {
-        List.of("철학", "심리", "SF", "환경").forEach(name -> genreRepository.save(new Genre(name)));
+        List.of("소설", "자기계발", "IT", "경제", "역사", "과학", "에세이", "철학", "심리", "SF", "환경").forEach(name -> genreRepository.save(new Genre(name)));
     }
 
     private List<Post> createPosts(User user, LocalDate today) {

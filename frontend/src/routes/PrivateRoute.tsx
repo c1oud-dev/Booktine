@@ -4,7 +4,7 @@ import { useAuth } from '@/auth/AuthContext';
 
 export default function PrivateRoute({ requireAdmin = false }: { requireAdmin?: boolean }) {
   const location = useLocation();
-  const { isAuthenticated, isAdmin, initializing } = useAuth();
+  const { isAuthenticated, isAdmin, initializing, openAuthModal, isLoggingOut } = useAuth();
 
   if (initializing) {
     return (
@@ -17,7 +17,7 @@ export default function PrivateRoute({ requireAdmin = false }: { requireAdmin?: 
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace />;
   }
 
   if (requireAdmin && !isAdmin) {

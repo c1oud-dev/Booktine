@@ -1,4 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { useAuth } from '@/auth/AuthContext';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
 import AdminPage from '../pages/AdminPage';
@@ -10,7 +12,6 @@ import CommunityDetailPage from '../pages/community/CommunityDetailPage';
 import CommunityFormPage from '../pages/community/CommunityFormPage';
 import CommunityListPage from '../pages/community/CommunityListPage';
 import LoginPage from '../pages/LoginPage';
-import LogoutPage from '../pages/LogoutPage';
 import MyPage from '../pages/MyPage';
 import ProgressPage from '../pages/ProgressPage';
 import RecommendationPage from '../pages/RecommendationPage';
@@ -23,11 +24,16 @@ import PrivateRoute from './PrivateRoute';
 
 export function AppRouter() {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={location.pathname}
+        key={`${location.pathname}-${isAuthenticated}`}
         initial={{ opacity: 0, y: 18, scale: 0.992 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -14, scale: 0.996 }}
@@ -52,7 +58,6 @@ export function AppRouter() {
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/recommendations" element={<RecommendationPage />} />
               <Route path="/reminders" element={<ReminderPage />} />
-              <Route path="/logout" element={<LogoutPage />} />
             </Route>
             <Route element={<PrivateRoute requireAdmin />}>
               <Route path="/admin" element={<AdminPage />} />
