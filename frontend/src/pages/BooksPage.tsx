@@ -3,7 +3,7 @@ import { BookOpen, CalendarCheck2, CalendarDays, Pencil, Plus, Star, Trash2 } fr
 import { useNavigate } from 'react-router-dom';
 import { deleteBookNote, getBookNotes, searchBookNotes } from '@/api/bookNoteApi';
 import { getGenres } from '@/api/genreApi';
-import { CARD_STATUS_CLASS_NAME, READING_STATUS_OPTIONS, STATUS_CLASS_NAME, STATUS_LABEL } from '@/constants/readingStatus';
+import { CARD_STATUS_CLASS_NAME, STATUS_CLASS_NAME, STATUS_LABEL } from '@/constants/readingStatus';
 import type { BookNote, ReadingStatus } from '@/types/bookNote';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
