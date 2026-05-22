@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageSquareText, PenLine, Plus, UsersRound } from 'lucide-react';
+import { Heart, MessageSquareText, PenLine, Plus } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
 import Spinner from '@/components/common/Spinner';
 import { getCommunityComments, getCommunityPosts, likeCommunityPost, unlikeCommunityPost, type CommunityPost } from '@/api/communityApi';
@@ -71,6 +71,9 @@ export default function CommunityListPage() {
     }
   };
 
+  const popularPosts = [...posts].sort((a, b) => b.likeCount - a.likeCount).slice(0, 5);
+  const recentPosts = [...posts].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 5);
+
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
       <div className="grid gap-6 rounded-[2rem] border border-border bg-card p-6 shadow-card lg:grid-cols-[1fr_auto] lg:items-end lg:p-8">
@@ -82,9 +85,6 @@ export default function CommunityListPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center gap-3 rounded-2xl bg-secondary px-5 py-4 text-sm font-bold text-secondary-foreground">
-            <UsersRound className="h-5 w-5" aria-hidden="true" />총 {totalElements}개 글
-          </div>
           <Link
             to="/community/new"
             className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-4 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float"
@@ -93,6 +93,9 @@ export default function CommunityListPage() {
           </Link>
         </div>
       </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
+        <div>
 
       {loading ? (
         <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
@@ -107,7 +110,7 @@ export default function CommunityListPage() {
           {posts.map((post) => {
             const isLiked = post.isLiked;
             return (
-              <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-4 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-5">
+              <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-3.5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <Link to={`/community/${post.id}`} className="min-w-0 flex-1">
                     <div className="flex items-center gap-2.5">
@@ -143,10 +146,11 @@ export default function CommunityListPage() {
                       post.isDeleted ? 'cursor-not-allowed bg-secondary text-muted-foreground' : isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
                     )}
                   >
-                    <Heart className={cn('h-3.5 w-3.5', isLiked && 'fill-current')} />{post.likeCount}
+                    <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
+                    {post.likeCount}
                   </button>
                   <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-sm font-bold text-secondary-foreground">
-                    <MessageSquareText className="h-3.5 w-3.5" />댓글 {commentCounts[post.id] ?? 0}
+                    <MessageSquareText className="h-4 w-4" />댓글 {commentCounts[post.id] ?? 0}
                   </span>
                 </div>
               </article>
@@ -154,6 +158,12 @@ export default function CommunityListPage() {
           })}
         </div>
       )}
+        </div>
+        <aside className="space-y-4">
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft"><h3 className="text-sm font-black">인기 게시글</h3><ul className="mt-3 space-y-2">{popularPosts.map((post) => <li key={`popular-${post.id}`}><Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">{post.title}</Link></li>)}</ul></div>
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft"><h3 className="text-sm font-black">최근 활동</h3><ul className="mt-3 space-y-2">{recentPosts.map((post) => <li key={`recent-${post.id}`}><Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">{post.title}</Link></li>)}</ul></div>
+        </aside>
+      </div>
 
       <div className="flex items-center justify-center gap-3">
         <button

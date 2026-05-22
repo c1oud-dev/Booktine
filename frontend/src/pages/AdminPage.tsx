@@ -69,7 +69,7 @@ export default function AdminPage() {
       {loading ? (
         <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft"><Spinner label="관리자 데이터를 불러오는 중..." /></div>
       ) : (
-        <div className="grid gap-6 xl:grid-cols-2">
+        <div className="grid auto-rows-fr gap-6 xl:grid-cols-2">
           <AdminGenres genres={genres} onReload={loadGenres} />
           <AdminInquiries inquiries={inquiries} page={inquiryPage} onPageChange={setInquiryPage} />
           <AdminUsers users={users} page={userPage} onPageChange={setUserPage} />
@@ -167,14 +167,14 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
         <div className="mt-8"><EmptyState title="사용자가 없어요" description="조회된 사용자 데이터가 없습니다." /></div>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[34rem] text-left text-sm">
+          <table className="w-full table-fixed text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-2 py-3">ID</th>
-                <th className="px-2">이메일</th>
-                <th className="px-2">닉네임</th>
-                <th className="px-2">권한</th>
-                <th className="px-2">완독</th>
+                <th className="w-[34%] px-2">이메일</th>
+                <th className="w-[18%] px-2">닉네임</th>
+                <th className="w-[18%] px-2">권한</th>
+                <th className="w-[12%] px-2">완독</th>
               </tr></thead>
             <tbody className="divide-y divide-border">
               {users.content.map((user) => (
@@ -183,7 +183,9 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
                   <td className="px-2">{user.email}</td>
                   <td className="px-2">{user.nickname}</td>
                   <td className="px-2">
-                    <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-black text-secondary-foreground">{user.role}</span>
+                    <span className="inline-flex rounded-full bg-secondary px-3 py-1 text-xs font-black text-secondary-foreground">
+                      {user.role === 'ROLE_ADMIN' ? '관리자' : '일반 사용자'}
+                    </span>
                   </td>
                   <td className="px-2">{user.completedCount}권</td>
                 </tr>
@@ -205,7 +207,7 @@ function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNot
         <div className="mt-8"><EmptyState title="게시물이 없어요" description="조회된 독서 노트가 없습니다." /></div>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-left text-sm">
+          <table className="w-full table-fixed text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="px-2 py-3">ID</th><th className="px-2">제목</th><th className="px-2">저자</th><th className="px-2">장르</th><th className="px-2">상태</th></tr></thead>
             <tbody className="divide-y divide-border">
               {posts.content.map((post) => (

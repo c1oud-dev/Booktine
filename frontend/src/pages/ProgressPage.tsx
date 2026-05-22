@@ -189,10 +189,10 @@ export default function ProgressPage() {
             <p className="mt-2 text-sm font-semibold text-muted-foreground">{year}년 {month}월 기준으로 목표와 장르 통계를 계산합니다.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <select value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="연도 선택" className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
+            <select value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="연도 선택" className="min-w-[7.5rem] rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
               {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => <option key={y} value={y}>{y}년</option>)}
             </select>
-            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} aria-label="월 선택" className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
+            <select value={month} onChange={(e) => setMonth(Number(e.target.value))} aria-label="월 선택" className="min-w-[7.5rem] rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m}월</option>)}
             </select>
           </div>
@@ -247,7 +247,7 @@ export default function ProgressPage() {
 
 function GoalCard({ title, eyebrow, value, editing, count, setCount, onEdit, onCancel, onSubmit, actionLabel }: { title: string; eyebrow: string; value?: number; editing: boolean; count: number; setCount: (count: number) => void; onEdit: () => void; onCancel: () => void; onSubmit: (e: FormEvent) => void; actionLabel: string }) {
   return (
-    <article className="rounded-[1.5rem] border border-border bg-secondary/30 p-6">
+    <article className="rounded-[1.5rem] border border-border bg-gradient-to-br from-sky-50 via-sky-100/60 to-indigo-50 p-6">
       <p className="text-sm font-bold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
       <h3 className="mt-2 text-2xl font-black text-foreground">{title}</h3>
       {editing ? (
@@ -316,7 +316,7 @@ function MonthlyBarChart({ data, currentYear, currentMonth, selectedYear }: { da
           <div key={month} className="flex flex-1 flex-col items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground">{count > 0 ? count : ''}</span>
             <div className="flex h-32 w-full items-end rounded-t-lg bg-muted">
-              <div className={`w-full rounded-t-lg transition-all ${isCurrentMonth ? 'bg-primary' : 'bg-primary/40'}`} style={{ height: `${heightPercent}%` }} />
+              <div className={`w-full rounded-t-lg transition-all ${isCurrentMonth ? 'bg-indigo-500' : month % 2 === 0 ? 'bg-violet-400/70' : 'bg-sky-400/70'}`} style={{ height: `${heightPercent}%` }} />
             </div>
           <span className={`text-xs font-bold ${isCurrentMonth ? 'text-primary' : 'text-muted-foreground'}`}>{month}월</span>
           </div>

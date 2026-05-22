@@ -110,7 +110,7 @@ export default function HomePage() {
             <p className="inline-flex rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-muted-foreground shadow-soft">
               독서 습관 추적 & 목표 관리 서비스
             </p>
-            <h1 className="mt-7 text-5xl font-black tracking-tight text-foreground break-keep sm:text-6xl lg:text-7xl">
+            <h1 className="mt-7 text-4xl font-black tracking-tight text-foreground break-keep sm:text-5xl lg:text-6xl">
               Booktine으로 독서 루틴을 더 선명하게.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
@@ -139,9 +139,9 @@ export default function HomePage() {
                 const Icon = item.icon;
 
                 return (
-                  <article key={item.title} className="rounded-2xl border border-border bg-card p-5 shadow-soft min-w-0">
+                  <article key={item.title} className="min-w-[12.5rem] rounded-2xl border border-border bg-card p-5 shadow-soft">
                     <Icon className="h-5 w-5 text-foreground" />
-                    <h2 className="mt-4 text-base font-black text-foreground">
+                    <h2 className="mt-4 text-sm font-black text-foreground sm:text-base">
                       {item.title}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -154,16 +154,16 @@ export default function HomePage() {
           </div>
 
           <div className="relative">
-            <div className="absolute -left-6 top-10 z-20 hidden rounded-2xl border border-border bg-card p-5 shadow-card lg:block">
+            <div className="absolute -left-6 top-10 z-30 hidden rounded-2xl border border-border bg-card/95 p-5 shadow-float backdrop-blur-sm lg:block">
               <p className="text-sm font-bold text-muted-foreground">누적 독서 노트</p>
               <p className="mt-1 text-4xl font-black text-foreground">∞</p>
             </div>
             <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
               <img src={slides[activeSlide].src} alt={slides[activeSlide].alt} className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500" />
-              <button type="button" onClick={goToPrevSlide} className="absolute left-4 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/90 text-foreground shadow-soft hover:bg-card" aria-label="이전 슬라이드">
+              <button type="button" onClick={goToPrevSlide} className="absolute left-5 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-foreground/80 text-background shadow-float hover:bg-foreground" aria-label="이전 슬라이드">
                 <ArrowLeft className="h-5 w-5" />
               </button>
-              <button type="button" onClick={goToNextSlide} className="absolute right-4 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/90 text-foreground shadow-soft hover:bg-card" aria-label="다음 슬라이드">
+              <button type="button" onClick={goToNextSlide} className="absolute right-5 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-foreground/80 text-background shadow-float hover:bg-foreground" aria-label="다음 슬라이드">
                 <ArrowRight className="h-5 w-5" />
               </button>
               <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">

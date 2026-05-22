@@ -28,6 +28,8 @@ export default function RecommendationPage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'genre' | 'saved' | 'search'>('genre');
+  const [savedFeedbackKey, setSavedFeedbackKey] = useState('');
   const loadSaved = async () => {
     const page = await getSavedRecommendations(0, SAVED_RECOMMENDATION_PAGE_SIZE);
     setSavedItems(page.content);
@@ -90,7 +92,8 @@ export default function RecommendationPage() {
         isbn: 'isbn' in book ? book.isbn : book.isbn13,
       });
       setSavedItems((current) => [savedRecommendation, ...current.filter((item) => item.id !== savedRecommendation.id)]);
-      setMessage('추천 도서를 저장했습니다.');
+      setMessage('저장되었습니다 ✓');
+      setSavedFeedbackKey(book.title);
     } catch {
       setMessage('저장에 실패했습니다.');
     }
@@ -122,6 +125,13 @@ export default function RecommendationPage() {
         </p>
       ) : null}
 
+      <div className="flex flex-wrap gap-2">
+        {[{ key: 'genre', label: '장르별 추천' }, { key: 'saved', label: '저장한 도서' }, { key: 'search', label: '도서 검색' }].map((tab) => (
+          <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key as 'genre' | 'saved' | 'search')} className={`rounded-full px-4 py-2 text-sm font-bold ${activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{tab.label}</button>
+        ))}
+      </div>
+
+      {activeTab === 'saved' ? (
       <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -160,7 +170,9 @@ export default function RecommendationPage() {
           </ul>
         )}
       </article>
+      ) : null}
 
+      {(activeTab === 'genre' || activeTab === 'search') ? (
       <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
@@ -206,7 +218,7 @@ export default function RecommendationPage() {
                     genre={item.genre}
                     description={item.description}
                     coverImageUrl={item.coverImageUrl}
-                    actionLabel="저장"
+                    actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
                     actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
                     onAction={() => onSave(item)}
                   />
@@ -270,7 +282,7 @@ export default function RecommendationPage() {
                         genre={item.categoryName}
                         description={item.description}
                         coverImageUrl={item.cover}
-                        actionLabel="저장"
+                        actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
                         actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
                         onAction={() => onSave(item)}
                       />
@@ -297,7 +309,7 @@ export default function RecommendationPage() {
                     genre={item.categoryName}
                     description={item.description}
                     coverImageUrl={item.cover}
-                    actionLabel="저장"
+                    actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
                     actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
                     onAction={() => onSave(item)}
                   />
@@ -307,6 +319,7 @@ export default function RecommendationPage() {
           )}
         </article>
       </div>
+      ) : null}
     </section>
   );
 }
