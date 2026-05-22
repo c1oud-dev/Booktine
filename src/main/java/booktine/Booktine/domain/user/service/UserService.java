@@ -73,9 +73,9 @@ public class UserService {
                 .providerId(null)
                 .build();
 
-        UserResponse response = toUserResponse(userRepository.save(user));
+        User savedUser = userRepository.save(user);
         authService.consumeSignupEmailVerification(request.email());
-        return response;
+        return buildUserResponse(savedUser);
     }
 
     /**
@@ -99,7 +99,7 @@ public class UserService {
      * 사용자가 존재하지 않으면 USER_NOT_FOUND 예외를 발생시킨다.
      */
     public UserResponse getMyInfo(Long userId) {
-        return toUserResponse(getUserById(userId));
+        return buildUserResponse(getUserById(userId));
     }
 
     /**
@@ -114,16 +114,7 @@ public class UserService {
         validateNicknameDuplicationOnUpdate(user, request.nickname());
 
         user.updateProfile(request.nickname(), request.aboutMe());
-        return toUserResponse(user);
-    }
-
-    /**
-     * 사용자 계정을 삭제한다.
-     * 계정에 프로필 이미지가 연결되어 있으면 S3 파일을 먼저 삭제한 뒤 사용자 엔티티를 제거한다.
-     */
-    @Transactional
-    public void deleteMyAccount(Long userId) {
-        deleteMyAccount(userId, null);
+        return buildUserResponse(user);
     }
 
     /**
@@ -185,7 +176,7 @@ public class UserService {
         String uploadedImageUrl = s3Service.uploadImage(image);
         user.updateProfileImageUrl(uploadedImageUrl);
 
-        return toUserResponse(user);
+        return buildUserResponse(user);
     }
 
     /**
@@ -197,7 +188,7 @@ public class UserService {
         User user = getUserById(userId);
         deleteProfileImageIfExists(user);
         user.updateProfileImageUrl(null);
-        return toUserResponse(user);
+        return buildUserResponse(user);
     }
 
     /**
@@ -210,9 +201,9 @@ public class UserService {
     }
 
     /**
-     * 사용자 응답에 프로필과 독서 현황 집계를 함께 담는다.
+     * 사용자 응답에 프로필과 독서 현황 집계를 함께 담아 DTO로 반환한다.
      */
-    private UserResponse toUserResponse(User user) {
+    private UserResponse buildUserResponse(User user) {
         long readingCount = postRepository.countByUserIdAndReadingStatus(user.getId(), ReadingStatus.READING);
         long completedCount = postRepository.countByUserIdAndReadingStatus(user.getId(), ReadingStatus.COMPLETED);
         return UserResponse.from(user, readingCount, completedCount);
