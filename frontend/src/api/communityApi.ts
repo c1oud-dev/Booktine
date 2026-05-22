@@ -99,3 +99,13 @@ export async function unlikeCommunityPost(postId: number) {
   const res = await http.delete<ApiResponse<CommunityPost>>(`/community/posts/${postId}/likes`);
   return res.data.data;
 }
+
+export async function getPopularCommunityPostsByLikes() {
+  const res = await http.get<ApiResponse<CommunityPost[]>>('/community/popular/likes');
+  return res.data.data;
+}
+
+export async function getPopularCommunityPostsByComments() {
+  const res = await http.get<ApiResponse<CommunityPost[]>>('/community/popular/comments');
+  return res.data.data;
+}

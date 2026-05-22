@@ -68,6 +68,38 @@ public class CommunityService {
         return posts.map(post -> CommunityPostResponse.from(post, likedPostIds.contains(post.getId())));
     }
 
+    /** 좋아요 수 기준으로 인기 커뮤니티 게시글 상위 5개를 조회한다. */
+    public List<CommunityPostResponse> getPopularPostsByLikes() {
+        Long userId = getCurrentUserId();
+        List<CommunityPost> posts = postRepository.findTop5ByIsDeletedFalseOrderByLikeCountDescCreatedAtDesc();
+        List<Long> postIds = posts.stream()
+                .map(CommunityPost::getId)
+                .toList();
+        Set<Long> likedPostIds = postIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(likeRepository.findPostIdsByUserId(userId, postIds));
+
+        return posts.stream()
+                .map(post -> CommunityPostResponse.from(post, likedPostIds.contains(post.getId())))
+                .toList();
+    }
+
+    /** 댓글 수 기준으로 인기 커뮤니티 게시글 상위 5개를 조회한다. */
+    public List<CommunityPostResponse> getPopularPostsByComments() {
+        Long userId = getCurrentUserId();
+        List<CommunityPost> posts = postRepository.findTop5PopularByCommentCount();
+        List<Long> postIds = posts.stream()
+                .map(CommunityPost::getId)
+                .toList();
+        Set<Long> likedPostIds = postIds.isEmpty()
+                ? Set.of()
+                : new HashSet<>(likeRepository.findPostIdsByUserId(userId, postIds));
+
+        return posts.stream()
+                .map(post -> CommunityPostResponse.from(post, likedPostIds.contains(post.getId())))
+                .toList();
+    }
+
     /** 커뮤니티 게시글 단건을 조회한다. */
     public CommunityPostResponse getPost(Long postId) {
         Long userId = getCurrentUserId();

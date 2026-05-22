@@ -3,7 +3,15 @@ import { Link } from 'react-router-dom';
 import { Heart, MessageSquareText, PenLine, Plus } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
 import Spinner from '@/components/common/Spinner';
-import { getCommunityComments, getCommunityPosts, likeCommunityPost, unlikeCommunityPost, type CommunityPost } from '@/api/communityApi';
+import {
+  getCommunityComments,
+  getCommunityPosts,
+  getPopularCommunityPostsByComments,
+  getPopularCommunityPostsByLikes,
+  likeCommunityPost,
+  unlikeCommunityPost,
+  type CommunityPost,
+} from '@/api/communityApi';
 import { cn } from '@/lib/utils';
 import { formatCommunityDate } from './communityUtils';
 
@@ -20,7 +28,10 @@ export default function CommunityListPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [popularLoading, setPopularLoading] = useState(true);
   const [error, setError] = useState('');
+  const [popularLikes, setPopularLikes] = useState<CommunityPost[]>([]);
+  const [popularComments, setPopularComments] = useState<CommunityPost[]>([]);
   const [category, setCategory] = useState<'ALL' | 'GENERAL' | 'REVIEW' | 'QUESTION' | 'RECOMMEND'>('ALL');
 
   const totalPageCount = Math.max(totalPages, 1);
@@ -51,6 +62,24 @@ export default function CommunityListPage() {
     loadPosts(currentPage);
   }, [currentPage, category]);
 
+  const loadPopularPosts = async () => {
+    setPopularLoading(true);
+    try {
+      const [likes, comments] = await Promise.all([
+        getPopularCommunityPostsByLikes(),
+        getPopularCommunityPostsByComments(),
+      ]);
+      setPopularLikes(likes);
+      setPopularComments(comments);
+    } finally {
+      setPopularLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPopularPosts();
+  }, []);
+
   const toggleLike = async (post: CommunityPost) => {
     if (pendingLikeId) return;
 
@@ -71,9 +100,6 @@ export default function CommunityListPage() {
       setPendingLikeId(null);
     }
   };
-
-  const popularPosts = [...posts].sort((a, b) => b.likeCount - a.likeCount).slice(0, 5);
-  const recentPosts = [...posts].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)).slice(0, 5);
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
@@ -115,71 +141,7 @@ export default function CommunityListPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
-        <div>
-
-      {loading ? (
-        <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
-          <Spinner label="커뮤니티 게시글을 불러오는 중..." />
-        </div>
-      ) : error ? (
-        <EmptyState title="목록을 불러오지 못했어요" description={error} />
-      ) : posts.length === 0 ? (
-        <EmptyState title="아직 게시글이 없어요" description="첫 번째 이야기를 남기고 커뮤니티를 시작해보세요." actionLabel="새 글 작성" actionTo="/community/new" />
-      ) : (
-        <div className="space-y-4">
-          {posts.map((post) => {
-            const isLiked = post.isLiked;
-            return (
-              <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-3.5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <Link to={`/community/${post.id}`} className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2.5">
-                      <img
-                        src={post.authorProfileImageUrl || defaultAvatar}
-                        alt=""
-                        className="h-9 w-9 overflow-hidden rounded-full border border-border object-cover"
-                      />
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-foreground">{getAuthorName(post)}</p>
-                        <p className="text-xs font-semibold text-muted-foreground">
-                          {formatCommunityDate(post.createdAt)} {post.isEdited && !post.isDeleted ? '· 수정됨' : ''}
-                        </p>
-                      </div>
-                    </div>
-                    <h2 className={cn('mt-3 line-clamp-2 text-base font-black tracking-tight sm:text-lg', post.isDeleted ? 'text-muted-foreground' : 'text-foreground')}>{post.title}</h2>
-                    <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{post.isDeleted ? '삭제된 게시글입니다' : post.content}</p>
-                  </Link>
-                  <Link
-                    to={`/community/${post.id}`}
-                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-border px-3.5 py-2 text-sm font-bold text-foreground hover:bg-secondary"
-                  >
-                    <PenLine className="h-4 w-4" />읽기
-                  </Link>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-border/70 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleLike(post)}
-                    disabled={pendingLikeId === post.id || post.isDeleted}
-                    className={cn(
-                      'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold transition',
-                      post.isDeleted ? 'cursor-not-allowed bg-secondary text-muted-foreground' : isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
-                    )}
-                  >
-                    <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
-                    {post.likeCount}
-                  </button>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-sm font-bold text-secondary-foreground">
-                    <MessageSquareText className="h-4 w-4" />댓글 {commentCounts[post.id] ?? 0}
-                  </span>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-        </div>
-        <aside className="space-y-4">
+        <aside className="order-first space-y-4 lg:order-last">
           <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
             <h3 className="text-sm font-black">커뮤니티 요약</h3>
             <div className="mt-3 grid grid-cols-2 gap-2">
@@ -196,18 +158,140 @@ export default function CommunityListPage() {
             </div>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <h3 className="text-sm font-black">인기 게시글</h3>
-            <ul className="mt-3 space-y-2">
-              {popularPosts.map((post) => (
-                <li key={`popular-${post.id}`}>
-                  <Link to={`/community/${post.id}`} className="line-clamp-1 text-sm font-semibold text-foreground hover:underline">
-                    {post.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="flex items-center gap-2">
+              <Heart className="h-4 w-4 text-rose-400" />
+              <h3 className="text-sm font-black text-foreground">좋아요 인기글</h3>
+            </div>
+            {popularLoading ? (
+              <div className="mt-3 space-y-2">
+                {[0, 1, 2, 3, 4].map((item) => (
+                  <div key={`likes-skeleton-${item}`} className="h-5 animate-pulse rounded bg-secondary" />
+                ))}
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-1">
+                {popularLikes.map((post, index) => (
+                  <li key={`popular-likes-${post.id}`}>
+                    <Link
+                      to={`/community/${post.id}`}
+                      className="flex items-start gap-2 rounded-xl p-2 transition hover:bg-secondary"
+                    >
+                      <span className="mt-0.5 shrink-0 text-xs font-black text-rose-400">
+                        {index + 1}
+                      </span>
+                      <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                        {post.title}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+            <div className="flex items-center gap-2">
+              <MessageSquareText className="h-4 w-4 text-sky-400" />
+              <h3 className="text-sm font-black text-foreground">댓글 인기글</h3>
+            </div>
+            {popularLoading ? (
+              <div className="mt-3 space-y-2">
+                {[0, 1, 2, 3, 4].map((item) => (
+                  <div key={`comments-skeleton-${item}`} className="h-5 animate-pulse rounded bg-secondary" />
+                ))}
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-1">
+                {popularComments.map((post, index) => (
+                  <li key={`popular-comments-${post.id}`}>
+                    <Link
+                      to={`/community/${post.id}`}
+                      className="flex items-start gap-2 rounded-xl p-2 transition hover:bg-secondary"
+                    >
+                      <span className="mt-0.5 shrink-0 text-xs font-black text-sky-400">
+                        {index + 1}
+                      </span>
+                      <p className="line-clamp-1 text-sm font-semibold text-foreground">
+                        {post.title}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </aside>
+        <div className="order-last lg:order-first">
+          {loading ? (
+            <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
+              <Spinner label="커뮤니티 게시글을 불러오는 중..." />
+            </div>
+          ) : error ? (
+            <EmptyState title="목록을 불러오지 못했어요" description={error} />
+          ) : posts.length === 0 ? (
+            <EmptyState title="아직 게시글이 없어요" description="첫 번째 이야기를 남기고 커뮤니티를 시작해보세요." actionLabel="새 글 작성" actionTo="/community/new" />
+          ) : (
+            <div className="space-y-4">
+              {posts.map((post) => {
+                const isLiked = post.isLiked;
+                return (
+                  <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-3.5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <Link to={`/community/${post.id}`} className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={post.authorProfileImageUrl || defaultAvatar}
+                            alt=""
+                            className="h-9 w-9 overflow-hidden rounded-full border border-border object-cover"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-black text-foreground">{getAuthorName(post)}</p>
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              {formatCommunityDate(post.createdAt)} {post.isEdited && !post.isDeleted ? '· 수정됨' : ''}
+                            </p>
+                          </div>
+                        </div>
+                        <h2
+                          className={cn(
+                            'mt-3 line-clamp-2 text-base font-black tracking-tight sm:text-lg',
+                            post.isDeleted ? 'text-muted-foreground' : 'text-foreground',
+                          )}
+                        >
+                          {post.title}
+                        </h2>
+                        <p className="mt-2 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                          {post.isDeleted ? '삭제된 게시글입니다' : post.content}
+                        </p>
+                      </Link>
+                      <Link
+                        to={`/community/${post.id}`}
+                        className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full border border-border px-3.5 py-2 text-sm font-bold text-foreground hover:bg-secondary"
+                      >
+                        <PenLine className="h-4 w-4" />읽기
+                      </Link>
+                    </div>
+                    <div className="mt-4 flex flex-wrap items-center gap-2.5 border-t border-border/70 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => toggleLike(post)}
+                        disabled={pendingLikeId === post.id || post.isDeleted}
+                        className={cn(
+                          'inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold transition',
+                          post.isDeleted ? 'cursor-not-allowed bg-secondary text-muted-foreground' : isLiked ? 'bg-rose-100 text-rose-700' : 'bg-secondary text-secondary-foreground hover:bg-rose-50 hover:text-rose-700',
+                        )}
+                      >
+                        <Heart className={cn('h-4 w-4', isLiked && 'fill-current')} />
+                        {post.likeCount}
+                      </button>
+                      <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-sm font-bold text-secondary-foreground">
+                        <MessageSquareText className="h-4 w-4" />댓글 {commentCounts[post.id] ?? 0}
+                      </span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-center gap-3">
@@ -219,7 +303,9 @@ export default function CommunityListPage() {
         >
           이전
         </button>
-        <span className="text-sm font-bold text-muted-foreground">{currentPage + 1} / {totalPageCount}</span>
+        <span className="text-sm font-bold text-muted-foreground">
+          {currentPage + 1} / {totalPageCount}
+        </span>
         <button
           type="button"
           disabled={isLastPage}

@@ -32,6 +32,22 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     @EntityGraph(attributePaths = "user")
     Page<CommunityPost> findAllByCategory(CommunityCategory category, Pageable pageable);
 
+    /** 좋아요 수 기준으로 인기 커뮤니티 게시글 상위 N개를 작성자 정보와 함께 조회한다. */
+    @EntityGraph(attributePaths = "user")
+    List<CommunityPost> findTop5ByIsDeletedFalseOrderByLikeCountDescCreatedAtDesc();
+
+    /** 댓글 수 기준으로 인기 커뮤니티 게시글 상위 N개를 작성자 정보와 함께 조회한다. */
+    @EntityGraph(attributePaths = "user")
+    @Query("""
+            select p
+            from CommunityPost p
+            left join CommunityComment c on c.post.id = p.id and c.isDeleted = false
+            where p.isDeleted = false
+            group by p
+            order by count(c.id) desc, p.createdAt desc
+            """)
+    List<CommunityPost> findTop5PopularByCommentCount();
+
     /** 회원 탈퇴 시 사용자가 작성한 커뮤니티 게시글 ID를 조회한다. */
     @Query("select p.id from CommunityPost p where p.user.id = :userId")
     List<Long> findIdsByUserId(@Param("userId") Long userId);
