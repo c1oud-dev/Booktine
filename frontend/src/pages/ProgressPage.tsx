@@ -1,4 +1,5 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/auth/AuthContext';
 import { BarChart3, CalendarDays, Target, Trophy } from 'lucide-react';
 import {
   createAnnualGoal,
@@ -23,7 +24,9 @@ import EmptyState from '@/components/common/EmptyState';
 
 export default function ProgressPage() {
   const now = useMemo(() => new Date(), []);
+  const { user } = useAuth();
   const defaultYear = now.getFullYear();
+  const startYear = user?.createdAt ? new Date(user.createdAt).getFullYear() : defaultYear;
   const defaultMonth = now.getMonth() + 1;
 
   const [year, setYear] = useState(defaultYear);
@@ -190,7 +193,7 @@ export default function ProgressPage() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <select value={year} onChange={(e) => setYear(Number(e.target.value))} aria-label="연도 선택" className="min-w-[7.5rem] rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
-              {Array.from({ length: 10 }, (_, i) => defaultYear - i).map((y) => <option key={y} value={y}>{y}년</option>)}
+              {Array.from({ length: defaultYear - startYear + 1 }, (_, i) => startYear + i).map((y) => <option key={y} value={y}>{y}년</option>)}
             </select>
             <select value={month} onChange={(e) => setMonth(Number(e.target.value))} aria-label="월 선택" className="min-w-[7.5rem] rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-soft">
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => <option key={m} value={m}>{m}월</option>)}

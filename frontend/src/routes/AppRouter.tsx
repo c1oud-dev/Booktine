@@ -4,6 +4,7 @@ import AppLayout from '../components/layout/AppLayout';
 import AdminPage from '../pages/AdminPage';
 import BookDetailPage from '../pages/BookDetailPage';
 import BooksPage from '../pages/BooksPage';
+import BooksNewPage from '../pages/BooksNewPage';
 import HomePage from '../pages/HomePage';
 import CommunityDetailPage from '../pages/community/CommunityDetailPage';
 import CommunityFormPage from '../pages/community/CommunityFormPage';
@@ -41,6 +42,7 @@ export function AppRouter() {
             <Route path="/oauth2/callback" element={<OAuthCallbackPage />} />
             <Route element={<PrivateRoute />}>
               <Route path="/books" element={<BooksPage />} />
+              <Route path="/books/new" element={<BooksNewPage />} />
               <Route path="/books/:id" element={<BookDetailPage />} />
               <Route path="/community" element={<CommunityListPage />} />
               <Route path="/community/new" element={<CommunityFormPage mode="create" />} />

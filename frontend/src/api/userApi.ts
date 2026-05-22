@@ -10,6 +10,7 @@ export interface UserProfile {
   role: UserRole;
   readingCount: number;
   completedCount: number;
+  createdAt: string;
 }
 
 export interface UpdateProfilePayload {
