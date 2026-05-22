@@ -6,8 +6,6 @@ import Spinner from '@/components/common/Spinner';
 
 const DEFAULT_REMINDER_TIME = '21:00';
 const DEFAULT_REMINDER_MESSAGE = '오늘의 독서 시간을 시작해 볼까요?';
-const sortRemindersByTime = (items: Reminder[]) => [...items].sort((a, b) => a.reminderTime.localeCompare(b.reminderTime));
-
 
 export default function ReminderPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
@@ -21,7 +19,7 @@ export default function ReminderPage() {
     setLoading(true);
     try {
       const data = await getReminders();
-      setReminders(sortRemindersByTime(data));
+      setReminders(data);
     } catch {
       setStatusMessage('리마인더 목록을 불러오지 못했습니다.');
     } finally {
@@ -40,7 +38,7 @@ export default function ReminderPage() {
 
     try {
       const createdReminder = await createReminder({ reminderTime, message });
-      setReminders((current) => sortRemindersByTime([...current, createdReminder]));
+      setReminders((current) => [...current, createdReminder]);
       setMessage(DEFAULT_REMINDER_MESSAGE);
       setStatusMessage('리마인더를 생성했습니다. 설정한 시각에 화면 알림을 보내드릴게요.');
     } catch {

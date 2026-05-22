@@ -72,7 +72,7 @@ class ReminderServiceTest {
         // given
         Reminder reminder = Reminder.builder().userId(1L).reminderTime(LocalTime.of(8, 0)).message("아침 독서").build();
         ReflectionTestUtils.setField(reminder, "id", 1L);
-        given(reminderRepository.findAllByUserId(1L)).willReturn(List.of(reminder));
+        given(reminderRepository.findAllByUserIdOrderByReminderTimeAsc(1L)).willReturn(List.of(reminder));
 
         // when
         List<ReminderResponse> responses = reminderService.getReminders(1L);

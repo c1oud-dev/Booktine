@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
     /** 특정 사용자에 등록된 리마인더를 모두 조회한다. */
-    List<Reminder> findAllByUserId(Long userId);
+    List<Reminder> findAllByUserIdOrderByReminderTimeAsc(Long userId);
 
     /** 특정 사용자 소유 리마인더를 ID로 조회한다. */
     Optional<Reminder> findByIdAndUserId(Long id, Long userId);

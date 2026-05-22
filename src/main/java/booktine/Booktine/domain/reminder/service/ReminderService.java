@@ -49,7 +49,7 @@ public class ReminderService {
      * 엔티티를 응답 DTO로 변환해 외부 스펙을 고정한다.
      */
     public List<ReminderResponse> getReminders(Long userId) {
-        return reminderRepository.findAllByUserId(userId)
+        return reminderRepository.findAllByUserIdOrderByReminderTimeAsc(userId)
                 .stream()
                 .map(ReminderResponse::from)
                 .toList();
