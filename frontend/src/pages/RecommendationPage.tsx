@@ -172,9 +172,8 @@ export default function RecommendationPage() {
       </article>
       ) : null}
 
-      {(activeTab === 'genre' || activeTab === 'search') ? (
-      <div className="grid items-start gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+      {activeTab === 'genre' ? (
+      <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
               <Sparkles className="h-5 w-5" aria-hidden="true" />
@@ -234,7 +233,9 @@ export default function RecommendationPage() {
             </div>
           )}
         </article>
+      ) : null}
 
+      {activeTab === 'search' ? (
         <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
@@ -318,7 +319,6 @@ export default function RecommendationPage() {
             </ul>
           )}
         </article>
-      </div>
       ) : null}
     </section>
   );

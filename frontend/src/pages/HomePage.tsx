@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BookOpen, CheckCircle2, PenLine, TrendingUp } from 'lucide-react';
+import { ArrowRight, BookOpen, CheckCircle2, PenLine, TrendingUp } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { getBestsellers, getHomeStats, getRecentPosts, type BasicStats, type BestsellerBook, type HomePost } from '../api/homeApi';
 import Spinner from '@/components/common/Spinner';
@@ -64,14 +64,6 @@ export default function HomePage() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const goToPrevSlide = () => {
-    setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const goToNextSlide = () => {
-    setActiveSlide((prev) => (prev + 1) % slides.length);
-  };
-
   useEffect(() => {
     const loadHome = async () => {
       if (initializing || !isLoggedIn) {
@@ -134,12 +126,12 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            <div className="mt-12 grid gap-4 sm:grid-cols-3 sm:items-stretch">
               {featureItems.map((item) => {
                 const Icon = item.icon;
 
                 return (
-                  <article key={item.title} className="min-w-[12.5rem] rounded-2xl border border-border bg-card p-5 shadow-soft">
+                  <article key={item.title} className="h-full rounded-2xl border border-border bg-card p-5 shadow-soft">
                     <Icon className="h-5 w-5 text-foreground" />
                     <h2 className="mt-4 text-sm font-black text-foreground sm:text-base">
                       {item.title}
@@ -160,15 +152,9 @@ export default function HomePage() {
             </div>
             <div className="relative overflow-hidden rounded-[2rem] border border-border bg-secondary shadow-card">
               <img src={slides[activeSlide].src} alt={slides[activeSlide].alt} className="h-full min-h-[28rem] w-full object-cover object-center transition-all duration-500" />
-              <button type="button" onClick={goToPrevSlide} className="absolute left-5 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-foreground/80 text-background shadow-float hover:bg-foreground" aria-label="이전 슬라이드">
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-              <button type="button" onClick={goToNextSlide} className="absolute right-5 top-1/2 z-20 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-foreground/80 text-background shadow-float hover:bg-foreground" aria-label="다음 슬라이드">
-                <ArrowRight className="h-5 w-5" />
-              </button>
-              <div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-2">
+              <div className="absolute -bottom-6 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-card px-3 py-2 shadow-soft">
                 {slides.map((slide, index) => (
-                  <button key={slide.alt} type="button" onClick={() => setActiveSlide(index)} className={`h-2.5 w-2.5 rounded-full transition-all ${index === activeSlide ? 'w-6 bg-primary' : 'bg-card/80'}`} aria-label={`${index + 1}번 슬라이드로 이동`} />
+                  <button key={slide.alt} type="button" onClick={() => setActiveSlide(index)} className={`h-2.5 w-2.5 rounded-full transition-all ${index === activeSlide ? 'w-6 bg-foreground' : 'bg-muted-foreground/50 hover:bg-foreground/70'}`} aria-label={`${index + 1}번 슬라이드로 이동`} />
                 ))}
               </div>
             </div>

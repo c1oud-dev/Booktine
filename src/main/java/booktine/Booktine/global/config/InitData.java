@@ -1,5 +1,6 @@
 package booktine.Booktine.global.config;
 
+import booktine.Booktine.domain.community.entity.CommunityCategory;
 import booktine.Booktine.domain.community.entity.CommunityComment;
 import booktine.Booktine.domain.community.entity.CommunityLike;
 import booktine.Booktine.domain.community.entity.CommunityPost;
@@ -69,7 +70,8 @@ public class InitData {
         }
 
         User user = createDevUser();
-        createAdminUser();
+        User admin = createAdminUser();
+        User suspendedUser = createSuspendedUser();
 
         LocalDate today = LocalDate.now();
         createGenres();
@@ -79,9 +81,8 @@ public class InitData {
         createRecommendations(user);
         createReminders(user);
 
-        User admin = userRepository.findByEmailAndAuthProvider("admin@booktine.com", UserAuthProvider.LOCAL).orElseThrow();
         createInquiries(user, admin);
-        createCommunityData(user, admin);
+        createCommunityData(user, admin, suspendedUser);
 
         log.info("[InitData] 개발용 초기 데이터 삽입 완료. userId={}, postCount={}, memoCount=12",
                 user.getId(), posts.size());
@@ -99,7 +100,7 @@ public class InitData {
                 .build());
     }
 
-    private void createAdminUser() {
+    private User createAdminUser() {
         User admin = userRepository.save(User.builder()
                 .email("admin@booktine.com")
                 .password(passwordEncoder.encode("admin1234!"))
@@ -110,6 +111,21 @@ public class InitData {
                 .aboutMe("로컬 개발용 관리자")
                 .build());
         admin.updateRole(UserRole.ROLE_ADMIN);
+        return userRepository.save(admin);
+    }
+
+    private User createSuspendedUser() {
+        User user = userRepository.save(User.builder()
+                .email("suspended@booktine.com")
+                .password(passwordEncoder.encode("suspended123!"))
+                .nickname("잠긴유저")
+                .emailVerified(true)
+                .authProvider(UserAuthProvider.LOCAL)
+                .providerId("local-suspended-user")
+                .aboutMe("정지 상태 테스트 계정")
+                .build());
+        user.updateSuspended(true);
+        return userRepository.save(user);
     }
 
     private void createGenres() {
@@ -199,24 +215,34 @@ public class InitData {
                 .build());
     }
 
-    private void createCommunityData(User user, User admin) {
+    private void createCommunityData(User user, User admin, User suspendedUser) {
         // 게시글 3개
         CommunityPost post1 = communityPostRepository.save(CommunityPost.builder()
                 .user(user)
                 .title("클린 코드 읽고 나서 코드 스타일이 바뀌었어요")
                 .content("처음엔 어렵게 느껴졌는데 읽고 나니 변수명 하나도 신경 쓰게 되더라고요. 다들 읽으면서 어떤 부분이 가장 인상 깊으셨나요?")
+                .category(CommunityCategory.REVIEW)
                 .build());
 
         CommunityPost post2 = communityPostRepository.save(CommunityPost.builder()
                 .user(admin)
                 .title("올해 독서 목표 달성하신 분 계신가요?")
                 .content("저는 올해 목표가 24권인데 벌써 절반 넘었어요. 여러분은 어떻게 독서 루틴 잡으셨는지 궁금합니다!")
+                .category(CommunityCategory.GENERAL)
                 .build());
 
         CommunityPost post3 = communityPostRepository.save(CommunityPost.builder()
                 .user(user)
                 .title("아토믹 해빗 실천 후기")
                 .content("습관 추적을 시작한 지 3개월이 됐어요. 작은 것부터 하나씩 쌓아가는 게 생각보다 효과가 있더라고요.")
+                .category(CommunityCategory.RECOMMEND)
+                .build());
+
+        communityPostRepository.save(CommunityPost.builder()
+                .user(suspendedUser)
+                .title("초보자에게 추천할 SF 입문서 있을까요?")
+                .content("과학 배경지식이 많지 않아도 읽기 쉬운 SF 소설 추천 부탁드려요.")
+                .category(CommunityCategory.QUESTION)
                 .build());
 
         // 댓글 + 대댓글

@@ -284,16 +284,16 @@ function AnnualCompletedSummaryCard({ summary }: { summary: AnnualCompletedSumma
 
   return (
     <div className="mt-5 grid gap-3 md:grid-cols-3">
-      <MiniStat label="연간 완독" value={`${summary?.totalCount ?? 0}권`} />
-      <MiniStat label="최고 월" value={summary?.bestMonth ? `${summary.bestMonth}월 · ${summary.bestMonthCount}권` : '-'} />
-      <MiniStat label="완독한 달" value={`${summary?.activeMonthCount ?? 0}개월`} />
+      <MiniStat label="연간 완독" value={`${summary?.totalCount ?? 0}권`} tone="indigo" />
+      <MiniStat label="최고 월" value={summary?.bestMonth ? `${summary.bestMonth}월 · ${summary.bestMonthCount}권` : '-'} tone="emerald" />
+      <MiniStat label="완독한 달" value={`${summary?.activeMonthCount ?? 0}개월`} tone="amber" />
     </div>
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value, tone }: { label: string; value: string; tone: 'indigo' | 'emerald' | 'amber' }) {
   return (
-    <div className="rounded-[1.25rem] border border-border bg-background px-4 py-3">
+    <div className={`rounded-[1.25rem] border px-4 py-3 ${tone === 'indigo' ? 'border-indigo-200 bg-indigo-50/60' : tone === 'emerald' ? 'border-emerald-200 bg-emerald-50/60' : 'border-amber-200 bg-amber-50/70'}`}>
       <p className="text-xs font-black uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
       <p className="mt-1 text-xl font-black text-foreground">{value}</p>
     </div>
@@ -315,6 +315,7 @@ function MonthlyBarChart({ data, currentYear, currentMonth, selectedYear }: { da
         const count = data.find((item) => item.month === month)?.count ?? 0;
         const heightPercent = (count / maxCount) * 100;
         const isCurrentMonth = month === currentMonth && selectedYear === currentYear;
+        const monthColors = ['bg-rose-400','bg-orange-400','bg-amber-400','bg-lime-400','bg-emerald-400','bg-teal-400','bg-cyan-400','bg-sky-400','bg-blue-400','bg-indigo-400','bg-violet-400','bg-fuchsia-400'];
         return (
           <div key={month} className="flex flex-1 flex-col items-center gap-2">
             <span className="text-xs font-bold text-muted-foreground">{count > 0 ? count : ''}</span>
