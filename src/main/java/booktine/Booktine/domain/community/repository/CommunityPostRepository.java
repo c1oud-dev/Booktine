@@ -1,5 +1,6 @@
 package booktine.Booktine.domain.community.repository;
 
+import booktine.Booktine.domain.community.entity.CommunityCategory;
 import booktine.Booktine.domain.community.entity.CommunityPost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,10 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     /** 작성자 ID와 게시글 ID로 소유 게시글을 작성자 정보와 함께 단건 조회한다. */
     @EntityGraph(attributePaths = "user")
     Optional<CommunityPost> findWithUserByIdAndUserId(Long id, Long userId);
+
+    /** 카테고리별 커뮤니티 게시글 목록을 작성자 정보와 함께 조회한다. */
+    @EntityGraph(attributePaths = "user")
+    Page<CommunityPost> findAllByCategory(CommunityCategory category, Pageable pageable);
 
     /** 회원 탈퇴 시 사용자가 작성한 커뮤니티 게시글 ID를 조회한다. */
     @Query("select p.id from CommunityPost p where p.user.id = :userId")

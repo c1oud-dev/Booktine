@@ -21,6 +21,7 @@ export default function CommunityListPage() {
   const [totalElements, setTotalElements] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [category, setCategory] = useState<'ALL' | 'GENERAL' | 'REVIEW' | 'QUESTION' | 'RECOMMEND'>('ALL');
 
   const totalPageCount = Math.max(totalPages, 1);
   const isFirstPage = currentPage === 0;
@@ -30,7 +31,7 @@ export default function CommunityListPage() {
     setLoading(true);
     setError('');
     try {
-      const result = await getCommunityPosts(page, pageSize);
+      const result = await getCommunityPosts(page, pageSize, category === 'ALL' ? undefined : category);
       setPosts(result.content);
       setTotalPages(result.totalPages);
       setTotalElements(result.totalElements);
@@ -48,7 +49,7 @@ export default function CommunityListPage() {
 
   useEffect(() => {
     loadPosts(currentPage);
-  }, [currentPage]);
+  }, [currentPage, category]);
 
   const toggleLike = async (post: CommunityPost) => {
     if (pendingLikeId) return;
@@ -92,6 +93,10 @@ export default function CommunityListPage() {
             <Plus className="h-4 w-4" />새 글 작성
           </Link>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {['ALL','GENERAL','REVIEW','QUESTION','RECOMMEND'].map((item)=><button key={item} type="button" onClick={()=>{setCurrentPage(0);setCategory(item as any);}} className={cn("rounded-full border px-4 py-2 text-sm font-bold", category===item?"border-primary bg-primary text-primary-foreground":"border-border")}>{item==='ALL'?'전체':item==='GENERAL'?'일반':item==='REVIEW'?'독서 후기':item==='QUESTION'?'질문':'추천'}</button>)}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">

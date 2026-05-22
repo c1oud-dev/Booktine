@@ -1,6 +1,7 @@
 package booktine.Booktine.domain.community.service;
 
 import booktine.Booktine.domain.community.dto.*;
+import booktine.Booktine.domain.community.entity.CommunityCategory;
 import booktine.Booktine.domain.community.entity.CommunityComment;
 import booktine.Booktine.domain.community.entity.CommunityLike;
 import booktine.Booktine.domain.community.entity.CommunityPost;
@@ -45,15 +46,18 @@ public class CommunityService {
                 .user(user)
                 .title(request.title())
                 .content(request.content())
+                .category(request.category())
                 .build();
 
         return CommunityPostResponse.from(postRepository.save(post));
     }
 
     /** 커뮤니티 게시글 목록을 페이지 단위로 조회한다. */
-    public Page<CommunityPostResponse> getPosts(Pageable pageable) {
+    public Page<CommunityPostResponse> getPosts(CommunityCategory category, Pageable pageable) {
         Long userId = getCurrentUserId();
-        Page<CommunityPost> posts = postRepository.findAll(pageable);
+        Page<CommunityPost> posts = category == null
+                ? postRepository.findAll(pageable)
+                : postRepository.findAllByCategory(category, pageable);
         List<Long> postIds = posts.getContent().stream()
                 .map(CommunityPost::getId)
                 .toList();

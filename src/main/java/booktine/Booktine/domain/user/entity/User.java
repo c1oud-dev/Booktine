@@ -52,6 +52,9 @@ public class User extends BaseEntity {
 
     private String profileImageUrl;
 
+    @Column(nullable = false)
+    private boolean suspended = false;
+
     /**
      * 회원가입 시 새 사용자 엔티티를 생성하기 위한 빌더 생성자.
      */
@@ -67,6 +70,7 @@ public class User extends BaseEntity {
         this.authProvider = authProvider;
         this.providerId = providerId;
         this.role = UserRole.ROLE_USER;
+        this.suspended = false;
     }
 
     /**
@@ -103,5 +107,10 @@ public class User extends BaseEntity {
      */
     public void updateRole(UserRole role) {
         this.role = role;
+    }
+
+    /** 관리자 기능에서 계정 정지 상태를 변경한다. */
+    public void updateSuspended(boolean suspended) {
+        this.suspended = suspended;
     }
 }

@@ -1,7 +1,7 @@
 package booktine.Booktine.domain.community.controller;
 
-import booktine.Booktine.domain.community.dto.CommunityPostCreateRequest;
 import booktine.Booktine.domain.community.dto.*;
+import booktine.Booktine.domain.community.entity.CommunityCategory;
 import booktine.Booktine.domain.community.service.CommunityService;
 import booktine.Booktine.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,8 +29,8 @@ public class CommunityController {
     /** 커뮤니티 게시글 목록을 페이지 단위로 조회한다. */
     @Operation(summary = "커뮤니티 게시글 목록 조회", description = "커뮤니티 게시글 목록을 페이지 단위로 조회합니다.")
     @GetMapping
-    public ApiResponse<Page<CommunityPostResponse>> getPosts(Pageable pageable) {
-        return ApiResponse.ok(communityService.getPosts(pageable));
+    public ApiResponse<Page<CommunityPostResponse>> getPosts(@RequestParam(required = false) CommunityCategory category, Pageable pageable) {
+        return ApiResponse.ok(communityService.getPosts(category, pageable));
     }
 
     /** 커뮤니티 게시글을 생성한다. */

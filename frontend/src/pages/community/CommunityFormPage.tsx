@@ -14,6 +14,7 @@ export default function CommunityFormPage({ mode }: { mode: 'create' | 'edit' })
   const isEditMode = mode === 'edit';
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [category, setCategory] = useState<'GENERAL' | 'REVIEW' | 'QUESTION' | 'RECOMMEND'>('GENERAL');
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -38,6 +39,7 @@ export default function CommunityFormPage({ mode }: { mode: 'create' | 'edit' })
         }
         setTitle(post.title);
         setContent(post.content);
+        setCategory(post.category);
       } catch {
         setError('수정할 게시글을 불러오지 못했습니다.');
       } finally {
@@ -62,12 +64,12 @@ export default function CommunityFormPage({ mode }: { mode: 'create' | 'edit' })
     setError('');
     try {
       if (isEditMode) {
-        const updated = await updateCommunityPost(numericPostId, { title: nextTitle, content: nextContent });
+        const updated = await updateCommunityPost(numericPostId, { title: nextTitle, content: nextContent, category });
         navigate(`/community/${updated.id}`);
         return;
       }
 
-      const created = await createCommunityPost({ title: nextTitle, content: nextContent });
+      const created = await createCommunityPost({ title: nextTitle, content: nextContent, category });
       navigate(`/community/${created.id}`);
     } catch {
       setError(isEditMode ? '게시글 수정에 실패했습니다.' : '게시글 작성에 실패했습니다.');
@@ -115,6 +117,13 @@ export default function CommunityFormPage({ mode }: { mode: 'create' | 'edit' })
               placeholder="어떤 이야기를 나눌까요?"
               className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-base font-semibold outline-none focus:border-primary"
             />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-bold text-foreground">카테고리</span>
+            <select value={category} onChange={(event) => setCategory(event.target.value as any)} className="mt-2 w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold outline-none focus:border-primary">
+              <option value="GENERAL">전체</option><option value="REVIEW">독서 후기</option><option value="QUESTION">질문</option><option value="RECOMMEND">추천</option>
+            </select>
           </label>
 
           <label className="block">

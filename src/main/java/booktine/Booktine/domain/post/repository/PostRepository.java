@@ -21,6 +21,9 @@ import java.util.Optional;
  */
 public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
 
+    /** 특정 시점 이후 생성된 전체 게시물 수를 집계한다. */
+    long countByCreatedAtAfter(java.time.LocalDateTime createdAt);
+
     /**
      * 사용자 ID로 전체 게시물 목록을 조회한다.
      */

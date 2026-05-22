@@ -1,5 +1,6 @@
 package booktine.Booktine.domain.community.dto;
 
+import booktine.Booktine.domain.community.entity.CommunityCategory;
 import booktine.Booktine.domain.community.entity.CommunityPost;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ public record CommunityPostResponse(
         String authorProfileImageUrl,
         String title,
         String content,
+        CommunityCategory category,
         int likeCount,
         boolean isLiked,
         boolean isDeleted,
@@ -28,6 +30,7 @@ public record CommunityPostResponse(
                 post.getUser().getProfileImageUrl(),
                 post.getTitle(),
                 post.getContent(),
+                post.getCategory(),
                 post.getLikeCount(),
                 false,
                 post.isDeleted(),
@@ -46,6 +49,7 @@ public record CommunityPostResponse(
                 post.getUser().getProfileImageUrl(),
                 post.getTitle(),
                 post.getContent(),
+                post.getCategory(),
                 post.getLikeCount(),
                 isLiked,
                 post.isDeleted(),

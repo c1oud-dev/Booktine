@@ -8,6 +8,7 @@ export interface CommunityPost {
   authorProfileImageUrl: string | null;
   title: string;
   content: string;
+  category: "GENERAL" | "REVIEW" | "QUESTION" | "RECOMMEND";
   likeCount: number;
   isLiked: boolean;
   isDeleted: boolean;
@@ -34,6 +35,7 @@ export interface CommunityComment {
 export interface CommunityPostPayload {
   title: string;
   content: string;
+  category: "GENERAL" | "REVIEW" | "QUESTION" | "RECOMMEND";
 }
 
 export interface CommunityCommentPayload {
@@ -45,8 +47,8 @@ export interface CommunityCommentUpdatePayload {
   content: string;
 }
 
-export async function getCommunityPosts(page = 0, size = 10) {
-  const res = await http.get<ApiResponse<PageResponse<CommunityPost>>>('/community/posts', { params: { page, size } });
+export async function getCommunityPosts(page = 0, size = 10, category?: string) {
+  const res = await http.get<ApiResponse<PageResponse<CommunityPost>>>('/community/posts', { params: { page, size, category } });
   return res.data.data;
 }
 

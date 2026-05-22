@@ -12,6 +12,13 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    /** 특정 시점 이후 가입한 사용자 수를 집계한다. */
+    long countByCreatedAtAfter(java.time.LocalDateTime createdAt);
+
+    /** 정지되지 않은 활성 사용자 수를 집계한다. */
+    long countBySuspendedFalse();
+
+
     /**
      * 이메일 중복 여부를 확인한다.
      */

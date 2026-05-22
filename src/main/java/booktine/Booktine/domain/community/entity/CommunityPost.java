@@ -37,6 +37,10 @@ public class CommunityPost extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private CommunityCategory category = CommunityCategory.GENERAL;
+
     @Column(nullable = false)
     private int likeCount;
 
@@ -47,18 +51,20 @@ public class CommunityPost extends BaseEntity {
     private LocalDateTime contentUpdatedAt;
 
     @Builder
-    public CommunityPost(User user, String title, String content) {
+    public CommunityPost(User user, String title, String content, CommunityCategory category) {
         this.user = user;
         this.title = title;
         this.content = content;
+        this.category = category == null ? CommunityCategory.GENERAL : category;
         this.likeCount = 0;
         this.isDeleted = false;
     }
 
-    /** 커뮤니티 게시글의 수정 가능한 내용을 변경한다. */
+    /** 커뮤니티 게시글의 수정 가능한 제목/내용을 변경한다. */
     public void updateDetails(String title, String content) {
         this.title = title;
         this.content = content;
+        this.category = category == null ? CommunityCategory.GENERAL : category;
         this.contentUpdatedAt = LocalDateTime.now();
     }
 
