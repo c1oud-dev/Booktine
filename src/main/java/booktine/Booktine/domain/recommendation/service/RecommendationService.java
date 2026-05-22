@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Random;
 
 /**
  * 추천 도서 도메인의 비즈니스 로직을 담당하는 서비스.
@@ -32,22 +31,6 @@ public class RecommendationService {
     private final RecommendationRepository recommendationRepository;
     private final UserRepository userRepository;
     private final AladinApiClient aladinApiClient;
-    private final Random random = new Random();
-
-    /**
-     * 장르 기준으로 알라딘 API를 조회한 뒤 임의의 추천 도서 1권을 반환한다.
-     */
-    public RecommendationResponse recommendByGenre(Long userId, String genre) {
-        User user = getUserById(userId);
-        List<AladinBookResponse> books = aladinApiClient.searchBooksByGenre(genre);
-        if (books.isEmpty()) {
-            throw new CustomException(ErrorCode.RECOMMENDATION_NOT_AVAILABLE);
-        }
-
-        AladinBookResponse randomBook = pickRandomBook(books);
-        Recommendation recommendation = createRecommendation(user, randomBook, genre);
-        return RecommendationResponse.from(recommendation);
-    }
 
     /**
      * 장르 기준으로 알라딘 API를 조회한 뒤 최대 6권의 추천 도서 목록을 반환한다.
@@ -112,13 +95,6 @@ public class RecommendationService {
             throw new CustomException(ErrorCode.FORBIDDEN);
         }
         recommendationRepository.delete(recommendation);
-    }
-
-    /**
-     * 외부 도서 목록에서 무작위 도서를 선택한다.
-     */
-    private AladinBookResponse pickRandomBook(List<AladinBookResponse> books) {
-        return books.get(random.nextInt(books.size()));
     }
 
     /**

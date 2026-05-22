@@ -27,14 +27,6 @@ public class RecommendationController {
 
     private final RecommendationService recommendationService;
 
-    /** 장르 기반 추천 도서 1권을 조회한다. */
-    @Operation(summary = "장르 기반 도서 추천", description = "선택한 장르를 기준으로 추천 도서를 조회합니다.")
-    @GetMapping
-    public ApiResponse<RecommendationResponse> recommendByGenre(@RequestParam String genre) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.ok(recommendationService.recommendByGenre(userId, genre));
-    }
-
     /** 장르 기반 추천 도서 목록을 최대 6권까지 조회한다. */
     @Operation(summary = "장르 기반 도서 추천 목록", description = "선택한 장르를 기준으로 최대 6권의 추천 도서를 조회합니다.")
     @GetMapping("/genre")
