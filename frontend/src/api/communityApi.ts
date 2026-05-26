@@ -121,3 +121,14 @@ export async function getCommunityUserProfile(userId: number) {
   const res = await http.get<ApiResponse<CommunityUserProfile>>(`/users/${userId}/profile`);
   return res.data.data;
 }
+
+export async function getCommunityPostsByUser(userId: number, size = 5) {
+  const res = await http.get<ApiResponse<PageResponse<CommunityPost>>>('/community/posts', {
+    params: {
+      userId,
+      page: 0,
+      size,
+    },
+  });
+  return res.data.data;
+}

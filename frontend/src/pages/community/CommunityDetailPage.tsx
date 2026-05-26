@@ -7,6 +7,7 @@ import Spinner from '@/components/common/Spinner';
 import { createCommunityComment, deleteCommunityComment, deleteCommunityPost, getCommunityComments, getCommunityPost, likeCommunityPost, unlikeCommunityPost, updateCommunityComment, type CommunityComment, type CommunityPost } from '@/api/communityApi';
 import { useAuth } from '@/auth/AuthContext';
 import { cn } from '@/lib/utils';
+import AuthorProfileModal from '@/components/community/AuthorProfileModal';
 import { formatCommunityDate, nestComments } from './communityUtils';
 import { panelSpring } from '@/lib/motion';
 
@@ -31,6 +32,7 @@ export default function CommunityDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<number | null>(null);
 
   const commentTree = useMemo(() => nestComments(comments), [comments]);
   const isOwner = Boolean(user && post && user.id === post.userId);
@@ -138,7 +140,11 @@ export default function CommunityDetailPage() {
     return (
       <div key={comment.id} className={cn('rounded-[1.1rem] border border-border bg-card p-3.5 shadow-soft sm:p-4', isReplyComment && 'ml-7 border-dashed bg-secondary/40 sm:ml-12')}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setSelectedAuthorId(comment.userId)}
+            className="flex min-w-0 items-center gap-2.5 text-left"
+          >
             <img
               src={comment.authorProfileImageUrl || defaultAvatar}
               alt=""
@@ -150,7 +156,7 @@ export default function CommunityDetailPage() {
                 {formatCommunityDate(comment.createdAt)} {comment.isEdited && !comment.isDeleted ? '· 수정됨' : ''}
               </p>
             </div>
-          </div>
+          </button>
           {owned && !comment.isDeleted ? (
             <div className="flex items-center gap-2">
               <button
@@ -253,7 +259,11 @@ export default function CommunityDetailPage() {
       <article className="rounded-[1.5rem] border border-border bg-card p-5 shadow-card sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSelectedAuthorId(post.userId)}
+              className="flex items-center gap-3 text-left"
+            >
               <img
                 src={post.authorProfileImageUrl || defaultAvatar}
                 alt=""
@@ -265,7 +275,7 @@ export default function CommunityDetailPage() {
                   {formatCommunityDate(post.createdAt)} {post.isEdited && !post.isDeleted ? '· 수정됨' : ''}
                 </p>
               </div>
-            </div>
+            </button>
             <h1 className={cn("mt-4 text-2xl font-black tracking-tight sm:text-3xl", post.isDeleted ? "text-muted-foreground" : "text-foreground")}>{post.title}</h1>
           </div>
           {isOwner && !post.isDeleted ? (
@@ -376,6 +386,12 @@ export default function CommunityDetailPage() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      <AuthorProfileModal
+        userId={selectedAuthorId}
+        isOpen={selectedAuthorId !== null}
+        onClose={() => setSelectedAuthorId(null)}
+      />
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import AuthorProfileModal from '@/components/community/AuthorProfileModal';
 import { Link } from 'react-router-dom';
 import { Heart, MessageSquareText, PenLine, Plus } from 'lucide-react';
 import EmptyState from '@/components/common/EmptyState';
@@ -33,6 +34,7 @@ export default function CommunityListPage() {
   const [popularLikes, setPopularLikes] = useState<CommunityPost[]>([]);
   const [popularComments, setPopularComments] = useState<CommunityPost[]>([]);
   const [category, setCategory] = useState<'ALL' | 'GENERAL' | 'REVIEW' | 'QUESTION' | 'RECOMMEND'>('ALL');
+  const [selectedAuthorId, setSelectedAuthorId] = useState<number | null>(null);
 
   const totalPageCount = Math.max(totalPages, 1);
   const isFirstPage = currentPage === 0;
@@ -237,7 +239,14 @@ export default function CommunityListPage() {
                   <article key={post.id} className="rounded-[1.25rem] border border-border bg-card p-3.5 shadow-soft transition hover:-translate-y-0.5 hover:shadow-card sm:p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <Link to={`/community/${post.id}`} className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setSelectedAuthorId(post.userId);
+                          }}
+                          className="flex items-center gap-2.5 text-left"
+                        >
                           <img
                             src={post.authorProfileImageUrl || defaultAvatar}
                             alt=""
@@ -249,7 +258,7 @@ export default function CommunityListPage() {
                               {formatCommunityDate(post.createdAt)} {post.isEdited && !post.isDeleted ? '· 수정됨' : ''}
                             </p>
                           </div>
-                        </div>
+                        </button>
                         <h2
                           className={cn(
                             'mt-3 line-clamp-2 text-base font-black tracking-tight sm:text-lg',
@@ -315,6 +324,11 @@ export default function CommunityListPage() {
           다음
         </button>
       </div>
+      <AuthorProfileModal
+        userId={selectedAuthorId}
+        isOpen={selectedAuthorId !== null}
+        onClose={() => setSelectedAuthorId(null)}
+      />
     </section>
   );
 }
