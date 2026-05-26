@@ -84,42 +84,118 @@ Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계
 ## 주요 기능
 
 ### 인증 / 회원 관리
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/f7db9d43-fb69-44b1-8f48-5c70d734f59c" width="400" alt="로그인"><br>
+      <sub>로그인</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/73c4e34d-4317-4e26-af75-fc13827015d0" width="400" alt="회원가입"><br>
+      <sub>회원가입</sub>
+    </td>
+  </tr>
+</table>
 
 이메일 회원가입 및 이메일 인증, Google OAuth2 소셜 로그인을 지원합니다. JWT Access Token + Refresh Token 기반 인증과 Redis를 활용한 토큰 재발급 및 무효화, 비밀번호 재설정 기능을 제공합니다.
 
 ### 독서 기록 (Book Note)
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/00f65eeb-f97d-44cc-8d21-6a03a0be4dda" width="400" alt="독서 기록 목록 화면"><br>
+      <sub>독서 기록 목록 화면</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/2e775e81-f9be-4daf-9355-4d4f5bc0d4e4" width="400" alt="독서 기록 상세 화면"><br>
+      <sub>독서 기록 상세 화면</sub>
+    </td>
+  </tr>
+</table>
 
 도서 기록 CRUD와 독서 상태(읽는 중 / 완독 / 일시정지 / 읽고 싶음) 관리, 별점·한줄평·장르 기반 독서 노트를 작성할 수 있습니다.
 
-### 메모 관리
-[사진]
-
-도서 기록별로 메모를 작성·수정·삭제할 수 있습니다. 책을 읽으며 남긴 문장, 감상, 요약을 도서 단위로 정리합니다.
-
 ### 목표 및 통계 (Progress)
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/53cff1f2-7697-4506-a026-f9e16549a458" width="400" alt="월간/연간 목표 카드"><br>
+      <sub>월간/연간 목표 카드</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/08d8f1bc-56f8-438f-b8d4-0e1dad9976a1" width="400" alt="통계 차트"><br>
+      <sub>통계 차트</sub>
+    </td>
+  </tr>
+</table>
 
 월간·연간 독서 목표를 설정하고, 기본 통계, 장르별 분포, 연간 월별 완독 권수, 연간 완독 요약을 시각화하여 제공합니다.
 
 ### 도서 추천 (Recommendation)
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/ee6d2555-d523-4093-adc4-55b3bed5bd08" width="260" alt="베스트셀러"><br>
+      <sub>베스트셀러</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/9234f933-5d71-4689-8561-82a12153e979" width="260" alt="장르별 추천"><br>
+      <sub>장르별 추천</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/5efef86b-c0c9-419d-8777-2ec71a72e41b" width="260" alt="도서 검색"><br>
+      <sub>도서 검색</sub>
+    </td>
+  </tr>
+</table>
 
 Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추천을 제공합니다. 추천받은 도서를 저장하고 목록으로 관리할 수 있습니다.
 
 ### 독서 커뮤니티
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/8a52d6ec-fa8f-4f6a-9607-3f436da23a04" width="400" alt="커뮤니티 목록"><br>
+      <sub>커뮤니티 목록</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/e84517bf-4714-409f-8268-0617ed81c528" width="400" alt="커뮤니티 상세 글"><br>
+      <sub>커뮤니티 상세 글</sub>
+    </td>
+  </tr>
+</table>
 
 커뮤니티 게시글 작성·수정·삭제와 댓글, 대댓글, 좋아요 기능을 지원합니다.
 
 ### 리마인더
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/8e28c96c-c1d8-41a7-bae3-21ea213d171b" width="400" alt="리마인더"><br>
+      <sub>리마인더</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/b1e30124-9555-49ad-a73f-3bee2ed62b94" width="400" alt="알림"><br>
+      <sub>알림 수신</sub>
+    </td>
+  </tr>
+</table>
 
 독서 리마인더를 등록하고 SSE 연결을 통해 실시간 알림을 수신할 수 있습니다.
 
 ### 관리자
-[사진]
+<table>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/14ad9452-ecbe-49ec-8706-717df30fd459" width="400" alt="관리자"><br>
+      <sub>관리자</sub>
+    </td>
+    <td align="center">
+      <img src="https://github.com/user-attachments/assets/8be4be5a-6d9c-4796-bcdf-6eb4e0480722" width="400" alt="관리자"><br>
+      <sub>관리자</sub>
+    </td>
+  </tr>
+</table>
 
 관리자 권한으로 사용자, 게시글, 장르, 문의 목록을 조회하고 장르를 추가·삭제할 수 있습니다.
 
