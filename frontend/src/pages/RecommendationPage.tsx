@@ -128,7 +128,14 @@ export default function RecommendationPage() {
 
       <div className="flex flex-wrap gap-2">
         {[{ key: 'genre', label: '장르별 추천' }, { key: 'saved', label: '저장한 도서' }, { key: 'search', label: '도서 검색' }].map((tab) => (
-          <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key as 'genre' | 'saved' | 'search')} className={`rounded-full px-4 py-2 text-sm font-bold ${activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}>{tab.label}</button>
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key as 'genre' | 'saved' | 'search')}
+            className={`rounded-full px-4 py-2 text-sm font-bold ${activeTab === tab.key ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'}`}
+          >
+            {tab.label}
+          </button>
         ))}
       </div>
 
@@ -148,9 +155,9 @@ export default function RecommendationPage() {
             <EmptyState title="저장된 추천이 없어요" description="마음에 드는 추천 도서를 저장해 나만의 후보 리스트를 만들어 보세요." />
           </div>
         ) : (
-          <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {savedItems.map((item) => (
-              <li key={item.id} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
+              <li key={item.id} className="h-full">
                 <BookRecommendationCard
                   title={item.title}
                   author={item.author}
@@ -208,9 +215,9 @@ export default function RecommendationPage() {
           </div>
 
           {genreResults.length > 0 ? (
-            <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {genreResults.map((item) => (
-                <li key={item.isbn || `${item.title}-${item.author}`} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
+                <li key={item.isbn || `${item.title}-${item.author}`} className="h-full">
                   <BookRecommendationCard
                     title={item.title}
                     author={item.author}
@@ -275,9 +282,9 @@ export default function RecommendationPage() {
             ) : (
               <div className="mt-6">
                 <h3 className="text-lg font-black text-foreground">지금 인기 있는 책</h3>
-                <ul className="mt-4 flex gap-4 overflow-x-auto pb-2">
+                <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {bestsellerItems.map((item) => (
-                    <li key={item.isbn13 || `${item.title}-${item.author}`} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
+                    <li key={item.isbn13 || `${item.title}-${item.author}`} className="h-full">
                       <BookRecommendationCard
                         title={item.title}
                         author={item.author}
@@ -303,9 +310,9 @@ export default function RecommendationPage() {
               />
             </div>
           ) : (
-            <ul className="mt-6 flex gap-4 overflow-x-auto pb-2">
+            <ul className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {searchItems.map((item) => (
-                <li key={item.isbn13} className="h-full min-w-[16rem] max-w-[16rem] shrink-0">
+                <li key={item.isbn13} className="h-full">
                   <BookRecommendationCard
                     title={item.title}
                     author={item.author}

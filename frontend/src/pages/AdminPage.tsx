@@ -58,10 +58,14 @@ export default function AdminPage() {
           <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><ShieldCheck className="h-6 w-6" aria-hidden="true" /></span>
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin console</p>
-            <h1 className="mt-2 text-4xl font-black tracking-tight text-foreground sm:text-5xl">관리자 페이지</h1>
+            <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
+              관리자 페이지
+            </h1>
           </div>
         </div>
-       <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">사용자/게시물 목록과 장르, 문의/제안을 관리합니다.</p>
+        <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+          사용자/게시물 목록과 장르, 문의/제안을 관리합니다.
+        </p>
       </div>
 
       {message ? <p className="rounded-[1.25rem] border border-border bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{message}</p> : null}
@@ -167,7 +171,7 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
         <div className="mt-8"><EmptyState title="사용자가 없어요" description="조회된 사용자 데이터가 없습니다." /></div>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full table-fixed text-left text-sm">
+          <table className="min-w-[42rem] w-full table-fixed text-left text-sm">
             <thead className="text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-2 py-3">ID</th>
@@ -207,11 +211,29 @@ function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNot
         <div className="mt-8"><EmptyState title="게시물이 없어요" description="조회된 독서 노트가 없습니다." /></div>
       ) : (
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full table-fixed text-left text-sm">
-            <thead className="text-xs uppercase tracking-wider text-muted-foreground"><tr><th className="px-2 py-3">ID</th><th className="px-2">제목</th><th className="px-2">저자</th><th className="px-2">장르</th><th className="px-2">상태</th></tr></thead>
+          <table className="min-w-[42rem] w-full table-fixed text-left text-sm">
+            <thead className="text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-2 py-3">ID</th>
+                <th className="px-2">제목</th>
+                <th className="px-2">저자</th>
+                <th className="px-2">장르</th>
+                <th className="px-2">상태</th>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-border">
               {posts.content.map((post) => (
-                <tr key={post.id} className="font-semibold text-foreground"><td className="px-2 py-3">{post.id}</td><td className="px-2">{post.title}</td><td className="px-2">{post.author}</td><td className="px-2">{post.genre}</td><td className="px-2"><span className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-black text-foreground">{STATUS_LABEL[post.readingStatus]}</span></td></tr>
+                <tr key={post.id} className="font-semibold text-foreground">
+                  <td className="px-2 py-3">{post.id}</td>
+                  <td className="px-2">{post.title}</td>
+                  <td className="px-2">{post.author}</td>
+                  <td className="px-2">{post.genre}</td>
+                  <td className="px-2">
+                    <span className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-black text-foreground">
+                      {STATUS_LABEL[post.readingStatus]}
+                    </span>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
@@ -223,9 +245,41 @@ function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNot
 }
 
 function SectionHeading({ icon, title, description }: { icon: ReactNode; title: string; description: string }) {
-  return <div className="flex items-center gap-3"><span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">{icon}</span><div><h2 className="text-2xl font-black text-foreground">{title}</h2><p className="text-sm font-bold text-muted-foreground">{description}</p></div></div>;
+  return (
+    <div className="flex items-center gap-3">
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground">
+        {icon}
+      </span>
+      <div>
+        <h2 className="text-xl font-black text-foreground sm:text-2xl">{title}</h2>
+        <p className="text-sm font-bold text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
 }
 
 function Pager({ page, totalPages, onPageChange }: { page: number; totalPages: number; onPageChange: (page: number) => void }) {
-  return <div className="mt-5 flex items-center justify-end gap-2"><button type="button" disabled={page <= 0} onClick={() => onPageChange(page - 1)} className="rounded-full border border-border px-4 py-2 text-sm font-bold disabled:opacity-40">이전</button><span className="text-sm font-bold text-muted-foreground">{page + 1} / {Math.max(totalPages, 1)}</span><button type="button" disabled={page + 1 >= totalPages} onClick={() => onPageChange(page + 1)} className="rounded-full border border-border px-4 py-2 text-sm font-bold disabled:opacity-40">다음</button></div>;
+  return (
+    <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+      <button
+        type="button"
+        disabled={page <= 0}
+        onClick={() => onPageChange(page - 1)}
+        className="rounded-full border border-border px-4 py-2 text-sm font-bold disabled:opacity-40"
+      >
+        이전
+      </button>
+      <span className="text-sm font-bold text-muted-foreground">
+        {page + 1} / {Math.max(totalPages, 1)}
+      </span>
+      <button
+        type="button"
+        disabled={page + 1 >= totalPages}
+        onClick={() => onPageChange(page + 1)}
+        className="rounded-full border border-border px-4 py-2 text-sm font-bold disabled:opacity-40"
+      >
+        다음
+      </button>
+    </div>
+  );
 }
