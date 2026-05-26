@@ -13,6 +13,9 @@ import booktine.Booktine.domain.inquiry.entity.Inquiry;
 import booktine.Booktine.domain.inquiry.repository.InquiryRepository;
 import booktine.Booktine.domain.memo.entity.Memo;
 import booktine.Booktine.domain.memo.repository.MemoRepository;
+import booktine.Booktine.domain.notification.entity.Notification;
+import booktine.Booktine.domain.notification.entity.NotificationType;
+import booktine.Booktine.domain.notification.repository.NotificationRepository;
 import booktine.Booktine.domain.post.entity.Post;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
@@ -59,6 +62,7 @@ public class InitData {
     private final ReminderRepository reminderRepository;
     private final GenreRepository genreRepository;
     private final InquiryRepository inquiryRepository;
+    private final NotificationRepository notificationRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
@@ -83,6 +87,7 @@ public class InitData {
 
         createInquiries(user, admin);
         createCommunityData(user, admin, suspendedUser);
+        createNotifications(user, admin);
 
         log.info("[InitData] 개발용 초기 데이터 삽입 완료. userId={}, postCount={}, memoCount=12",
                 user.getId(), posts.size());
@@ -213,87 +218,112 @@ public class InitData {
                 .subject("관리자 샘플 문의")
                 .message("관리자 페이지 문의 목록 확인을 위한 개발용 샘플 데이터입니다.")
                 .build());
+        inquiryRepository.save(Inquiry.builder()
+                .user(user)
+                .subject("알림 설정에서 시간대 옵션을 추가해 주세요")
+                .message("해외 거주 사용자도 쉽게 맞출 수 있도록 시간대 자동 감지 옵션이 있으면 좋겠습니다.")
+                .build());
+        inquiryRepository.save(Inquiry.builder()
+                .user(user)
+                .subject("커뮤니티 인기글 기간 필터 제안")
+                .message("인기글을 일간/주간/월간으로 나눠서 볼 수 있으면 게시글 탐색이 더 편할 것 같습니다.")
+                .build());
     }
 
     private void createCommunityData(User user, User admin, User suspendedUser) {
-        // 게시글 3개
-        CommunityPost post1 = communityPostRepository.save(CommunityPost.builder()
-                .user(user)
-                .title("클린 코드 읽고 나서 코드 스타일이 바뀌었어요")
-                .content("처음엔 어렵게 느껴졌는데 읽고 나니 변수명 하나도 신경 쓰게 되더라고요. 다들 읽으면서 어떤 부분이 가장 인상 깊으셨나요?")
-                .category(CommunityCategory.REVIEW)
-                .build());
+        CommunityPost post1 = createCommunityPost(user, "클린 코드 읽고 나서 코드 스타일이 바뀌었어요",
+                "처음엔 어렵게 느껴졌는데 읽고 나니 변수명 하나도 신경 쓰게 되더라고요. 다들 읽으면서 어떤 부분이 가장 인상 깊으셨나요?",
+                CommunityCategory.REVIEW);
+        CommunityPost post2 = createCommunityPost(admin, "올해 독서 목표 달성하신 분 계신가요?",
+                "저는 올해 목표가 24권인데 벌써 절반 넘었어요. 여러분은 어떻게 독서 루틴 잡으셨는지 궁금합니다!",
+                CommunityCategory.GENERAL);
+        CommunityPost post3 = createCommunityPost(user, "아토믹 해빗 실천 후기",
+                "습관 추적을 시작한 지 3개월이 됐어요. 작은 것부터 하나씩 쌓아가는 게 생각보다 효과가 있더라고요.",
+                CommunityCategory.RECOMMEND);
 
-        CommunityPost post2 = communityPostRepository.save(CommunityPost.builder()
-                .user(admin)
-                .title("올해 독서 목표 달성하신 분 계신가요?")
-                .content("저는 올해 목표가 24권인데 벌써 절반 넘었어요. 여러분은 어떻게 독서 루틴 잡으셨는지 궁금합니다!")
-                .category(CommunityCategory.GENERAL)
-                .build());
+        List<CommunityPost> extraPosts = List.of(
+                createCommunityPost(user, "입문용 경제서 추천 부탁드려요", "경제 개념이 약한 편인데 쉽게 읽히는 입문서가 궁금합니다.", CommunityCategory.QUESTION),
+                createCommunityPost(admin, "주말 독서모임 후기 공유", "오프라인 모임에서 토론한 책과 인상 깊은 문장을 정리해봤어요.", CommunityCategory.GENERAL),
+                createCommunityPost(user, "프로젝트 헤일메리 강력 추천", "SF인데도 감정선이 좋아서 몰입감이 뛰어났습니다.", CommunityCategory.RECOMMEND),
+                createCommunityPost(suspendedUser, "초보자에게 추천할 SF 입문서 있을까요?", "과학 배경지식이 많지 않아도 읽기 쉬운 SF 소설 추천 부탁드려요.", CommunityCategory.QUESTION),
+                createCommunityPost(admin, "이번 달 완독 인증 스레드", "완독한 책 제목과 한 줄 소감을 댓글로 남겨 주세요.", CommunityCategory.GENERAL),
+                createCommunityPost(user, "코스모스 읽는 중인데 난이도 어떤가요?", "중반부부터 어려워졌는데 끝까지 읽을 팁이 있을까요?", CommunityCategory.QUESTION),
+                createCommunityPost(admin, "최근 읽은 철학서 리뷰", "생각보다 실생활 사례가 많아 읽기 편했던 철학서 후기입니다.", CommunityCategory.REVIEW),
+                createCommunityPost(user, "독서 루틴 지키는 앱 추천", "집중 타이머랑 메모 기능이 함께 있는 앱 써보신 분?", CommunityCategory.QUESTION),
+                createCommunityPost(admin, "가벼운 에세이 추천 리스트", "출퇴근길에 읽기 좋은 짧은 에세이 5권을 정리했습니다.", CommunityCategory.RECOMMEND),
+                createCommunityPost(user, "책 읽고 메모 정리하는 방법", "한 권 읽은 뒤 핵심만 남기는 템플릿을 공유합니다.", CommunityCategory.REVIEW),
+                createCommunityPost(admin, "독서 슬럼프 극복 팁", "짧은 분량부터 다시 시작하니 독서 감각이 돌아왔어요.", CommunityCategory.GENERAL),
+                createCommunityPost(user, "자기계발서 과몰입 방지법", "실천 가능한 한 가지씩만 적용하는 게 오히려 오래가네요.", CommunityCategory.REVIEW)
+        );
 
-        CommunityPost post3 = communityPostRepository.save(CommunityPost.builder()
-                .user(user)
-                .title("아토믹 해빗 실천 후기")
-                .content("습관 추적을 시작한 지 3개월이 됐어요. 작은 것부터 하나씩 쌓아가는 게 생각보다 효과가 있더라고요.")
-                .category(CommunityCategory.RECOMMEND)
-                .build());
+        addComment(post1, admin, "저는 함수는 한 가지 일만 해야 한다는 원칙이 가장 와닿았어요.", null);
+        CommunityComment comment2 = addComment(post2, user, "저는 아침 30분 독서 루틴으로 목표 채우고 있어요!", null);
+        addComment(post2, admin, "아침 루틴 좋죠. 저도 시도해봐야겠네요.", comment2);
+        addComment(post3, admin, "3개월이나 유지하셨다니 대단해요. 어떤 습관부터 시작하셨어요?", null);
 
-        communityPostRepository.save(CommunityPost.builder()
-                .user(suspendedUser)
-                .title("초보자에게 추천할 SF 입문서 있을까요?")
-                .content("과학 배경지식이 많지 않아도 읽기 쉬운 SF 소설 추천 부탁드려요.")
-                .category(CommunityCategory.QUESTION)
-                .build());
+        for (int i = 0; i < 6; i++) {
+            addComment(extraPosts.get(4), i % 2 == 0 ? user : admin, "완독 인증 댓글 샘플 " + (i + 1), null);
+            addComment(extraPosts.get(10), i % 2 == 0 ? admin : user, "슬럼프 극복 공감 댓글 " + (i + 1), null);
+        }
 
-        // 댓글 + 대댓글
-        CommunityComment comment1 = communityCommentRepository.save(CommunityComment.builder()
-                .post(post1)
-                .user(admin)
-                .content("저는 함수는 한 가지 일만 해야 한다는 원칙이 가장 와닿았어요.")
-                .parent(null)
-                .build());
+        for (int i = 0; i < 7; i++) {
+            addLike(post1, i % 2 == 0 ? admin : user);
+            addLike(extraPosts.get(4), i % 2 == 0 ? user : admin);
+        }
 
-        communityCommentRepository.save(CommunityComment.builder()
-                .post(post1)
-                .user(user)
-                .content("맞아요! 그 원칙 적용하고 나서 리뷰할 때 훨씬 편해졌어요.")
-                .parent(comment1)
-                .build());
-
-        CommunityComment comment2 = communityCommentRepository.save(CommunityComment.builder()
-                .post(post2)
-                .user(user)
-                .content("저는 아침 30분 독서 루틴으로 목표 채우고 있어요!")
-                .parent(null)
-                .build());
-
-        communityCommentRepository.save(CommunityComment.builder()
-                .post(post2)
-                .user(admin)
-                .content("아침 루틴 좋죠. 저도 시도해봐야겠네요.")
-                .parent(comment2)
-                .build());
-
-        communityCommentRepository.save(CommunityComment.builder()
-                .post(post3)
-                .user(admin)
-                .content("3개월이나 유지하셨다니 대단해요. 어떤 습관부터 시작하셨어요?")
-                .parent(null)
-                .build());
-
-        // 좋아요
-        addLike(post1, admin);
         addLike(post2, user);
         addLike(post3, admin);
+        addLike(extraPosts.get(0), admin);
+        addLike(extraPosts.get(1), user);
+        addLike(extraPosts.get(2), admin);
+        addLike(extraPosts.get(5), admin);
+        addLike(extraPosts.get(8), user);
+    }
+
+    private CommunityPost createCommunityPost(User user, String title, String content, CommunityCategory category){
+        return communityPostRepository.save(CommunityPost.builder()
+                .user(user)
+                .title(title)
+                .content(content)
+                .category(category)
+                .build());
+    }
+
+    private CommunityComment addComment(CommunityPost post, User user, String content, CommunityComment parent) {
+        return communityCommentRepository.save(CommunityComment.builder()
+                .post(post)
+                .user(user)
+                .content(content)
+                .parent(parent)
+                .build());
     }
 
     private void addLike(CommunityPost post, User user) {
+        if (communityLikeRepository.findByPostIdAndUserId(post.getId(), user.getId()).isPresent()) {
+            return;
+        }
+
         communityLikeRepository.save(CommunityLike.builder()
                 .post(post)
                 .user(user)
                 .build());
         post.increaseLikeCount();
         communityPostRepository.save(post);
+    }
+
+    private void createNotifications(User user, User admin) {
+        notificationRepository.save(Notification.builder()
+                .userId(user.getId())
+                .postId(1L)
+                .type(NotificationType.COMMENT)
+                .message(admin.getNickname() + "님이 회원님의 게시글에 댓글을 남겼습니다.")
+                .build());
+        notificationRepository.save(Notification.builder()
+                .userId(user.getId())
+                .postId(2L)
+                .type(NotificationType.LIKE)
+                .message("회원님의 게시글에 좋아요가 추가되었습니다.")
+                .build());
     }
 
     private void createProgressGoals(User user, LocalDate today) {

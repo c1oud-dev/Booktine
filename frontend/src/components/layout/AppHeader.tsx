@@ -97,6 +97,10 @@ export default function AppHeader() {
       if (mobileNavRef.current && !mobileNavRef.current.contains(target)) {
         setIsMobileNavOpen(false);
       }
+
+      if (notificationRef.current && !notificationRef.current.contains(target)) {
+        setIsNotificationOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -138,17 +142,17 @@ export default function AppHeader() {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center justify-end gap-3">
+        <div className="ml-auto flex items-center justify-end gap-2 sm:gap-3">
 
           {isAuthenticated ? (
             <div ref={notificationRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsNotificationOpen((prev) => !prev)}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft hover:bg-secondary"
+                className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft transition hover:bg-secondary sm:h-10 sm:w-10"
                 aria-label="알림 목록"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadCount > 0 ? (
                   <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
                     {unreadCount}
@@ -162,15 +166,19 @@ export default function AppHeader() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -8, scale: 0.98 }}
                     transition={panelSpring}
-                    className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-border bg-card p-3 shadow-card"
+                    className="absolute right-0 top-10 z-50 w-[calc(100vw-1.5rem)] max-w-80 rounded-2xl border border-border bg-card p-3 shadow-card sm:top-12 sm:w-80"
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-sm font-black text-foreground">알림</p>
                       <button
                         type="button"
                         onClick={async () => {
-                          await readAllNotifications();
-                          setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+                          try {
+                            await readAllNotifications();
+                            setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+                            } catch {
+                            return;
+                          }
                         }}
                         className="text-xs font-bold text-primary"
                       >
@@ -183,11 +191,18 @@ export default function AppHeader() {
                           <button
                             type="button"
                             onClick={async () => {
-                              await readNotification(notification.id);
-                              setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, isRead: true } : item));
-                              setIsNotificationOpen(false);
-                              navigate(`/community/${notification.postId}`);
-                            }}
+                              try {
+                                await readNotification(notification.id);
+                                setNotifications((current) => current.map((item) => (
+                                item.id === notification.id
+                                  ? { ...item, isRead: true }
+                                  : item
+                              )));
+                            } finally {
+                                setIsNotificationOpen(false);
+                                navigate(`/community/${notification.postId}`);
+                            }
+                              }}
                             className={cn(
                               'w-full rounded-xl border px-3 py-2 text-left',
                               notification.isRead ? 'border-border bg-background text-muted-foreground' : 'border-primary/40 bg-primary/10 text-foreground',

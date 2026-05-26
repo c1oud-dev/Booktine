@@ -14,6 +14,7 @@ export default function AppFooter() {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [submitMessage, setSubmitMessage] = useState('');
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { isAuthenticated } = useAuth();
   const [isTermsOpen, setIsTermsOpen] = useState(false);
@@ -22,9 +23,11 @@ export default function AppFooter() {
   const submitInquiry = async (e: FormEvent) => {
     e.preventDefault();
     setSubmitMessage('');
+    setSubmitStatus(null);
 
     if (!isAuthenticated) {
       setSubmitMessage('로그인 후 문의/제안을 보낼 수 있습니다.');
+      setSubmitStatus('error');
       return;
     }
 
@@ -34,8 +37,10 @@ export default function AppFooter() {
       setSubject('');
       setMessage('');
       setSubmitMessage('문의/제안이 관리자에게 전달되었습니다.');
+      setSubmitStatus('success');
     } catch {
       setSubmitMessage('문의/제안을 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      setSubmitStatus('error');
     } finally {
       setSubmitting(false);
     }
@@ -69,6 +74,7 @@ export default function AppFooter() {
               type="button"
               onClick={() => {
                 setSubmitMessage('');
+                setSubmitStatus(null);
                 setIsInquiryOpen(true);
               }}
               className="hover:text-foreground"
@@ -261,7 +267,17 @@ export default function AppFooter() {
                 />
               </label>
 
-              {submitMessage ? <p className="mt-4 text-sm font-bold text-muted-foreground">{submitMessage}</p> : null}
+              {submitMessage ? (
+                <p
+                  className={
+                    submitStatus === 'success'
+                      ? 'mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-700'
+                      : 'mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700'
+                  }
+                >
+                  {submitMessage}
+                </p>
+              ) : null}
 
               <button
                 type="submit"
