@@ -74,6 +74,7 @@ public class UserController {
         return ApiResponse.ok(userService.getMyInfo(getCurrentUserId()));
     }
 
+    @Operation(summary = "마이페이지 상세 조회", description = "로그인한 사용자의 상세 정보, 커뮤니티 활동, 독서 통계를 조회합니다.")
     @GetMapping("/users/me/detail")
     public ApiResponse<MyPageResponse> getMyPage() {
         return ApiResponse.ok(userService.getMyPage(getCurrentUserId()));

@@ -4,9 +4,11 @@ import {
   changePassword,
   deleteMyAccount,
   deleteMyProfileImage,
+  getMyPageDetail,
   getMyProfile,
   updateMyProfile,
   uploadMyProfileImage,
+  type MyPageDetail,
   type UserProfile,
 } from '@/api/userApi';
 import { useAuth } from '@/auth/AuthContext';
@@ -15,6 +17,7 @@ import Spinner from '@/components/common/Spinner';
 export default function MyPage() {
   const { clearSession, updateUser } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [detail, setDetail] = useState<MyPageDetail | null>(null);
   const [nickname, setNickname] = useState('');
   const [intro, setIntro] = useState('');
   const [profilePassword, setProfilePassword] = useState('');
@@ -29,11 +32,15 @@ export default function MyPage() {
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const data = await getMyProfile();
-      setProfile(data);
-      setNickname(data.nickname);
-      setIntro(data.aboutMe ?? '');
-      setImagePreview(data.profileImageUrl ?? '/default_avatar.png');
+      const [profileData, detailData] = await Promise.all([
+        getMyProfile(),
+        getMyPageDetail(),
+      ]);
+      setProfile(profileData);
+      setDetail(detailData);
+      setNickname(profileData.nickname);
+      setIntro(profileData.aboutMe ?? '');
+      setImagePreview(profileData.profileImageUrl ?? '/default_avatar.png');
     } finally {
       setLoading(false);
     }
@@ -169,6 +176,12 @@ export default function MyPage() {
           <p className="mt-5 text-2xl font-black tracking-tight text-foreground">{profile?.nickname ?? nickname}</p>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">{profile?.aboutMe || '소개를 작성해 주세요.'}</p>
 
+          <div className="mt-6 rounded-2xl border border-border bg-background px-4 py-3 text-left">
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">계정 정보</p>
+            <p className="mt-2 text-sm font-semibold text-foreground">{detail?.email}</p>
+            <p className="mt-1 text-xs font-semibold text-muted-foreground">가입일: {detail ? new Date(detail.createdAt).toLocaleDateString('ko-KR') : '-'}</p>
+          </div>
+
           <div className="mt-6 grid gap-3 text-left">
             <div className="flex items-center justify-between rounded-2xl bg-background px-4 py-3">
               <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground">
@@ -181,6 +194,10 @@ export default function MyPage() {
                 <Sparkles className="h-4 w-4" aria-hidden="true" />완독
               </span>
               <span className="text-lg font-black text-foreground">{profile?.completedCount ?? 0}권</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-background px-4 py-3">
+              <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground">읽고 싶은 책</span>
+              <span className="text-lg font-black text-foreground">{detail?.wishCount ?? 0}권</span>
             </div>
           </div>
         </aside>
@@ -233,6 +250,36 @@ export default function MyPage() {
                 비밀번호 변경
               </button>
             </form>
+          </article>
+
+          <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+            <h2 className="text-2xl font-black text-foreground">내 커뮤니티 활동</h2>
+            <div className="mt-5 grid gap-6 lg:grid-cols-2">
+              <div>
+                <h3 className="text-sm font-bold text-muted-foreground">내가 쓴 게시글</h3>
+                <ul className="mt-3 space-y-2">
+                  {detail?.communityPosts.map((post) => (
+                    <li key={post.id}>
+                      <a href={`/community/${post.id}`} className="block rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary">
+                        {post.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-muted-foreground">내가 쓴 댓글</h3>
+                <ul className="mt-3 space-y-2">
+                  {detail?.comments.map((comment) => (
+                    <li key={comment.id}>
+                      <a href={`/community/${comment.postId}`} className="block rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary">
+                        {comment.content}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </article>
 
           <article className="rounded-[1.5rem] border border-red-200 bg-red-50 p-6 shadow-soft lg:p-8">

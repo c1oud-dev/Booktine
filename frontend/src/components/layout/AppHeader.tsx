@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { LogIn, LogOut, Menu, UserRound, X } from 'lucide-react';
+import { Bell, LogIn, LogOut, Menu, UserRound, X } from 'lucide-react';
 import { useAuth } from '@/auth/AuthContext';
 import { panelSpring } from '@/lib/motion';
 import { cn } from '@/lib/utils';
+import {
+  createNotificationEventSource,
+  getNotifications,
+  readAllNotifications,
+  readNotification,
+  type NotificationItem,
+} from '@/api/notificationApi';
 
 const navItems = [
   { to: '/', label: 'Home' },
@@ -19,8 +26,11 @@ export default function AppHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, isAdmin, logout, isAuthModalOpen, closeAuthModal, openAuthModal } = useAuth();
   const navigate = useNavigate();
   const headerNavItems = [
@@ -36,6 +46,45 @@ export default function AppHeader() {
   };
 
   const isProtectedMenu = (to: string) => to !== '/';
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setNotifications([]);
+      return;
+    }
+
+    const loadNotifications = async () => {
+      const data = await getNotifications();
+      setNotifications(data);
+    };
+
+    loadNotifications();
+
+    const eventSource = createNotificationEventSource();
+
+    const handleNotification = (event: MessageEvent<string>) => {
+      if (!event.data || event.data.includes('SSE 연결')) {
+        return;
+      }
+
+      try {
+        const notification = JSON.parse(event.data) as NotificationItem;
+        setNotifications((current) => [notification, ...current]);
+      } catch {
+        void loadNotifications();
+      }
+    };
+
+    eventSource.onmessage = handleNotification;
+    eventSource.addEventListener('notification', handleNotification);
+
+    return () => {
+      eventSource.removeEventListener('notification', handleNotification);
+      eventSource.close();
+    };
+  }, [isAuthenticated]);
+
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -90,6 +139,70 @@ export default function AppHeader() {
         </nav>
 
         <div className="ml-auto flex items-center justify-end gap-3">
+
+          {isAuthenticated ? (
+            <div ref={notificationRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsNotificationOpen((prev) => !prev)}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/80 bg-card text-foreground shadow-soft hover:bg-secondary"
+                aria-label="알림 목록"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                ) : null}
+              </button>
+              <AnimatePresence>
+                {isNotificationOpen ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    transition={panelSpring}
+                    className="absolute right-0 top-12 z-50 w-80 rounded-2xl border border-border bg-card p-3 shadow-card"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-sm font-black text-foreground">알림</p>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await readAllNotifications();
+                          setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+                        }}
+                        className="text-xs font-bold text-primary"
+                      >
+                        전체 읽음
+                      </button>
+                    </div>
+                    <ul className="max-h-80 space-y-2 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <li key={notification.id}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await readNotification(notification.id);
+                              setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, isRead: true } : item));
+                              setIsNotificationOpen(false);
+                              navigate(`/community/${notification.postId}`);
+                            }}
+                            className={cn(
+                              'w-full rounded-xl border px-3 py-2 text-left',
+                              notification.isRead ? 'border-border bg-background text-muted-foreground' : 'border-primary/40 bg-primary/10 text-foreground',
+                            )}
+                          >
+                            <p className="text-sm font-semibold">{notification.message}</p>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
+            </div>
+          ) : null}
           <div ref={mobileNavRef} className="relative md:hidden">
             <button
               type="button"

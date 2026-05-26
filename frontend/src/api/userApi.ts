@@ -13,6 +13,35 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface MyPageCommunityPost {
+  id: number;
+  title: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface MyPageComment {
+  id: number;
+  postId: number;
+  postTitle: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface MyPageDetail {
+  id: number;
+  email: string;
+  nickname: string;
+  aboutMe: string | null;
+  profileImageUrl: string | null;
+  createdAt: string;
+  readingCount: number;
+  completedCount: number;
+  wishCount: number;
+  communityPosts: MyPageCommunityPost[];
+  comments: MyPageComment[];
+}
+
 export interface UpdateProfilePayload {
   nickname: string;
   aboutMe: string;
@@ -65,4 +94,9 @@ export async function changePassword(payload: ChangePasswordPayload) {
 
 export async function deleteMyAccount() {
   await http.delete('/users/me');
+}
+
+export async function getMyPageDetail() {
+  const res = await http.get<ApiResponse<MyPageDetail>>('/users/me/detail');
+  return res.data.data;
 }

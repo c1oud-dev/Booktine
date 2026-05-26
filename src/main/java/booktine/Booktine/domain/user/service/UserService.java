@@ -108,11 +108,15 @@ public class UserService {
         return UserProfileResponse.from(getUserById(userId));
     }
 
+    /**
+     * 마이페이지 화면에 필요한 상세 정보를 한 번에 조회한다.
+     * 기본 프로필, 독서 상태 통계, 최근 커뮤니티 게시글/댓글 목록을 결합해 반환한다.
+     */
     public MyPageResponse getMyPage(Long userId) {
         User user = getUserById(userId);
         long readingCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.READING);
         long completedCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
-        long wishCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.WANT_TO_READ);
+        long wishCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.WISHLIST);
         return new MyPageResponse(
                 user.getId(),
                 user.getEmail(),
