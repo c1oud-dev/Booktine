@@ -29,8 +29,12 @@ public class CommunityController {
     /** 커뮤니티 게시글 목록을 페이지 단위로 조회한다. */
     @Operation(summary = "커뮤니티 게시글 목록 조회", description = "커뮤니티 게시글 목록을 페이지 단위로 조회합니다.")
     @GetMapping
-    public ApiResponse<Page<CommunityPostResponse>> getPosts(@RequestParam(required = false) CommunityCategory category, Pageable pageable) {
-        return ApiResponse.ok(communityService.getPosts(category, pageable));
+    public ApiResponse<Page<CommunityPostResponse>> getPosts(
+            @RequestParam(required = false) CommunityCategory category,
+            @RequestParam(required = false) Long userId,
+            Pageable pageable
+    ) {
+        return ApiResponse.ok(communityService.getPosts(category, userId, pageable));
     }
 
     /** 커뮤니티 게시글을 생성한다. */

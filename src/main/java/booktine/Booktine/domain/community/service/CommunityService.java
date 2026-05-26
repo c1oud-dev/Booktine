@@ -53,17 +53,22 @@ public class CommunityService {
     }
 
     /** 커뮤니티 게시글 목록을 페이지 단위로 조회한다. */
-    public Page<CommunityPostResponse> getPosts(CommunityCategory category, Pageable pageable) {
-        Long userId = getCurrentUserId();
-        Page<CommunityPost> posts = category == null
-                ? postRepository.findAll(pageable)
-                : postRepository.findAllByCategory(category, pageable);
+    public Page<CommunityPostResponse> getPosts(CommunityCategory category, Long authorUserId, Pageable pageable) {
+        Long currentUserId = getCurrentUserId();
+        Page<CommunityPost> posts;
+        if (authorUserId != null) {
+            posts = postRepository.findAllByUserId(authorUserId, pageable);
+        } else if (category == null) {
+            posts = postRepository.findAll(pageable);
+        } else {
+            posts = postRepository.findAllByCategory(category, pageable);
+        }
         List<Long> postIds = posts.getContent().stream()
                 .map(CommunityPost::getId)
                 .toList();
         Set<Long> likedPostIds = postIds.isEmpty()
                 ? Set.of()
-                : new HashSet<>(likeRepository.findPostIdsByUserId(userId, postIds));
+                : new HashSet<>(likeRepository.findPostIdsByUserId(currentUserId, postIds));
 
         return posts.map(post -> CommunityPostResponse.from(post, likedPostIds.contains(post.getId())));
     }
@@ -280,4 +285,3 @@ public class CommunityService {
         return SecurityUtils.getCurrentUserId();
     }
 }
-

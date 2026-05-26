@@ -2,6 +2,7 @@ package booktine.Booktine.domain.user.controller;
 
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
+import booktine.Booktine.domain.user.dto.UserProfileResponse;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.service.UserService;
 import booktine.Booktine.global.exception.CustomException;
@@ -60,6 +61,13 @@ public class UserController {
             String nickname
     ) {
         return ApiResponse.ok(userService.isNicknameDuplicated(nickname));
+    }
+
+    /** 특정 사용자의 공개 프로필 정보를 조회한다. */
+    @Operation(summary = "사용자 공개 프로필 조회", description = "닉네임, 프로필 이미지, 자기소개 정보를 조회합니다.")
+    @GetMapping("/users/{id}/profile")
+    public ApiResponse<UserProfileResponse> getUserProfile(@PathVariable Long id) {
+        return ApiResponse.ok(userService.getUserProfile(id));
     }
 
     /** 인증 컨텍스트 기준으로 내 정보를 조회한다. */

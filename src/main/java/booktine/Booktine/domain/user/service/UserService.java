@@ -14,6 +14,7 @@ import booktine.Booktine.domain.recommendation.repository.RecommendationReposito
 import booktine.Booktine.domain.reminder.repository.ReminderRepository;
 import booktine.Booktine.domain.user.dto.SignUpRequest;
 import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
+import booktine.Booktine.domain.user.dto.UserProfileResponse;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.entity.UserAuthProvider;
@@ -100,6 +101,13 @@ public class UserService {
      */
     public UserResponse getMyInfo(Long userId) {
         return buildUserResponse(getUserById(userId));
+    }
+
+    /**
+     * 사용자 식별자 기준으로 공개 프로필 정보를 조회한다.
+     */
+    public UserProfileResponse getUserProfile(Long userId) {
+        return UserProfileResponse.from(getUserById(userId));
     }
 
     /**

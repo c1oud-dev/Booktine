@@ -30,6 +30,7 @@ export default function RecommendationPage() {
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'genre' | 'saved' | 'search'>('genre');
   const [savedFeedbackKey, setSavedFeedbackKey] = useState('');
+  const savedIsbnSet = new Set(savedItems.map((item) => item.isbn));
   const loadSaved = async () => {
     const page = await getSavedRecommendations(0, SAVED_RECOMMENDATION_PAGE_SIZE);
     setSavedItems(page.content);
@@ -93,7 +94,7 @@ export default function RecommendationPage() {
       });
       setSavedItems((current) => [savedRecommendation, ...current.filter((item) => item.id !== savedRecommendation.id)]);
       setMessage('저장되었습니다 ✓');
-      setSavedFeedbackKey(book.title);
+      setSavedFeedbackKey('isbn' in book ? book.isbn : book.isbn13);
     } catch {
       setMessage('저장에 실패했습니다.');
     }
@@ -217,8 +218,9 @@ export default function RecommendationPage() {
                     genre={item.genre}
                     description={item.description}
                     coverImageUrl={item.coverImageUrl}
-                    actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
+                    actionLabel={savedIsbnSet.has(item.isbn) || savedFeedbackKey === item.isbn ? '저장됨 ✓' : '저장'}
                     actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
+                    actionDisabled={savedIsbnSet.has(item.isbn) || savedFeedbackKey === item.isbn}
                     onAction={() => onSave(item)}
                   />
                 </li>
@@ -283,8 +285,9 @@ export default function RecommendationPage() {
                         genre={item.categoryName}
                         description={item.description}
                         coverImageUrl={item.cover}
-                        actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
+                        actionLabel={savedIsbnSet.has(item.isbn13) || savedFeedbackKey === item.isbn13 ? '저장됨 ✓' : '저장'}
                         actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
+                        actionDisabled={savedIsbnSet.has(item.isbn13) || savedFeedbackKey === item.isbn13}
                         onAction={() => onSave(item)}
                       />
                     </li>
@@ -310,8 +313,9 @@ export default function RecommendationPage() {
                     genre={item.categoryName}
                     description={item.description}
                     coverImageUrl={item.cover}
-                    actionLabel={savedFeedbackKey === item.title ? '저장됨' : '저장'}
+                    actionLabel={savedIsbnSet.has(item.isbn13) || savedFeedbackKey === item.isbn13 ? '저장됨 ✓' : '저장'}
                     actionIcon={<BookmarkPlus className="h-4 w-4" aria-hidden="true" />}
+                    actionDisabled={savedIsbnSet.has(item.isbn13) || savedFeedbackKey === item.isbn13}
                     onAction={() => onSave(item)}
                   />
                 </li>
@@ -335,6 +339,7 @@ interface BookRecommendationCardProps {
   actionIcon: ReactNode;
   className?: string;
   secondaryAction?: boolean;
+  actionDisabled?: boolean;
   onAction: () => void | Promise<void>;
 }
 
@@ -349,6 +354,7 @@ function BookRecommendationCard({
   actionIcon,
   className = '',
   secondaryAction = false,
+  actionDisabled = false,
   onAction,
 }: BookRecommendationCardProps) {
   return (
@@ -386,10 +392,11 @@ function BookRecommendationCard({
       <button
         className={
           secondaryAction
-            ? 'mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary'
-            : 'mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float'
+            ? 'mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60'
+            : 'mt-5 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-bold text-primary-foreground shadow-soft hover:shadow-float disabled:cursor-not-allowed disabled:opacity-60'
         }
         type="button"
+        disabled={actionDisabled}
         onClick={onAction}
       >
         {actionIcon}

@@ -21,7 +21,7 @@ export default function AppHeader() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
-  const { user, isAuthenticated, isAdmin, logout, isAuthModalOpen, closeAuthModal } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, isAuthModalOpen, closeAuthModal, openAuthModal } = useAuth();
   const navigate = useNavigate();
   const headerNavItems = [
     ...navItems,
@@ -34,6 +34,8 @@ export default function AppHeader() {
     await logout();
     navigate('/');
   };
+
+  const isProtectedMenu = (to: string) => to !== '/';
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -67,6 +69,12 @@ export default function AppHeader() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
+              onClick={(event) => {
+                if (!isAuthenticated && isProtectedMenu(item.to)) {
+                  event.preventDefault();
+                  openAuthModal();
+                }
+              }}
               className={({ isActive }) =>
                 cn(
                   'rounded-full px-3 py-2 text-xs font-semibold whitespace-nowrap transition-all',
@@ -110,7 +118,13 @@ export default function AppHeader() {
                       key={item.to}
                       to={item.to}
                       end={item.to === '/'}
-                      onClick={() => setIsMobileNavOpen(false)}
+                      onClick={(event) => {
+                        if (!isAuthenticated && isProtectedMenu(item.to)) {
+                          event.preventDefault();
+                          openAuthModal();
+                        }
+                        setIsMobileNavOpen(false);
+                      }}
                       className={({ isActive }) =>
                         cn(
                           'flex items-center rounded-xl px-3 py-2.5 text-sm font-bold transition-all sm:px-4 sm:py-3',
@@ -123,6 +137,26 @@ export default function AppHeader() {
                       {item.label}
                     </NavLink>
                   ))}
+                  <div className="my-2 border-t border-border" />
+                  {isAuthenticated ? (
+                    <Link
+                      to="/mypage"
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold text-foreground hover:bg-secondary"
+                    >
+                      <UserRound className="h-4 w-4" />
+                      마이페이지
+                    </Link>
+                  ) : (
+                    <Link
+                      to="/login"
+                      onClick={() => setIsMobileNavOpen(false)}
+                      className="flex items-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground"
+                    >
+                      <LogIn className="h-4 w-4" />
+                      로그인
+                    </Link>
+                  )}
                   {isAuthenticated ? (
                     <button
                       type="button"

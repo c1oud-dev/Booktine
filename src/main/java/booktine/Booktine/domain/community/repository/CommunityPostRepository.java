@@ -52,6 +52,10 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     @Query("select p.id from CommunityPost p where p.user.id = :userId")
     List<Long> findIdsByUserId(@Param("userId") Long userId);
 
+    /** 특정 사용자가 작성한 최신 게시글을 페이지 단위로 조회한다. */
+    @EntityGraph(attributePaths = "user")
+    Page<CommunityPost> findAllByUserId(Long userId, Pageable pageable);
+
     /** 회원 탈퇴 시 사용자가 작성한 커뮤니티 게시글을 일괄 삭제한다. */
     void deleteAllByUserId(Long userId);
 }

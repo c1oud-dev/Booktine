@@ -47,8 +47,8 @@ export interface CommunityCommentUpdatePayload {
   content: string;
 }
 
-export async function getCommunityPosts(page = 0, size = 10, category?: string) {
-  const res = await http.get<ApiResponse<PageResponse<CommunityPost>>>('/community/posts', { params: { page, size, category } });
+export async function getCommunityPosts(page = 0, size = 10, category?: string, userId?: number) {
+  const res = await http.get<ApiResponse<PageResponse<CommunityPost>>>('/community/posts', { params: { page, size, category, userId } });
   return res.data.data;
 }
 
@@ -107,5 +107,17 @@ export async function getPopularCommunityPostsByLikes() {
 
 export async function getPopularCommunityPostsByComments() {
   const res = await http.get<ApiResponse<CommunityPost[]>>('/community/popular/comments');
+  return res.data.data;
+}
+
+export interface CommunityUserProfile {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  aboutMe: string | null;
+}
+
+export async function getCommunityUserProfile(userId: number) {
+  const res = await http.get<ApiResponse<CommunityUserProfile>>(`/users/${userId}/profile`);
   return res.data.data;
 }

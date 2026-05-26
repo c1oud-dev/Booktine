@@ -55,6 +55,15 @@ public class RecommendationService {
     @Transactional
     public RecommendationResponse saveRecommendation(Long userId, RecommendationSaveRequest request) {
         User user = getUserById(userId);
+        if (request.isbn() != null && !request.isbn().isBlank()) {
+            return recommendationRepository.findByUserIdAndIsbn(userId, request.isbn())
+                    .map(RecommendationResponse::from)
+                    .orElseGet(() -> {
+                        Recommendation createdRecommendation = createRecommendation(user, request);
+                        Recommendation savedRecommendation = recommendationRepository.save(createdRecommendation);
+                        return RecommendationResponse.from(savedRecommendation);
+                    });
+        }
         Recommendation recommendation = createRecommendation(user, request);
         Recommendation savedRecommendation = recommendationRepository.save(recommendation);
         return RecommendationResponse.from(savedRecommendation);
