@@ -37,18 +37,17 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     List<CommunityPost> findTop5ByIsDeletedFalseOrderByLikeCountDescCreatedAtDesc();
 
     /** 댓글 수 기준으로 인기 커뮤니티 게시글 상위 N개를 작성자 정보와 함께 조회한다. */
-    @EntityGraph(attributePaths = "user")
     @Query(value = """
-            select p.*
-            from community_posts p
-            left join community_comments c
-                on c.post_id = p.id
-                and c.is_deleted = false
-            where p.is_deleted = false
-            group by p.id, p.user_id, p.title, p.content, p.category, p.like_count, p.is_deleted, p.content_updated_at, p.created_at, p.updated_at
-            order by count(c.id) desc, p.created_at desc
-            limit 5
-            """, nativeQuery = true)
+        select p.*
+        from community_posts p
+        left join community_comments c
+            on c.post_id = p.id
+            and c.is_deleted = false
+        where p.is_deleted = false
+        group by p.id, p.user_id, p.title, p.content, p.category, p.like_count, p.is_deleted, p.content_updated_at, p.created_at, p.updated_at
+        order by count(c.id) desc, p.created_at desc
+        limit 5
+        """, nativeQuery = true)
     List<CommunityPost> findTop5PopularByCommentCount();
 
     /** 회원 탈퇴 시 사용자가 작성한 커뮤니티 게시글 ID를 조회한다. */

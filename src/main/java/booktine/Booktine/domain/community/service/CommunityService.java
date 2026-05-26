@@ -44,7 +44,8 @@ public class CommunityService {
     /** 인증 컨텍스트의 사용자 기준으로 커뮤니티 게시글을 생성한다. */
     @Transactional
     public CommunityPostResponse createPost(CommunityPostCreateRequest request) {
-        User user = userRepository.getReferenceById(getCurrentUserId());
+        User user = userRepository.findById(getCurrentUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         CommunityPost post = CommunityPost.builder()
                 .user(user)
                 .title(request.title())
@@ -151,7 +152,8 @@ public class CommunityService {
     /** 인증 컨텍스트의 사용자 기준으로 댓글 또는 대댓글을 생성한다. */
     @Transactional
     public CommunityCommentResponse createComment(Long postId, CommunityCommentCreateRequest request) {
-        User user = userRepository.getReferenceById(getCurrentUserId());
+        User user = userRepository.findById(getCurrentUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         CommunityPost post = getPostWithUserById(postId);
         if (post.isDeleted()) {
             throw new CustomException(ErrorCode.COMMUNITY_POST_NOT_FOUND);
@@ -201,7 +203,8 @@ public class CommunityService {
             throw new CustomException(ErrorCode.COMMUNITY_LIKE_ALREADY_EXISTS);
         }
 
-        User user = userRepository.getReferenceById(userId);
+        User user = userRepository.findById(getCurrentUserId())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         CommunityPost post = getPostWithUserById(postId);
 
         if (post.isDeleted()) {

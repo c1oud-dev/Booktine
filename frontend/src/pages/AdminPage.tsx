@@ -1,11 +1,12 @@
 import { FormEvent, useEffect, useState, type ReactNode } from 'react';
 import { LibraryBig, MessageSquareText, Plus, ShieldCheck, Tags, Trash2, UsersRound } from 'lucide-react';
-import { createAdminGenre, deleteAdminGenre, getAdminGenres, getAdminInquiries, getAdminPosts, getAdminUsers } from '@/api/adminApi';
+import { createAdminGenre, deleteAdminCommunityPost, deleteAdminGenre, getAdminCommunityPosts, getAdminGenres, getAdminInquiries, getAdminPosts, getAdminUsers } from '@/api/adminApi';
 import type { Genre } from '@/api/genreApi';
 import type { Inquiry } from '@/api/inquiryApi';
 import type { PageResponse } from '@/types/api';
 import type { BookNote } from '@/types/bookNote';
 import type { UserProfile } from '@/api/userApi';
+import type { CommunityPost } from '@/api/communityApi';
 import { STATUS_LABEL } from '@/constants/readingStatus';
 import Spinner from '@/components/common/Spinner';
 import EmptyState from '@/components/common/EmptyState';
@@ -14,10 +15,12 @@ export default function AdminPage() {
   const [users, setUsers] = useState<PageResponse<UserProfile> | null>(null);
   const [posts, setPosts] = useState<PageResponse<BookNote> | null>(null);
   const [inquiries, setInquiries] = useState<PageResponse<Inquiry> | null>(null);
+  const [communityPosts, setCommunityPosts] = useState<PageResponse<CommunityPost> | null>(null);
   const [genres, setGenres] = useState<Genre[]>([]);
   const [userPage, setUserPage] = useState(0);
   const [postPage, setPostPage] = useState(0);
   const [inquiryPage, setInquiryPage] = useState(0);
+  const [communityPage, setCommunityPage] = useState(0);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -31,16 +34,18 @@ export default function AdminPage() {
       setLoading(true);
       setMessage('');
       try {
-        const [userData, postData, inquiryData, genreData] = await Promise.all([
+        const [userData, postData, inquiryData, genreData, communityData] = await Promise.all([
           getAdminUsers(userPage),
           getAdminPosts(postPage),
           getAdminInquiries(inquiryPage),
           getAdminGenres(),
+          getAdminCommunityPosts(communityPage),
         ]);
         setUsers(userData);
         setPosts(postData);
         setInquiries(inquiryData);
         setGenres(genreData);
+        setCommunityPosts(communityData);
       } catch {
         setMessage('관리자 데이터를 불러오지 못했습니다. 관리자 권한을 확인해 주세요.');
       } finally {
@@ -49,13 +54,26 @@ export default function AdminPage() {
     };
 
     load();
-  }, [userPage, postPage, inquiryPage]);
+  }, [userPage, postPage, inquiryPage, communityPage]);
+
+  const handleDeleteCommunityPost = async (id: number) => {
+    try {
+      await deleteAdminCommunityPost(id);
+      setCommunityPosts((prev) =>
+        prev ? { ...prev, content: prev.content.filter((p) => p.id !== id) } : prev
+      );
+    } catch {
+      setMessage('커뮤니티 게시글을 삭제하지 못했습니다.');
+    }
+  };
 
   return (
     <section className="mx-auto w-full max-w-7xl space-y-8 px-5 py-10 sm:px-6 lg:px-8 lg:py-12">
       <div className="rounded-[2rem] border border-border bg-card p-4 shadow-card sm:p-6 lg:p-8">
         <div className="flex items-center gap-3">
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><ShieldCheck className="h-6 w-6" aria-hidden="true" /></span>
+          <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+            <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+          </span>
           <div>
             <p className="text-sm font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin console</p>
             <h1 className="mt-2 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
@@ -68,16 +86,28 @@ export default function AdminPage() {
         </p>
       </div>
 
-      {message ? <p className="rounded-[1.25rem] border border-border bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{message}</p> : null}
+      {message ? (
+        <p className="rounded-[1.25rem] border border-border bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+          {message}
+        </p>
+      ) : null}
 
       {loading ? (
-        <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft"><Spinner label="관리자 데이터를 불러오는 중..." /></div>
+        <div className="rounded-[1.5rem] border border-border bg-card p-8 shadow-soft">
+          <Spinner label="관리자 데이터를 불러오는 중..." />
+        </div>
       ) : (
         <div className="grid auto-rows-fr gap-6 xl:grid-cols-2">
           <AdminGenres genres={genres} onReload={loadGenres} />
           <AdminInquiries inquiries={inquiries} page={inquiryPage} onPageChange={setInquiryPage} />
           <AdminUsers users={users} page={userPage} onPageChange={setUserPage} />
           <AdminPosts posts={posts} page={postPage} onPageChange={setPostPage} />
+          <AdminCommunityPosts
+            posts={communityPosts}
+            page={communityPage}
+            onPageChange={setCommunityPage}
+            onDelete={handleDeleteCommunityPost}
+          />
         </div>
       )}
     </section>
@@ -112,22 +142,45 @@ function AdminGenres({ genres, onReload }: { genres: Genre[]; onReload: () => Pr
 
   return (
     <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
-      <SectionHeading icon={<Tags className="h-5 w-5" aria-hidden="true" />} title="장르 관리" description={`${genres.length}개`} />
+      <SectionHeading
+        icon={<Tags className="h-5 w-5" aria-hidden="true" />}
+        title="장르 관리"
+        description={`${genres.length}개`}
+      />
       <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="추가할 장르명" required />
-        <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft">
-          <Plus className="h-4 w-4" aria-hidden="true" /> 추가
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="추가할 장르명"
+          required
+        />
+        <button
+          type="submit"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-soft"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          추가
         </button>
       </form>
       {message ? <p className="mt-3 text-sm font-bold text-red-700">{message}</p> : null}
       {genres.length === 0 ? (
-        <div className="mt-8"><EmptyState title="추가 장르가 없어요" description="기본 장르 외에 필요한 장르를 추가해 주세요." /></div>
+        <div className="mt-8">
+          <EmptyState title="추가 장르가 없어요" description="기본 장르 외에 필요한 장르를 추가해 주세요." />
+        </div>
       ) : (
         <ul className="mt-6 flex flex-wrap gap-2">
           {genres.map((genre) => (
-            <li key={genre.id} className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground">
+            <li
+              key={genre.id}
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-2 text-sm font-bold text-secondary-foreground"
+            >
               {genre.name}
-              <button type="button" onClick={() => onDelete(genre.id)} className="text-muted-foreground hover:text-red-600" aria-label={`${genre.name} 삭제`}>
+              <button
+                type="button"
+                onClick={() => onDelete(genre.id)}
+                className="text-muted-foreground hover:text-red-600"
+                aria-label={`${genre.name} 삭제`}
+              >
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </li>
@@ -141,19 +194,31 @@ function AdminGenres({ genres, onReload }: { genres: Genre[]; onReload: () => Pr
 function AdminInquiries({ inquiries, page, onPageChange }: { inquiries: PageResponse<Inquiry> | null; page: number; onPageChange: (page: number) => void }) {
   return (
     <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
-      <SectionHeading icon={<MessageSquareText className="h-5 w-5" aria-hidden="true" />} title="문의/제안 목록" description={`${inquiries?.totalElements ?? 0}개`} />
+      <SectionHeading
+        icon={<MessageSquareText className="h-5 w-5" aria-hidden="true" />}
+        title="문의/제안 목록"
+        description={`${inquiries?.totalElements ?? 0}개`}
+      />
       {!inquiries || inquiries.content.length === 0 ? (
-        <div className="mt-8"><EmptyState title="문의가 없어요" description="사용자 문의/제안이 아직 없습니다." /></div>
+        <div className="mt-8">
+          <EmptyState title="문의가 없어요" description="사용자 문의/제안이 아직 없습니다." />
+        </div>
       ) : (
         <div className="mt-6 space-y-3">
           {inquiries.content.map((inquiry) => (
             <div key={inquiry.id} className="rounded-2xl border border-border bg-background p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-black text-foreground">{inquiry.subject}</p>
-                <p className="text-xs font-bold text-muted-foreground">{new Date(inquiry.createdAt).toLocaleString()}</p>
+                <p className="text-xs font-bold text-muted-foreground">
+                  {new Date(inquiry.createdAt).toLocaleString()}
+                </p>
               </div>
-              <p className="mt-1 text-xs font-bold text-muted-foreground">{inquiry.userNickname} · {inquiry.userEmail}</p>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{inquiry.message}</p>
+              <p className="mt-1 text-xs font-bold text-muted-foreground">
+                {inquiry.userNickname} · {inquiry.userEmail}
+              </p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+                {inquiry.message}
+              </p>
             </div>
           ))}
           <Pager page={page} totalPages={inquiries.totalPages} onPageChange={onPageChange} />
@@ -166,9 +231,15 @@ function AdminInquiries({ inquiries, page, onPageChange }: { inquiries: PageResp
 function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserProfile> | null; page: number; onPageChange: (page: number) => void }) {
   return (
     <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
-      <SectionHeading icon={<UsersRound className="h-5 w-5" aria-hidden="true" />} title="사용자 목록" description={`${users?.totalElements ?? 0}명`} />
+      <SectionHeading
+        icon={<UsersRound className="h-5 w-5" aria-hidden="true" />}
+        title="사용자 목록"
+        description={`${users?.totalElements ?? 0}명`}
+      />
       {!users || users.content.length === 0 ? (
-        <div className="mt-8"><EmptyState title="사용자가 없어요" description="조회된 사용자 데이터가 없습니다." /></div>
+        <div className="mt-8">
+          <EmptyState title="사용자가 없어요" description="조회된 사용자 데이터가 없습니다." />
+        </div>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-[42rem] w-full table-fixed text-left text-sm">
@@ -179,7 +250,8 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
                 <th className="w-[18%] px-2">닉네임</th>
                 <th className="w-[18%] px-2">권한</th>
                 <th className="w-[12%] px-2">완독</th>
-              </tr></thead>
+              </tr>
+            </thead>
             <tbody className="divide-y divide-border">
               {users.content.map((user) => (
                 <tr key={user.id} className="font-semibold text-foreground">
@@ -206,9 +278,15 @@ function AdminUsers({ users, page, onPageChange }: { users: PageResponse<UserPro
 function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNote> | null; page: number; onPageChange: (page: number) => void }) {
   return (
     <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
-      <SectionHeading icon={<LibraryBig className="h-5 w-5" aria-hidden="true" />} title="게시물 목록" description={`${posts?.totalElements ?? 0}개`} />
+      <SectionHeading
+        icon={<LibraryBig className="h-5 w-5" aria-hidden="true" />}
+        title="게시물 목록"
+        description={`${posts?.totalElements ?? 0}개`}
+      />
       {!posts || posts.content.length === 0 ? (
-        <div className="mt-8"><EmptyState title="게시물이 없어요" description="조회된 독서 노트가 없습니다." /></div>
+        <div className="mt-8">
+          <EmptyState title="게시물이 없어요" description="조회된 독서 노트가 없습니다." />
+        </div>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-[42rem] w-full table-fixed text-left text-sm">
@@ -232,6 +310,63 @@ function AdminPosts({ posts, page, onPageChange }: { posts: PageResponse<BookNot
                     <span className="inline-flex rounded-full border border-border bg-card px-3 py-1 text-xs font-black text-foreground">
                       {STATUS_LABEL[post.readingStatus]}
                     </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <Pager page={page} totalPages={posts.totalPages} onPageChange={onPageChange} />
+        </div>
+      )}
+    </article>
+  );
+}
+
+function AdminCommunityPosts({ posts, page, onPageChange, onDelete }: {
+  posts: PageResponse<CommunityPost> | null;
+  page: number;
+  onPageChange: (page: number) => void;
+  onDelete: (id: number) => Promise<void>;
+}) {
+  return (
+    <article className="rounded-[1.5rem] border border-border bg-card p-6 shadow-soft lg:p-8">
+      <SectionHeading
+        icon={<MessageSquareText className="h-5 w-5" aria-hidden="true" />}
+        title="커뮤니티 게시글"
+        description={`${posts?.totalElements ?? 0}개`}
+      />
+      {!posts || posts.content.length === 0 ? (
+        <div className="mt-8">
+          <EmptyState title="게시글이 없어요" description="조회된 커뮤니티 게시글이 없습니다." />
+        </div>
+      ) : (
+        <div className="mt-6 overflow-x-auto">
+          <table className="min-w-[42rem] w-full table-fixed text-left text-sm">
+            <thead className="text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-2 py-3">ID</th>
+                <th className="w-[40%] px-2">제목</th>
+                <th className="w-[20%] px-2">작성자</th>
+                <th className="w-[15%] px-2">카테고리</th>
+                <th className="w-[10%] px-2">삭제</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {posts.content.map((post) => (
+                <tr key={post.id} className="font-semibold text-foreground">
+                  <td className="px-2 py-3">{post.id}</td>
+                  <td className="px-2 line-clamp-1">{post.title}</td>
+                  <td className="px-2">{post.authorNickname}</td>
+                  <td className="px-2">{post.category}</td>
+                  <td className="px-2">
+                    <button
+                      type="button"
+                      onClick={() => onDelete(post.id)}
+                      className="inline-flex items-center gap-1 rounded-full border border-rose-200 px-3 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      삭제
+                    </button>
                   </td>
                 </tr>
               ))}
