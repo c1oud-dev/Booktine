@@ -49,5 +49,8 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
 
     /** 회원 탈퇴 시 사용자가 작성한 댓글을 일괄 삭제한다. */
     void deleteAllByUserId(Long userId);
+
+    @EntityGraph(attributePaths = {"post"})
+    List<CommunityComment> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
 }
 

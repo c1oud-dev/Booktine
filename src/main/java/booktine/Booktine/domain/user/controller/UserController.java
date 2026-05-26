@@ -1,9 +1,6 @@
 package booktine.Booktine.domain.user.controller;
 
-import booktine.Booktine.domain.user.dto.SignUpRequest;
-import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
-import booktine.Booktine.domain.user.dto.UserProfileResponse;
-import booktine.Booktine.domain.user.dto.UserResponse;
+import booktine.Booktine.domain.user.dto.*;
 import booktine.Booktine.domain.user.service.UserService;
 import booktine.Booktine.global.exception.CustomException;
 import booktine.Booktine.global.exception.ErrorCode;
@@ -76,6 +73,12 @@ public class UserController {
     public ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.ok(userService.getMyInfo(getCurrentUserId()));
     }
+
+    @GetMapping("/users/me/detail")
+    public ApiResponse<MyPageResponse> getMyPage() {
+        return ApiResponse.ok(userService.getMyPage(getCurrentUserId()));
+    }
+
 
     /** 인증 컨텍스트 기준으로 내 프로필을 수정한다. */
     @Operation(summary = "내 정보 수정", description = "로그인한 사용자의 내 프로필 정보를 수정합니다.")

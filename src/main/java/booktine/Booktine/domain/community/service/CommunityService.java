@@ -8,6 +8,8 @@ import booktine.Booktine.domain.community.entity.CommunityPost;
 import booktine.Booktine.domain.community.repository.CommunityCommentRepository;
 import booktine.Booktine.domain.community.repository.CommunityLikeRepository;
 import booktine.Booktine.domain.community.repository.CommunityPostRepository;
+import booktine.Booktine.domain.notification.entity.NotificationType;
+import booktine.Booktine.domain.notification.service.NotificationService;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
@@ -37,6 +39,7 @@ public class CommunityService {
     private final CommunityCommentRepository commentRepository;
     private final CommunityLikeRepository likeRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /** 인증 컨텍스트의 사용자 기준으로 커뮤니티 게시글을 생성한다. */
     @Transactional
@@ -161,7 +164,11 @@ public class CommunityService {
                 .parent(parent)
                 .build();
 
-        return CommunityCommentResponse.from(commentRepository.save(comment));
+        CommunityComment saved = commentRepository.save(comment);
+        if (!post.getUser().getId().equals(user.getId())) {
+            notificationService.sendNotification(post.getUser().getId(), post.getId(), NotificationType.COMMENT, user.getNickname() + "님이 회원님의 게시글에 댓글을 남겼습니다.");
+        }
+        return CommunityCommentResponse.from(saved);
     }
 
     /** 인증 컨텍스트의 사용자가 작성한 댓글 또는 대댓글을 수정한다. */
@@ -207,6 +214,9 @@ public class CommunityService {
             throw new CustomException(ErrorCode.COMMUNITY_LIKE_ALREADY_EXISTS);
         }
         post.increaseLikeCount();
+        if (!post.getUser().getId().equals(userId)) {
+            notificationService.sendNotification(post.getUser().getId(), post.getId(), NotificationType.LIKE, user.getNickname() + "님이 회원님의 게시글을 좋아합니다.");
+        }
         return CommunityPostResponse.from(post, true);
     }
 

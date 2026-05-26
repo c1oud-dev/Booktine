@@ -18,6 +18,7 @@ public class SseEmitterManager {
 
     private static final long DEFAULT_TIMEOUT_MILLIS = 60L * 60L * 1000L;
     private static final String REMINDER_EVENT_NAME = "reminder";
+    private static final String NOTIFICATION_EVENT_NAME = "notification";
 
     private final Map<Long, List<SseEmitter>> emitterStore = new ConcurrentHashMap<>();
 
@@ -30,6 +31,17 @@ public class SseEmitterManager {
         registerLifecycleCallbacks(userId, emitter);
 
         return emitter;
+    }
+
+    public void sendNotification(Long userId, Object data) {
+        List<SseEmitter> userEmitters = emitterStore.getOrDefault(userId, List.of());
+        for (SseEmitter emitter : userEmitters) {
+            try {
+                emitter.send(SseEmitter.event().name(NOTIFICATION_EVENT_NAME).data(data));
+            } catch (IOException exception) {
+                removeEmitter(userId, emitter);
+            }
+        }
     }
 
     /**

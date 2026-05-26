@@ -12,10 +12,7 @@ import booktine.Booktine.domain.progress.repository.AnnualGoalRepository;
 import booktine.Booktine.domain.progress.repository.MonthlyGoalRepository;
 import booktine.Booktine.domain.recommendation.repository.RecommendationRepository;
 import booktine.Booktine.domain.reminder.repository.ReminderRepository;
-import booktine.Booktine.domain.user.dto.SignUpRequest;
-import booktine.Booktine.domain.user.dto.UpdateProfileRequest;
-import booktine.Booktine.domain.user.dto.UserProfileResponse;
-import booktine.Booktine.domain.user.dto.UserResponse;
+import booktine.Booktine.domain.user.dto.*;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.entity.UserAuthProvider;
 import booktine.Booktine.domain.user.repository.UserRepository;
@@ -29,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 사용자 도메인의 핵심 비즈니스 로직을 처리하는 서비스.
@@ -109,6 +107,27 @@ public class UserService {
     public UserProfileResponse getUserProfile(Long userId) {
         return UserProfileResponse.from(getUserById(userId));
     }
+
+    public MyPageResponse getMyPage(Long userId) {
+        User user = getUserById(userId);
+        long readingCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.READING);
+        long completedCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.COMPLETED);
+        long wishCount = postRepository.countByUserIdAndReadingStatus(userId, ReadingStatus.WANT_TO_READ);
+        return new MyPageResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getNickname(),
+                user.getAboutMe(),
+                user.getProfileImageUrl(),
+                user.getCreatedAt(),
+                readingCount,
+                completedCount,
+                wishCount,
+                communityPostRepository.findTop5ByUserIdOrderByCreatedAtDesc(userId).stream().map(MyPageCommunityPostResponse::from).collect(Collectors.toList()),
+                communityCommentRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId).stream().map(MyPageCommentResponse::from).collect(Collectors.toList())
+        );
+    }
+
 
     /**
      * 내 프로필(닉네임, 자기소개)을 수정한다.

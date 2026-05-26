@@ -61,4 +61,7 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
 
     /** 회원 탈퇴 시 사용자가 작성한 커뮤니티 게시글을 일괄 삭제한다. */
     void deleteAllByUserId(Long userId);
+
+    @EntityGraph(attributePaths = "user")
+    List<CommunityPost> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
 }
