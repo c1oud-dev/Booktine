@@ -1,4 +1,6 @@
 import { http } from './http';
+import { API_BASE_URL } from '@/config/env';
+import { getAccessToken } from './http';
 import type { ApiResponse } from '@/types/api';
 
 export interface NotificationItem {
@@ -24,5 +26,6 @@ export async function readAllNotifications() {
 }
 
 export function createNotificationEventSource() {
-  return new EventSource('/api/notifications/connect', { withCredentials: true });
+  const token = getAccessToken();
+  return new EventSource(`${API_BASE_URL}/notifications/connect?token=${token}`, { withCredentials: true });
 }

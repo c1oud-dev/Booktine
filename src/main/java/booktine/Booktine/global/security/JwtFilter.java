@@ -89,8 +89,9 @@ public class JwtFilter extends OncePerRequestFilter {
             return bearerToken.substring(BEARER_PREFIX.length());
         }
 
-        String queryToken = request.getParameter("access_token");
-        if (StringUtils.hasText(queryToken) && request.getRequestURI().equals("/reminders/connect")) {
+        String queryToken = request.getParameter("token");
+        String uri = request.getRequestURI();
+        if (StringUtils.hasText(queryToken) && (uri.equals("/reminders/connect") || uri.equals("/notifications/connect"))) {
             return queryToken;
         }
 
