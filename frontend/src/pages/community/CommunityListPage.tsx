@@ -21,7 +21,7 @@ const defaultAvatar = '/default_avatar.png';
 
 const getAuthorName = (post: CommunityPost) => {
   const nickname = post.authorNickname?.trim();
-  if (!nickname || nickname.includes('@')) {
+  if (!nickname) {
     return `작성자 #${post.userId}`;
   }
   return nickname;

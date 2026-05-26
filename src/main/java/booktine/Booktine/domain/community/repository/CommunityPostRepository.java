@@ -40,12 +40,12 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, Lo
     @EntityGraph(attributePaths = "user")
     @Query(value = """
             select p.*
-            from community_post p
-            left join community_comment c
+            from community_posts p
+            left join community_comments c
                 on c.post_id = p.id
                 and c.is_deleted = false
             where p.is_deleted = false
-            group by p.id
+            group by p.id, p.user_id, p.title, p.content, p.category, p.like_count, p.is_deleted, p.content_updated_at, p.created_at, p.updated_at
             order by count(c.id) desc, p.created_at desc
             limit 5
             """, nativeQuery = true)

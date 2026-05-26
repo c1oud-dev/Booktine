@@ -7,6 +7,9 @@ import booktine.Booktine.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -37,9 +40,15 @@ public class NotificationController {
      * SSE 연결을 생성해 실시간 알림을 수신한다.
      */
     @Operation(summary = "SSE 연결", description = "실시간 알림 수신을 위한 SSE 연결을 생성합니다.")
-    @GetMapping("/connect")
-    public SseEmitter connect() {
-        return notificationService.connect(SecurityUtils.getCurrentUserId());
+    @GetMapping(value = "/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public ResponseEntity<SseEmitter> connect() {
+        SseEmitter emitter = notificationService.connect(SecurityUtils.getCurrentUserId());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "no-cache")
+                .header("X-Accel-Buffering", "no")
+                .header(HttpHeaders.CONNECTION, "keep-alive")
+                .contentType(MediaType.TEXT_EVENT_STREAM)
+                .body(emitter);
     }
 
     /**

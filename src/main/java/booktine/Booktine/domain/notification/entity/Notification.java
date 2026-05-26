@@ -6,7 +6,7 @@ import lombok.*;
 
 @Getter
 @Entity
-@Table(name = "notification")
+@Table(name = "notifications")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Notification extends BaseEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

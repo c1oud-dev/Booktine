@@ -42,7 +42,7 @@ export default function CommunityDetailPage() {
       return '작성자';
     }
     const nickname = post.authorNickname?.trim();
-    if (!nickname || nickname.includes('@')) {
+    if (!nickname) {
       return `작성자 #${post.userId}`;
     }
     return nickname;
@@ -145,7 +145,7 @@ export default function CommunityDetailPage() {
     const owned = user?.id === comment.userId;
     const isEditing = editingCommentId === comment.id;
     const nickname = comment.authorNickname?.trim();
-    const commentAuthorName = !nickname || nickname.includes('@')
+    const commentAuthorName = !nickname
       ? `작성자 #${comment.userId}`
       : nickname;
 
