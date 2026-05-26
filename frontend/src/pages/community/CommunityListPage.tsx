@@ -19,7 +19,13 @@ import { formatCommunityDate } from './communityUtils';
 const pageSize = 10;
 const defaultAvatar = '/default_avatar.png';
 
-const getAuthorName = (post: CommunityPost) => post.authorNickname || `작성자 #${post.userId}`;
+const getAuthorName = (post: CommunityPost) => {
+  const nickname = post.authorNickname?.trim();
+  if (!nickname || nickname.includes('@')) {
+    return `작성자 #${post.userId}`;
+  }
+  return nickname;
+};
 
 export default function CommunityListPage() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);

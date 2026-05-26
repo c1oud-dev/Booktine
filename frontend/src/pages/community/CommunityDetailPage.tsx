@@ -37,7 +37,16 @@ export default function CommunityDetailPage() {
   const commentTree = useMemo(() => nestComments(comments), [comments]);
   const isOwner = Boolean(user && post && user.id === post.userId);
   const isLiked = post?.isLiked ?? false;
-  const authorName = post?.authorNickname || (post ? `작성자 #${post.userId}` : '작성자');
+  const authorName = (() => {
+    if (!post) {
+      return '작성자';
+    }
+    const nickname = post.authorNickname?.trim();
+    if (!nickname || nickname.includes('@')) {
+      return `작성자 #${post.userId}`;
+    }
+    return nickname;
+  })();
 
   const load = async () => {
     if (!Number.isFinite(numericPostId)) {
@@ -135,7 +144,10 @@ export default function CommunityDetailPage() {
   const renderComment = (comment: CommunityComment, isReplyComment = false) => {
     const owned = user?.id === comment.userId;
     const isEditing = editingCommentId === comment.id;
-    const commentAuthorName = comment.authorNickname || `작성자 #${comment.userId}`;
+    const nickname = comment.authorNickname?.trim();
+    const commentAuthorName = !nickname || nickname.includes('@')
+      ? `작성자 #${comment.userId}`
+      : nickname;
 
     return (
       <div key={comment.id} className={cn('rounded-[1.1rem] border border-border bg-card p-3.5 shadow-soft sm:p-4', isReplyComment && 'ml-7 border-dashed bg-secondary/40 sm:ml-12')}>

@@ -55,16 +55,17 @@ public class RecommendationService {
     @Transactional
     public RecommendationResponse saveRecommendation(Long userId, RecommendationSaveRequest request) {
         User user = getUserById(userId);
-        if (request.isbn() != null && !request.isbn().isBlank()) {
-            return recommendationRepository.findByUserIdAndIsbn(userId, request.isbn())
+        String normalizedIsbn = request.isbn().trim();
+        if (!normalizedIsbn.isBlank()) {
+            return recommendationRepository.findByUserIdAndIsbn(userId, normalizedIsbn)
                     .map(RecommendationResponse::from)
                     .orElseGet(() -> {
-                        Recommendation createdRecommendation = createRecommendation(user, request);
+                        Recommendation createdRecommendation = createRecommendation(user, request, normalizedIsbn);
                         Recommendation savedRecommendation = recommendationRepository.save(createdRecommendation);
                         return RecommendationResponse.from(savedRecommendation);
                     });
         }
-        Recommendation recommendation = createRecommendation(user, request);
+        Recommendation recommendation = createRecommendation(user, request, normalizedIsbn);
         Recommendation savedRecommendation = recommendationRepository.save(recommendation);
         return RecommendationResponse.from(savedRecommendation);
     }
@@ -125,7 +126,7 @@ public class RecommendationService {
     /**
      * 저장 요청 DTO를 기반으로 추천 엔티티를 생성한다.
      */
-    private Recommendation createRecommendation(User user, RecommendationSaveRequest request) {
+    private Recommendation createRecommendation(User user, RecommendationSaveRequest request, String normalizedIsbn) {
         return Recommendation.builder()
                 .user(user)
                 .title(request.title())
@@ -134,7 +135,7 @@ public class RecommendationService {
                 .coverImageUrl(request.coverImageUrl())
                 .genre(request.genre())
                 .description(request.description())
-                .isbn(request.isbn())
+                .isbn(normalizedIsbn)
                 .build();
     }
 

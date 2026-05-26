@@ -1,6 +1,7 @@
 package booktine.Booktine.domain.recommendation.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -21,7 +22,7 @@ public record RecommendationSaveRequest(
         @Size(max = 100, message = "출판사는 100자 이하여야 합니다.")
         String publisher,
 
-        @NotBlank(message = "표지 이미지 URL은 필수입니다.")
+        @Size(max = 1000, message = "표지 이미지 URL은 1000자 이하여야 합니다.")
         String coverImageUrl,
 
         @NotBlank(message = "장르는 필수입니다.")
@@ -33,6 +34,7 @@ public record RecommendationSaveRequest(
         String description,
 
         @NotBlank(message = "ISBN은 필수입니다.")
+        @Pattern(regexp = "^[0-9]+$", message = "ISBN은 숫자만 포함해야 합니다.")
         @Size(max = 20, message = "ISBN은 20자 이하여야 합니다.")
         String isbn
 ) {

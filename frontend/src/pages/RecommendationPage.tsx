@@ -81,16 +81,25 @@ export default function RecommendationPage() {
   };
 
   const onSave = async (book: RecommendationBook | SearchBook) => {
+    const rawCoverImageUrl = 'coverImageUrl' in book ? book.coverImageUrl : book.cover;
+    const rawGenre = 'genre' in book ? book.genre : book.categoryName;
+    const rawIsbn = 'isbn' in book ? book.isbn : book.isbn13;
+    const normalizedIsbn = rawIsbn.replace(/[^0-9]/g, '').trim();
+
+    if (!normalizedIsbn) {
+      setMessage('ISBN 정보가 없는 도서는 저장할 수 없습니다.');
+      return;
+    }
     setMessage('');
     try {
       const savedRecommendation = await saveRecommendation({
         title: book.title,
         author: book.author,
         publisher: book.publisher,
-        coverImageUrl: 'coverImageUrl' in book ? book.coverImageUrl : book.cover,
-        genre: 'genre' in book ? book.genre : book.categoryName,
-        description: book.description,
-        isbn: 'isbn' in book ? book.isbn : book.isbn13,
+        coverImageUrl: rawCoverImageUrl || '',
+        genre: rawGenre || '미분류',
+        description: book.description || '설명 정보가 없습니다.',
+        isbn: normalizedIsbn,
       });
       setSavedItems((current) => [savedRecommendation, ...current.filter((item) => item.id !== savedRecommendation.id)]);
       setMessage('저장되었습니다 ✓');
