@@ -10,4 +10,4 @@ ENV SPRING_PROFILES_ACTIVE=prod \
     SERVER_PORT=8080
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-jar", "/app/app.jar"]
