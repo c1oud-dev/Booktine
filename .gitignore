@@ -40,7 +40,6 @@ bin/
 .env
 .env.*
 !.env.example
-application-prod.properties
 application-local.properties
 *.secret.properties
 
