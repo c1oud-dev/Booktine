@@ -199,11 +199,8 @@ public class CommunityService {
     @Transactional
     public CommunityPostResponse likePost(Long postId) {
         Long userId = getCurrentUserId();
-        if (likeRepository.existsByPostIdAndUserId(postId, userId)) {
-            throw new CustomException(ErrorCode.COMMUNITY_LIKE_ALREADY_EXISTS);
-        }
 
-        User user = userRepository.findById(getCurrentUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         CommunityPost post = getPostWithUserById(postId);
 

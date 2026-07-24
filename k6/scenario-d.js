@@ -29,7 +29,9 @@ export default function () {
   // GET /community/posts/{postId}
   const posts = JSON.parse(postsRes.body);
   if (posts.data && posts.data.content && posts.data.content.length > 0) {
-    const postId = posts.data.content[0].id;
+    // 랜덤 게시글 선택
+    const randomIndex = Math.floor(Math.random() * posts.data.content.length);
+    const postId = posts.data.content[randomIndex].id;
 
     const postRes = http.get(`${BASE_URL}/community/posts/${postId}`, headers);
     check(postRes, { '커뮤니티 단건 조회 성공': (r) => r.status === 200 });
