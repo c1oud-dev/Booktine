@@ -1,9 +1,13 @@
 package booktine.Booktine.domain.admin.service;
 
+import booktine.Booktine.domain.community.repository.CommunityPostRepository;
+import booktine.Booktine.domain.genre.service.GenreService;
+import booktine.Booktine.domain.inquiry.service.InquiryService;
 import booktine.Booktine.domain.post.dto.PostResponse;
 import booktine.Booktine.domain.post.entity.Post;
 import booktine.Booktine.domain.post.entity.ReadingStatus;
 import booktine.Booktine.domain.post.repository.PostRepository;
+import booktine.Booktine.domain.reminder.repository.ReminderRepository;
 import booktine.Booktine.domain.user.dto.UserResponse;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
@@ -39,6 +43,18 @@ class AdminServiceTest {
 
     @Mock
     private PostRepository postRepository;
+
+    @Mock
+    private GenreService genreService;
+
+    @Mock
+    private InquiryService inquiryService;
+
+    @Mock
+    private CommunityPostRepository communityPostRepository;
+
+    @Mock
+    private ReminderRepository reminderRepository;
 
     /**
      * 사용자 페이지 조회 시 UserResponse로 정상 변환되는지 검증한다.
@@ -112,4 +128,3 @@ class AdminServiceTest {
         return post;
     }
 }
-
