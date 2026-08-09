@@ -92,6 +92,18 @@ class GenreServiceTest {
     }
 
     @Test
+    @DisplayName("이미 추가된 장르와 중복되면 예외 발생")
+    void createGenre_duplicateManagedGenre_throwsException() {
+        // given
+        given(genreRepository.existsByNameIgnoreCase("철학")).willReturn(true);
+
+        // when // then
+        assertThatThrownBy(() -> genreService.createGenre(new GenreCreateRequest("철학")))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.DUPLICATE_GENRE);
+    }
+
+    @Test
     @DisplayName("존재하지 않는 장르 삭제 시 예외 발생")
     void deleteGenre_notFound_throwsException() {
         // given
