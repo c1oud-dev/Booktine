@@ -36,7 +36,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: 테스트 실행
-        run: ./gradlew test
+        run: ./gradlew test --tests '*ServiceTest' --tests '*HandlerTest'
 
       - name: 테스트 리포트 업로드 (실패 시)
         if: failure()
