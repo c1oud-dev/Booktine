@@ -65,6 +65,32 @@ class MemoServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 게시물에 메모 생성 시 예외 발생")
+    void createMemo_postNotFound() {
+        // given
+        given(postRepository.findWithUserByIdAndUserId(1L, 1L)).willReturn(Optional.empty());
+        given(postRepository.existsById(1L)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> memoService.createMemo(1L, 1L, new MemoCreateRequest("내용", 12)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("본인 게시물이 아닌 경우 메모 생성 시 예외 발생")
+    void createMemo_forbidden() {
+        // given
+        given(postRepository.findWithUserByIdAndUserId(1L, 1L)).willReturn(Optional.empty());
+        given(postRepository.existsById(1L)).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> memoService.createMemo(1L, 1L, new MemoCreateRequest("내용", 12)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+    }
+
+    @Test
     @DisplayName("메모 목록 조회 성공")
     void getMemos_success() {
         // given
@@ -81,6 +107,34 @@ class MemoServiceTest {
 
         // then
         assertThat(res.getContent()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시물의 메모 목록 조회 시 예외 발생")
+    void getMemos_postNotFound() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10);
+        given(postRepository.existsByIdAndUserId(1L, 1L)).willReturn(false);
+        given(postRepository.existsById(1L)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> memoService.getMemos(1L, 1L, pageable))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("본인 게시물이 아닌 경우 메모 목록 조회 시 예외 발생")
+    void getMemos_forbidden() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10);
+        given(postRepository.existsByIdAndUserId(1L, 1L)).willReturn(false);
+        given(postRepository.existsById(1L)).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> memoService.getMemos(1L, 1L, pageable))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
     }
 
     @Test
@@ -125,6 +179,18 @@ class MemoServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 메모 수정 시 예외 발생")
+    void updateMemo_notFound() {
+        // given
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> memoService.updateMemo(1L, 1L, 3L, new MemoUpdateRequest("x", 1)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMO_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("본인 메모가 아닌 경우 삭제 시 예외 발생")
     void deleteMemo_forbidden() {
         // given
@@ -160,6 +226,18 @@ class MemoServiceTest {
         ReflectionTestUtils.setField(post, "id", postId);
 
         return post;
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 메모 삭제 시 예외 발생")
+    void deleteMemo_notFound() {
+        // given
+        given(memoRepository.findWithPostAndUserByIdAndPostId(3L, 1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> memoService.deleteMemo(1L, 1L, 3L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMO_NOT_FOUND);
     }
 
     private Memo createMemo(Long memoId, Long postId, Long userId) {
