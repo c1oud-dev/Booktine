@@ -90,13 +90,14 @@ class ReminderServiceTest {
     void connect_success() {
         // given
         SseEmitter emitter = new SseEmitter();
-        given(sseEmitterManager.connect(1L)).willReturn(emitter);
+        given(sseEmitterManager.connect(1L, null)).willReturn(emitter);
 
         // when
         SseEmitter response = reminderService.connect(1L);
 
         // then
         assertThat(response).isSameAs(emitter);
+        verify(sseEmitterManager, times(1)).connect(1L, null);
         verify(sseEmitterManager, times(1)).send(1L, "리마인더 SSE 연결이 완료되었습니다.");
     }
 
