@@ -54,7 +54,14 @@ export function ReminderProvider({ children }: { children: ReactNode }) {
     eventSource.addEventListener('reminder', handleReminder);
 
     eventSource.onerror = () => {
-      eventSource.close();
+      return;
+    };
+
+    eventSource.onreconnectfailed = () => {
+      setNotices((current) => [{
+        id: Date.now(),
+        message: '리마인더 실시간 연결이 끊어졌습니다. 페이지를 새로고침해 주세요.',
+      }, ...current].slice(0, 3));
     };
 
     return () => {

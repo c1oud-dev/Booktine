@@ -38,12 +38,16 @@ type ReminderStreamListenerMap = {
 export type ReminderEventStream = {
   onmessage: ReminderEventListener | null;
   onerror: ((event: Event) => void) | null;
+  onreconnectfailed: (() => void) | null;
   addEventListener: (type: keyof ReminderStreamListenerMap, listener: ReminderEventListener) => void;
   removeEventListener: (type: keyof ReminderStreamListenerMap, listener: ReminderEventListener) => void;
   close: () => void;
 };
 
 const SSE_FIELD_SEPARATOR = ':';
+const MAX_RECONNECT_ATTEMPTS = 5;
+const INITIAL_RECONNECT_DELAY_MS = 1000;
+const MAX_RECONNECT_DELAY_MS = 30_000;
 
 export function createReminderEventSource(): ReminderEventStream {
   const controller = new AbortController();
@@ -54,12 +58,13 @@ export function createReminderEventSource(): ReminderEventStream {
   const stream: ReminderEventStream = {
     onmessage: null,
     onerror: null,
+    onreconnectfailed: null,
     addEventListener: (type, listener) => listeners[type]?.add(listener),
     removeEventListener: (type, listener) => listeners[type]?.delete(listener),
     close: () => controller.abort(),
   };
 
-  connectReminderStream(controller, stream, listeners);
+  void connectReminderStream(controller, stream, listeners);
   return stream;
 }
 
@@ -68,27 +73,72 @@ async function connectReminderStream(
   stream: ReminderEventStream,
   listeners: ReminderStreamListenerMap,
 ) {
-  const token = getAccessToken();
-  const url = new URL(`${API_BASE_URL}/reminders/connect`, window.location.origin);
+  let reconnectAttempts = 0;
+  let lastEventId = '';
 
-  try {
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      credentials: 'include',
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      signal: controller.signal,
-    });
+    while (!controller.signal.aborted) {
+    try {
+      const token = getAccessToken();
+      const url = new URL(`${API_BASE_URL}/reminders/connect`, window.location.origin);
+      const headers: Record<string, string> = {};
 
-    if (!response.ok || !response.body) {
-      throw new Error('리마인더 SSE 연결에 실패했습니다.');
-    }
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      if (lastEventId) {
+        headers['Last-Event-ID'] = lastEventId;
+      }
 
-    await readReminderStream(response.body, (event) => dispatchReminderEvent(stream, listeners, event));
-  } catch (error) {
-    if (!controller.signal.aborted) {
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        credentials: 'include',
+        headers,
+        signal: controller.signal,
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('리마인더 SSE 연결에 실패했습니다.');
+      }
+
+      await readReminderStream(response.body, (event) => {
+        if (event.lastEventId) {
+          lastEventId = event.lastEventId;
+        }
+        dispatchReminderEvent(stream, listeners, event);
+      });
+
+      throw new Error('리마인더 SSE 연결이 종료되었습니다.');
+    } catch (error) {
+      if (controller.signal.aborted) {
+        return;
+      }
+
       stream.onerror?.(new Event('error'));
+      reconnectAttempts += 1;
+
+      if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+        stream.onreconnectfailed?.();
+        controller.abort();
+        return;
+      }
+
+      const delay = Math.min(
+        INITIAL_RECONNECT_DELAY_MS * (2 ** (reconnectAttempts - 1)),
+        MAX_RECONNECT_DELAY_MS,
+      );
+      await waitForReconnect(delay, controller.signal);
     }
   }
+}
+
+function waitForReconnect(delay: number, signal: AbortSignal) {
+  return new Promise<void>((resolve) => {
+    const timer = window.setTimeout(resolve, delay);
+    signal.addEventListener('abort', () => {
+      window.clearTimeout(timer);
+      resolve();
+    }, { once: true });
+  });
 }
 
 async function readReminderStream(body: ReadableStream<Uint8Array>, onEvent: (event: MessageEvent<string>) => void) {
@@ -124,6 +174,7 @@ async function readReminderStream(body: ReadableStream<Uint8Array>, onEvent: (ev
 function parseSseMessage(rawMessage: string): MessageEvent<string> | null {
   const data: string[] = [];
   let eventType = 'message';
+  let lastEventId = '';
 
   rawMessage.split(/\r?\n/).forEach((line) => {
     if (!line || line.startsWith(SSE_FIELD_SEPARATOR)) {
@@ -141,13 +192,20 @@ function parseSseMessage(rawMessage: string): MessageEvent<string> | null {
     if (field === 'data') {
       data.push(value);
     }
+
+    if (field === 'id') {
+      lastEventId = value;
+    }
   });
 
   if (data.length === 0) {
     return null;
   }
 
-  return new MessageEvent(eventType, { data: data.join('\n') });
+  return new MessageEvent(eventType, {
+    data: data.join('\n'),
+    lastEventId,
+  });
 }
 
 function dispatchReminderEvent(
