@@ -46,8 +46,10 @@ public class ReminderController {
     /** 사용자 SSE 연결을 생성한다. */
     @Operation(summary = "리마인더 SSE 연결", description = "실시간 리마인더 알림 수신을 위한 SSE 연결을 생성합니다.")
     @GetMapping(value = "/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public ResponseEntity<SseEmitter> connect() {
-        SseEmitter emitter = reminderService.connect(getCurrentUserId());
+    public ResponseEntity<SseEmitter> connect(
+            @RequestHeader(value = "Last-Event-ID", required = false) String lastEventId
+    ) {
+        SseEmitter emitter = reminderService.connect(getCurrentUserId(), lastEventId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CACHE_CONTROL, "no-cache")
                 .header("X-Accel-Buffering", "no")

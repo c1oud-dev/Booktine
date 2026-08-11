@@ -59,7 +59,11 @@ public class ReminderService {
      * 사용자 SSE 연결을 생성하고 초기 연결 이벤트를 전송한다.
      */
     public SseEmitter connect(Long userId) {
-        SseEmitter emitter = sseEmitterManager.connect(userId);
+        return connect(userId, null);
+    }
+
+    public SseEmitter connect(Long userId, String lastEventId) {
+        SseEmitter emitter = sseEmitterManager.connect(userId, lastEventId);
         sseEmitterManager.send(userId, CONNECTED_MESSAGE);
         return emitter;
     }

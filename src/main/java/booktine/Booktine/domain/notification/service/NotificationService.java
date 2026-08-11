@@ -82,6 +82,10 @@ public class NotificationService {
      * SSE 연결을 생성해 실시간 알림을 수신할 수 있도록 한다.
      */
     public SseEmitter connect(Long userId) {
-        return sseEmitterManager.connect(userId);
+        return connect(userId, null);
+    }
+
+    public SseEmitter connect(Long userId, String lastEventId) {
+        return sseEmitterManager.connect(userId, lastEventId);
     }
 }
