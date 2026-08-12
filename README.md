@@ -1,15 +1,17 @@
-# Booktine
+# 도서 추천과 리마인더로 독서 습관을 이어주는 서비스
 
-> 독서 기록, 목표, 통계, 추천, 커뮤니티를 한 곳에서 관리하는 독서 습관 관리 서비스
+> 독서 기록과 목표 관리, 통계 기능을 중심으로 한 독서 습관 관리 서비스입니다. <br> 도서 추천과 커뮤니티 기능을 함께 제공합니다.
 
-![Java](https://img.shields.io/badge/Java_21-007396?style=flat-square&logo=openjdk&logoColor=white)
-![Spring Boot](https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=springboot&logoColor=white)
-![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL_8-4479A1?style=flat-square&logo=mysql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+<p align="center">
+  <img src="https://img.shields.io/badge/Java_21-007396?style=flat-square&logo=openjdk&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=flat-square&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/MySQL_8-4479A1?style=flat-square&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonaws&logoColor=white" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" />
+</p>
 
 <p align="center">
   <img src="docs/cover.png" alt="Booktine 커버">
@@ -30,8 +32,9 @@
 
 ## 프로젝트 소개
 
-독서 기록이 메모 앱, 노트, 사진 등 여러 곳에 흩어져 장기적으로 관리하기 어렵다는 문제에서 출발했습니다.
-Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계 시각화, 도서 추천, 독서 커뮤니티까지 하나의 서비스에서 제공합니다.
+독서 기록이 메모 앱, 노트, 사진 등 여러 곳에 흩어져 있어 꾸준히 관리하고 돌아보기 어렵다는 문제에서 시작했습니다.
+Booktine은 독서 기록과 목표, 통계를 한곳에서 관리하며 자신의 독서 습관을 지속적으로 확인할 수 있는 서비스입니다.
+읽고 있는 책과 완독 기록을 남기고, 월간·연간 목표와 통계를 통해 독서 흐름을 확인할 수 있습니다. 또한 리마인더와 도서 추천으로 꾸준한 독서를 돕고, 커뮤니티를 통해 다른 독자들과 책에 대한 생각을 공유할 수 있도록 구성했습니다.
 
 ### 서비스 목표
 - 가입자 수 100명 달성
