@@ -191,6 +191,18 @@ class PostServiceTest {
         assertThat(response.title()).isEqualTo("상세제목");
     }
 
+    @Test
+    @DisplayName("게시물이 없으면 상세 조회 시 예외 발생")
+    void getPost_notFound_throwsException() {
+        // given
+        given(postRepository.findWithUserById(21L)).willReturn(java.util.Optional.empty());
+
+        // when // then
+        assertThatThrownBy(() -> postService.getPost(21L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+    }
+
     /**
      * 게시물 수정이 정상 동작하는지 검증한다.
      */
@@ -257,6 +269,21 @@ class PostServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 게시물 수정 시 예외 발생")
+    void updatePost_notFound_throwsException() {
+        // given
+        PostUpdateRequest request = new PostUpdateRequest("수정시도", "저자", "장르", "출판사",
+                LocalDate.of(2024, 1, 1), "요약", ReadingStatus.READING, null, null, null, null, 12, 320);
+        given(postRepository.findWithUserByIdAndUserId(51L, 1L)).willReturn(java.util.Optional.empty());
+        given(postRepository.existsById(51L)).willReturn(false);
+
+        // when // then
+        assertThatThrownBy(() -> postService.updatePost(1L, 51L, request))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("현재 페이지가 전체 페이지보다 크면 예외 발생")
     void updatePost_invalidPageRange_throwsException() {
         // given
@@ -270,6 +297,32 @@ class PostServiceTest {
         assertThatThrownBy(() -> postService.updatePost(1L, 61L, request))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+    }
+
+    @Test
+    @DisplayName("다른 유저 게시물 삭제 시 예외 발생")
+    void deletePost_forbidden_throwsException() {
+        // given
+        given(postRepository.findWithUserByIdAndUserId(41L, 2L)).willReturn(java.util.Optional.empty());
+        given(postRepository.existsById(41L)).willReturn(true);
+
+        // when // then
+        assertThatThrownBy(() -> postService.deletePost(2L, 41L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FORBIDDEN);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 게시물 삭제 시 예외 발생")
+    void deletePost_notFound_throwsException() {
+        // given
+        given(postRepository.findWithUserByIdAndUserId(41L, 1L)).willReturn(java.util.Optional.empty());
+        given(postRepository.existsById(41L)).willReturn(false);
+
+        // when // then
+        assertThatThrownBy(() -> postService.deletePost(1L, 41L))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
     }
 
     /**
