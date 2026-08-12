@@ -12,7 +12,7 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/e6826308-10d7-4696-b3eb-9268be15104e" width="100%" alt="Booktine 커버">
+  <img src="docs/cover.png" alt="Booktine 커버">
 </p>
 
 #### 🔗 서비스 : https://booktine.cloud
@@ -87,11 +87,11 @@ Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/f7db9d43-fb69-44b1-8f48-5c70d734f59c" width="400" alt="로그인"><br>
+      <img src="docs/login.png" alt="로그인"><br>
       <sub>로그인</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/73c4e34d-4317-4e26-af75-fc13827015d0" width="400" alt="회원가입"><br>
+      <img src="docs/signUp.png" alt="회원가입"><br>
       <sub>회원가입</sub>
     </td>
   </tr>
@@ -103,11 +103,11 @@ Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/00f65eeb-f97d-44cc-8d21-6a03a0be4dda" width="400" alt="독서 기록 목록 화면"><br>
+      <img src="docs/bookNote.png" alt="독서 기록 목록 화면"><br>
       <sub>독서 기록 목록 화면</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/2e775e81-f9be-4daf-9355-4d4f5bc0d4e4" width="400" alt="독서 기록 상세 화면"><br>
+      <img src="docs/bookNoteDetail.png" alt="독서 기록 상세 화면"><br>
       <sub>독서 기록 상세 화면</sub>
     </td>
   </tr>
@@ -119,11 +119,11 @@ Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/53cff1f2-7697-4506-a026-f9e16549a458" width="400" alt="월간/연간 목표 카드"><br>
+      <img src="docs/progress.png" alt="월간/연간 목표 카드"><br>
       <sub>월간/연간 목표 카드</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/08d8f1bc-56f8-438f-b8d4-0e1dad9976a1" width="400" alt="통계 차트"><br>
+      <img src="docs/statistics.png" alt="통계 차트"><br>
       <sub>통계 차트</sub>
     </td>
   </tr>
@@ -135,15 +135,15 @@ Booktine은 읽은 책의 기록과 메모, 월간·연간 독서 목표, 통계
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/ee6d2555-d523-4093-adc4-55b3bed5bd08" width="260" alt="베스트셀러"><br>
+      <img src="docs/bestseller.png" alt="베스트셀러"><br>
       <sub>베스트셀러</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/9234f933-5d71-4689-8561-82a12153e979" width="260" alt="장르별 추천"><br>
+      <img src="docs/recommend.png" alt="장르별 추천"><br>
       <sub>장르별 추천</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/5efef86b-c0c9-419d-8777-2ec71a72e41b" width="260" alt="도서 검색"><br>
+      <img src="docs/search.png" alt="도서 검색"><br>
       <sub>도서 검색</sub>
     </td>
   </tr>
@@ -155,11 +155,11 @@ Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/8a52d6ec-fa8f-4f6a-9607-3f436da23a04" width="400" alt="커뮤니티 목록"><br>
+      <img src="docs/community.png" alt="커뮤니티 목록"><br>
       <sub>커뮤니티 목록</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/e84517bf-4714-409f-8268-0617ed81c528" width="400" alt="커뮤니티 상세 글"><br>
+      <img src="docs/communityDetail.png" alt="커뮤니티 상세 글"><br>
       <sub>커뮤니티 상세 글</sub>
     </td>
   </tr>
@@ -171,11 +171,11 @@ Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/8e28c96c-c1d8-41a7-bae3-21ea213d171b" width="400" alt="리마인더"><br>
+      <img src="docs/reminder.png" alt="리마인더"><br>
       <sub>리마인더</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/b1e30124-9555-49ad-a73f-3bee2ed62b94" width="400" alt="알림"><br>
+      <img src="docs/notification.png" alt="알림"><br>
       <sub>알림 수신</sub>
     </td>
   </tr>
@@ -187,11 +187,11 @@ Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추
 <table>
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/14ad9452-ecbe-49ec-8706-717df30fd459" width="400" alt="관리자"><br>
+      <img src="docs/admin.png" alt="관리자"><br>
       <sub>관리자</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/8be4be5a-6d9c-4796-bcdf-6eb4e0480722" width="400" alt="관리자"><br>
+      <img src="docs/admin2.png" alt="관리자"><br>
       <sub>관리자</sub>
     </td>
   </tr>
@@ -204,7 +204,7 @@ Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추
 ## 시스템 아키텍처
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/44991e53-d9ac-40c0-b0bb-5cfe7289b1f1" width="100%" alt="시스템 아키텍처">
+  <img src="docs/architecture.png" alt="시스템 아키텍처">
 </p>
 
 <br>
@@ -212,67 +212,52 @@ Aladin API를 연동해 도서 검색, 베스트셀러 조회, 장르 기반 추
 ## ERD
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/d63acabd-63a0-4feb-9858-203b5e7662bc" width="100%" alt="ERD">
+  <img src="docs/erd.png" alt="ERD">
 </p>
 
 <br>
 
 ## 🛠 트러블슈팅
 
-### 동적 쿼리 — @Query에서 QueryDSL로 전환
+### 복합 인덱스 최적화
+#### 실제 조회 패턴 분석을 통한 복합 인덱스 설계
 
-게시물 검색 기능에서 키워드와 독서 상태가 모두 선택 조건인 동적 쿼리를 @Query로 구현했다.
-조건이 늘어날수록 쿼리 문자열이 복잡해지고, 컴파일 타임에 오타를 잡을 수 없는 문제가 있었다.
+독서 기록 조회 시 사용자 ID, 독서 상태, 완독일을 조건으로 사용하는 조회가 빈번하게 발생했다. 단일 인덱스로는 조회 패턴에 맞는 인덱스 활용이 불가능했고, 실제 조회에서도 인덱스가 제대로 활용되지 않는 것을 확인했다.
 
-QueryDSL을 도입해 BooleanBuilder로 조건을 동적으로 조합하도록 변경했다.
-타입 안전성과 확장성이 확보되어 이후 장르 필터, 날짜 범위 등 조건 추가 시에도 코드 변경 범위를 최소화할 수 있었다.
-
-→ [블로그 상세 기록](https://dev-cloud.tistory.com/485)
-
-### 배포 — CloudFront ACM 인증서 리전 오류
-
-CloudFront에 커스텀 도메인을 연결하면서 ACM 인증서를 ap-northeast-2(서울)에 발급했으나 인식되지 않았다.
-CloudFront는 ACM 인증서가 반드시 us-east-1(버지니아 북부)에 있어야 한다는 제약이 있었다.
-
-us-east-1에 와일드카드 인증서를 새로 발급하고 CloudFront에 연결해 해결했다.
-
-### 배포 — Google OAuth redirect_uri HTTP/HTTPS 불일치
-
-ALB가 HTTPS 요청을 EC2로 HTTP로 전달하는 구조에서 Spring이 redirect_uri를 `http://`로 생성했고,
-Google Cloud Console에 등록된 URI와 불일치해 `redirect_uri_mismatch` 오류가 발생했다.
-
-Google Cloud Console 승인된 리디렉션 URI에 `http://api.booktine.cloud/login/oauth2/code/google`를 추가해 해결했다.
-근본 해결책은 `server.forward-headers-strategy=native` 설정으로 Spring이 원래 HTTPS URI를 인식하게 하는 방식이다.
-
-<br>
-
-## ♻️ 리팩토링
-
-### N+1 문제 개선 — fetch join / @EntityGraph 적용
-
-게시글, 메모, 커뮤니티 게시글/댓글 조회 시 DTO 변환 과정에서 연관 엔티티에 접근할 때
-지연 로딩으로 인해 결과 수만큼 추가 쿼리가 발생하는 구조였다.
-
-- **게시글 검색** (`GET /posts/search`) — QueryDSL `.join(post.user).fetchJoin()`으로
-  `Post → User`를 한 번에 조회하도록 개선
-- **게시글/메모/커뮤니티 게시글·댓글 목록 조회** — `@EntityGraph`를 적용해
-  DTO 변환 시 접근하는 `User`, `Post`, `Parent` 관계를 즉시 로딩으로 전환
-
-
-### JPA 인덱스 추가로 조회 성능 개선
-
-리팩토링 단계에서 쿼리 로그를 확인하던 중 자주 조회되는 컬럼에 인덱스가 없는 것을 발견했다.
-모든 컬럼에 무작정 추가하는 것이 아니라 실제 WHERE 조건에 자주 등장하는 컬럼을 기준으로 선택적으로 적용했다.
-
-적용 대상: `posts.user_id`, `posts.reading_status`, `posts.completed_date`,
-`memos.post_id`, `reminders.user_id`, `reminders.reminder_time`
-
-JPA `@Index` 설정 후 H2 `INFORMATION_SCHEMA.INDEXES`로 실제 생성 여부를 직접 검증했다.
+사용자별 독서 상태 기반 조회 복합 인덱스(사용자 ID → 독서 상태 → 완독일)와 완독 도서 조회 복합 인덱스(사용자 ID → 독서 상태)를 각각 설계했다. EXPLAIN ANALYZE로 인덱스 활용 여부를 직접 검증했다.
 
 → [블로그 상세 기록](https://dev-cloud.tistory.com/497)
 
+### 단일 EC2 성능 한계 검증
+#### k6 부하 테스트
 
-### 보안 점검 — 인증/인가 및 실서비스 취약점 개선
+단일 EC2 t2.micro 환경에서 서비스가 감당할 수 있는 동시 요청 수준을 확인할 명확한 기준이 없었다.
+
+k6를 사용해 주요 API 시나리오를 구성하고 부하 테스트를 진행했다. 단일 EC2 환경에서 약 7 RPS 이상이면 P95 응답시간이 급격히 증가했고, 동시에 Like API에서 Race Condition이 발견됐다. 테스트를 통해 트래픽 임계점과 동시성 문제를 사전에 파악할 수 있었다.
+
+→ [블로그 상세 기록](https://dev-cloud.tistory.com/509)
+
+### N+1 문제 개선
+#### fetch join / @EntityGraph 적용
+
+게시글, 메모, 커뮤니티 게시글/댓글 조회 시 DTO 변환 과정에서 연관 엔티티에 접근할 때 지연 로딩으로 인해 결과 수만큼 추가 쿼리가 발생하는 구조였다.
+
+- **게시글 검색** (`GET /posts/search`) — QueryDSL `.join(post.user).fetchJoin()`으로 `Post → User`를 한 번에 조회하도록 개선
+- **게시글/메모/커뮤니티 게시글·댓글 목록 조회** — `@EntityGraph`를 적용해 DTO 변환 시 접근하는 `User`, `Post`, `Parent` 관계를 즉시 로딩으로 전환
+
+
+## ♻️ 리팩토링
+
+### AWS 아키텍처 단순화
+#### 비용 효율을 고려한 단일 EC2 전환
+
+초기 배포 환경은 ALB, RDS, ElastiCache를 각각 독립된 서비스로 구성했다. 서비스 규모에 비해 AWS 크레딧 소모가 빠르게 발생했다.
+
+관리형 서비스 대신 단일 EC2에 MySQL과 Redis를 직접 설치하는 구조로 전환했다. Spring Boot는 Docker 컨테이너로, Nginx는 리버스 프록시로 구성했다. ALB·RDS·ElastiCache를 제거해 비용 요소를 줄이고, 단일 EC2 기준으로 서비스 전체가 영향을 받는 한계는 있지만 트래픽 규모와 목적에 맞춰 비용과 가용성 사이의 트레이드오프를 선택했다.
+
+
+### 보안 점검
+#### 인증/인가 및 실서비스 취약점 개선
 
 기능 구현 완료 후 "실서비스 기준"으로 보안을 별도 점검했다. 주요 개선 내용은 다음과 같다.
 
