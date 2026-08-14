@@ -7,6 +7,7 @@ import booktine.Booktine.domain.progress.repository.MonthlyGoalRepository;
 import booktine.Booktine.domain.user.entity.User;
 import booktine.Booktine.domain.user.repository.UserRepository;
 import booktine.Booktine.global.exception.CustomException;
+import booktine.Booktine.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,6 +67,18 @@ class MonthlyGoalServiceTest {
     }
 
     @Test
+    @DisplayName("존재하지 않는 사용자가 월간 목표 설정 시 예외 발생")
+    void create_userNotFound_throws() {
+        // given
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> monthlyGoalService.create(1L, new MonthlyGoalCreateRequest(2026, 4, 4)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
     @DisplayName("월간 목표 조회 성공")
     void getGoal_success() {
         // given
@@ -95,6 +108,65 @@ class MonthlyGoalServiceTest {
         assertThatThrownBy(() -> monthlyGoalService.getGoal(1L, 2026, 4))
                 .isInstanceOf(CustomException.class);
     }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자의 월간 목표 조회 시 예외 발생")
+    void getGoal_userNotFound_throws() {
+        // given
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> monthlyGoalService.getGoal(1L, 2026, 4))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("월간 목표 수정 성공")
+    void update_success() {
+        // given
+        User user = user();
+        MonthlyGoal goal = MonthlyGoal.builder().user(user).year(2026).month(4).goalCount(4).build();
+        ReflectionTestUtils.setField(goal, "id", 1L);
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(monthlyGoalRepository.findByUserIdAndYearAndMonth(1L, 2026, 4)).willReturn(Optional.of(goal));
+
+        // when
+        MonthlyGoalResponse res = monthlyGoalService.update(
+                1L, 2026, 4, new MonthlyGoalCreateRequest(2026, 4, 8));
+
+        // then
+        assertThat(res.goalCount()).isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 월간 목표 수정 시 예외 발생")
+    void update_notFound_throws() {
+        // given
+        User user = user();
+        given(userRepository.findById(1L)).willReturn(Optional.of(user));
+        given(monthlyGoalRepository.findByUserIdAndYearAndMonth(1L, 2026, 4)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> monthlyGoalService.update(
+                1L, 2026, 4, new MonthlyGoalCreateRequest(2026, 4, 8)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MONTHLY_GOAL_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 사용자의 월간 목표 수정 시 예외 발생")
+    void update_userNotFound_throws() {
+        // given
+        given(userRepository.findById(1L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> monthlyGoalService.update(
+                1L, 2026, 4, new MonthlyGoalCreateRequest(2026, 4, 8)))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.USER_NOT_FOUND);
+    }
+
 
     private User user() {
         User user = User.builder().email("e").password("p").nickname("n").build();
