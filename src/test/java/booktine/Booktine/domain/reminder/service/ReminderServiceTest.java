@@ -101,6 +101,22 @@ class ReminderServiceTest {
         verify(sseEmitterManager, times(1)).send(1L, "리마인더 SSE 연결이 완료되었습니다.");
     }
 
+    @Test
+    @DisplayName("Last-Event-ID로 리마인더 SSE 재연결 성공")
+    void connect_withLastEventId_success() {
+        // given
+        SseEmitter emitter = new SseEmitter();
+        given(sseEmitterManager.connect(1L, "15")).willReturn(emitter);
+
+        // when
+        SseEmitter response = reminderService.connect(1L, "15");
+
+        // then
+        assertThat(response).isSameAs(emitter);
+        verify(sseEmitterManager, times(1)).connect(1L, "15");
+        verify(sseEmitterManager, times(1)).send(1L, "리마인더 SSE 연결이 완료되었습니다.");
+    }
+
     /**
      * 리마인더 삭제가 정상 동작하는지 검증한다.
      */
